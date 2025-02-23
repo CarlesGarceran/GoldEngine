@@ -68,5 +68,15 @@ namespace Engine::Render::Pipelines
         {
 
         }
+
+        void PreRenderStack() override
+        {
+
+        }
+
+        void PostRenderStack() override
+        {
+
+        }
     };
 }

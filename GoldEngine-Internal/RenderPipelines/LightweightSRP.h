@@ -86,5 +86,15 @@ namespace Engine::Render::Pipelines
 
             harmonyInst->Unpatch(originalMethod, patch);
         }
+
+        void PreRenderStack() override
+        {
+
+        }
+
+        void PostRenderStack() override
+        {
+
+        }
     };
 }

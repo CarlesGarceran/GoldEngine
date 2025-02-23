@@ -18,6 +18,24 @@ namespace Engine::Render
 	void UnloadRenderTextureDepthTex(RenderTexture2D target);
 	void unloadCameraData(cameraData* data);
 
+	public ref class ScriptableEffect abstract
+	{
+	public:
+		int width = 1920;
+		int height = 1080;
+
+
+	public:
+		virtual void OnEffectBegin() abstract;
+		virtual void OnEffectEnd() abstract;
+
+		virtual void OnEffectApply(RAYLIB::RenderTexture2D* fboPtr) {};
+
+		virtual void OnEffectUnload() abstract;
+
+		virtual bool ManualRendering() { return false; } // Manual rendering, if this option is triggered the rendering will be handled by the game engine instead of the Effect
+	};
+
 	public ref class ScriptableRenderPipeline abstract
 	{
 	protected:
@@ -27,6 +45,8 @@ namespace Engine::Render
 		Engine::Native::EnginePtr<RAYLIB::RenderTexture>* framebufferTexturePtr;
 		Engine::Native::EnginePtr<RAYLIB::Shader>* depthShaderPtr;
 		Engine::Native::EnginePtr<cameraData*>* cameraDataPtr;
+
+		System::Collections::Generic::List<ScriptableEffect^>^ effects;
 
 	public:
 		ScriptableRenderPipeline()
@@ -44,6 +64,8 @@ namespace Engine::Render
 
 			RAYLIB::Shader depthShader = RAYLIB::LoadShader("Data/Engine/Shaders/base.vs", "Data/Engine/Shaders/depth.frag");
 			depthShaderPtr = new Engine::Native::EnginePtr<RAYLIB::Shader>(depthShader, &RAYLIB::UnloadShader);
+
+			effects = gcnew Collections::Generic::List<ScriptableEffect^>();
 		}
 
 	protected:
@@ -111,7 +133,7 @@ namespace Engine::Render
 				CreateTexture();
 
 				BeginTextureMode(this->framebufferTexturePtr->getInstance());
-	
+
 				OnRenderBegin();
 
 				ClearBackground(GetColor(scene->skyColor));
@@ -149,6 +171,34 @@ namespace Engine::Render
 				RLGL::rlDisableDepthTest();
 				EndTextureMode();
 
+
+				for each (ScriptableEffect ^ effect in effects)
+				{
+					RAYLIB::RenderTexture2D savedTex = framebufferTexturePtr->getInstance();
+					BeginTextureMode(framebufferTexturePtr->getInstance());
+					if (effect->ManualRendering())
+						effect->OnEffectApply(&savedTex);
+					else
+					{
+						effect->OnEffectBegin();
+
+						Rectangle target;
+						target.x = 0;
+						target.y = 0;
+						target.width = Engine::Scripting::Screen::Width;
+						target.height = -Engine::Scripting::Screen::Height;
+
+						ClearBackground({ 0,0,0,255 });
+						DrawTextureRec(savedTex.texture, target, { 0,0 }, { 255,255,255,255 });
+
+						effect->OnEffectEnd();
+					}
+
+					EndTextureMode();
+				}
+
+				PreRenderStack();
+
 				Rectangle target;
 				target.x = 0;
 				target.y = 0;
@@ -158,12 +208,13 @@ namespace Engine::Render
 				ClearBackground({ 0,0,0,255 });
 
 				DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
+				PostRenderStack();
 
 				OnRenderEnd();
 
 				rlImGuiBegin();
 
-				for each (Engine::Internal::Components::GameObject^ obj in scene->GetRenderQueue())
+				for each (Engine::Internal::Components::GameObject ^ obj in scene->GetRenderQueue())
 				{
 					if (obj != nullptr)
 					{
@@ -220,6 +271,31 @@ namespace Engine::Render
 
 				EndTextureMode();
 
+				for each (ScriptableEffect ^ effect in effects)
+				{
+					RAYLIB::RenderTexture2D savedTex = framebufferTexturePtr->getInstance();
+					BeginTextureMode(framebufferTexturePtr->getInstance());
+					if (effect->ManualRendering())
+						effect->OnEffectApply(&savedTex);
+					else
+					{
+						effect->OnEffectBegin();
+
+						Rectangle target;
+						target.x = 0;
+						target.y = 0;
+						target.width = Engine::Scripting::Screen::Width;
+						target.height = -Engine::Scripting::Screen::Height;
+
+						ClearBackground({ 0,0,0,255 });
+						DrawTextureRec(savedTex.texture, target, { 0,0 }, { 255,255,255,255 });
+
+						effect->OnEffectEnd();
+					}
+
+					EndTextureMode();
+				}
+
 				OnRenderEnd();
 
 				rlImGuiBegin();
@@ -232,7 +308,7 @@ namespace Engine::Render
 					ImGui::End();
 				}
 
-				for each (GameObject^ obj in scene->GetRenderQueue())
+				for each (GameObject ^ obj in scene->GetRenderQueue())
 				{
 					if (obj != nullptr)
 					{
@@ -263,7 +339,7 @@ namespace Engine::Render
 
 				if (cL != nullptr)
 				{
-					for each (Engine::Internal::Components::GameObject^ sceneObject in scene->GetRenderQueue())
+					for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
 					{
 						if (scene->sceneLoaded())
 						{
@@ -317,7 +393,7 @@ namespace Engine::Render
 
 				if (cL != nullptr)
 				{
-					for each (Engine::Internal::Components::GameObject^ sceneObject in scene->GetRenderQueue())
+					for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
 					{
 						if (scene->sceneLoaded())
 						{
@@ -402,7 +478,7 @@ namespace Engine::Render
 				if (cL == nullptr)
 					continue;
 
-				for each (Engine::Internal::Components::GameObject^ sceneObject in scene->GetRenderQueue())
+				for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
 				{
 					if (scene->sceneLoaded())
 					{
@@ -439,7 +515,7 @@ namespace Engine::Render
 				if (cL == nullptr)
 					continue;
 
-				for each (Engine::Internal::Components::GameObject^ sceneObject in scene->GetRenderQueue())
+				for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
 				{
 					if (scene->sceneLoaded())
 					{
@@ -476,6 +552,9 @@ namespace Engine::Render
 		virtual void PreRenderObject(Engine::Internal::Components::GameObject^) abstract;
 		virtual void PostRenderObject() abstract;
 
+		virtual void PreRenderStack() abstract;
+		virtual void PostRenderStack() abstract;
+
 		// Hooks at the beggining and end of the render process
 		virtual void OnRenderBegin() abstract;
 		virtual void OnRenderEnd() abstract;
@@ -485,6 +564,17 @@ namespace Engine::Render
 		virtual void PostFirstPassRender() abstract;
 
 		// For freeing resources and memory
-		virtual void OnUnloadPipeline() { delete framebufferTexturePtr; delete depthShaderPtr; };
+		virtual void OnUnloadPipeline()
+		{
+			delete framebufferTexturePtr;
+			delete depthShaderPtr;
+
+			for each (ScriptableEffect^ effect in effects)
+			{
+				effect->OnEffectUnload();
+			}
+		};
 	};
 }
+
+
