@@ -59,15 +59,6 @@
     <Filter Include="Source\Engine\ObjectManagement">
       <UniqueIdentifier>{734d2dff-1260-4726-b83d-00d76a1f3524}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\ObjectManagement\Cameras">
-      <UniqueIdentifier>{a3fa7e6a-969f-4537-a4b6-1cfe482a567c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ObjectManagement\Materials">
-      <UniqueIdentifier>{badbfa6e-2c37-4397-86b4-e6ba2a95b259}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ObjectManagement\Types">
-      <UniqueIdentifier>{014d52e1-2403-456a-898e-daa5e640d34b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\HLAPI">
       <UniqueIdentifier>{9b437e7d-5295-4f14-bd28-6d61f0a38f22}</UniqueIdentifier>
     </Filter>
@@ -142,12 +133,6 @@
     </Filter>
     <Filter Include="Source\Engine\Native">
       <UniqueIdentifier>{de4e4d3d-9b5c-43dd-861e-e98c5aeb001d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\Utils">
-      <UniqueIdentifier>{1394687c-b10e-48e6-8430-d5caf21711a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\Signals">
-      <UniqueIdentifier>{741a851b-feff-416d-a254-c447b15545d4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\EngineTools">
       <UniqueIdentifier>{6d13b602-baec-4651-bcfb-eea23e4403db}</UniqueIdentifier>
@@ -352,6 +337,30 @@
     <Filter Include="Source\Engine\Object\Locs">
       <UniqueIdentifier>{ecdc7834-35a5-4ef7-913f-7d2339912ad9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Engine\ObjectManagement">
+      <UniqueIdentifier>{ecd2e752-4e15-4e4d-9a74-c83d9f5905be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Signals">
+      <UniqueIdentifier>{741a851b-feff-416d-a254-c447b15545d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Utils">
+      <UniqueIdentifier>{1394687c-b10e-48e6-8430-d5caf21711a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Windows">
+      <UniqueIdentifier>{8d6c0b1b-183f-4d2e-b8fe-9499ed1a7240}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\BuiltIn">
+      <UniqueIdentifier>{8bc42e77-3f65-448d-b744-b2c149e0fbd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\BuiltIn\Effects">
+      <UniqueIdentifier>{c5f2ef93-39b7-4984-b446-424acacffcd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\BuiltIn">
+      <UniqueIdentifier>{76cda915-4375-4f3e-b12f-e83424b61748}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\BuiltIn\Effects">
+      <UniqueIdentifier>{c54af503-63c8-4ef4-8c0c-e2cd0a7dc335}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -378,9 +387,6 @@
     <ClInclude Include="DataManager.h">
       <Filter>Source\Engine\HLAPI</Filter>
     </ClInclude>
-    <ClInclude Include="DataPacks.h">
-      <Filter>Source\Engine\ObjectManagement</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Source\Engine\Management\Instance</Filter>
     </ClInclude>
@@ -389,15 +395,6 @@
     </ClInclude>
     <ClInclude Include="CypherLib.h">
       <Filter>Headers\Engine\Encryption</Filter>
-    </ClInclude>
-    <ClInclude Include="DataPack.h">
-      <Filter>Source\Engine\ObjectManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="WinAPI.h">
-      <Filter>Source\Engine\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="FileManager.h">
-      <Filter>Source\Engine\ObjectManagement</Filter>
     </ClInclude>
     <ClInclude Include="SceneObject.h">
       <Filter>Source\Engine\Management\MiddleLevel</Filter>
@@ -469,7 +466,7 @@
       <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
     </ClInclude>
     <ClInclude Include="LogFileReporter.h">
-      <Filter>Source\Engine\Utils</Filter>
+      <Filter>Headers\Engine\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Object\ObjectType.h">
       <Filter>Source\Engine\Object\Enums</Filter>
@@ -520,7 +517,7 @@
       <Filter>Deps\raylib\include</Filter>
     </ClInclude>
     <ClInclude Include="ManagedSignal.h">
-      <Filter>Source\Engine\Signals</Filter>
+      <Filter>Headers\Engine\Signals</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Pipeline\ScriptableRenderPipeline.hpp">
       <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Scriptable</Filter>
@@ -999,6 +996,21 @@
     <ClInclude Include="AsmLoader.h">
       <Filter>Headers\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="DataPack.h">
+      <Filter>Headers\Engine\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="DataPacks.h">
+      <Filter>Headers\Engine\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="FileManager.h">
+      <Filter>Headers\Engine\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="WinAPI.h">
+      <Filter>Headers\Engine\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h">
+      <Filter>Headers\BuiltIn\Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1151,9 +1163,6 @@
     <ClCompile Include="ObjectManager.cpp">
       <Filter>Source\Engine\ScriptingAPI\Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Reflection\ReflectableType.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Object\Locs\ColorLoc.cpp">
       <Filter>Source\Engine\Object\Locs</Filter>
     </ClCompile>
@@ -1162,6 +1171,12 @@
     </ClCompile>
     <ClCompile Include="Object\Material.cpp">
       <Filter>Source\Engine\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Reflection\ReflectableType.cpp">
+      <Filter>Source\Engine\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="BuiltIn\Effects\ACES_Tonemapper.cpp">
+      <Filter>Source\Engine\BuiltIn\Effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

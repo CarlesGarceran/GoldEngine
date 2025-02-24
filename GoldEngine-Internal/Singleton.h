@@ -102,6 +102,19 @@ public:
 		}
 	}
 
+	generic <class T>
+	static void Create(System::String^ name, T i)
+	{
+		if (!Instances->ContainsKey(name))
+		{
+			Instances->Add(name, gcnew SharedInstance(i));
+		}
+		else
+		{
+			Instances[name]->Instance = i;
+		}
+	}
+
 public:
 	static bool ExistsInstance(System::String^ name)
 	{

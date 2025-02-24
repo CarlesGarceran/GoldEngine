@@ -329,6 +329,7 @@
     <ClInclude Include="assimp\assimp\ZipArchiveIOSystem.h" />
     <ClInclude Include="Attribute.h" />
     <ClInclude Include="AttributeManager.h" />
+    <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h" />
     <ClInclude Include="Cast.h" />
     <ClInclude Include="CastToNative.h" />
     <ClInclude Include="Chunk.h" />
@@ -460,6 +461,7 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="AssimpImpl\AssimpConverter.cpp" />
     <ClCompile Include="Attribute.cpp" />
+    <ClCompile Include="BuiltIn\Effects\ACES_Tonemapper.cpp" />
     <ClCompile Include="CastToNative.cpp" />
     <ClCompile Include="cimgui\cimgui.cpp" />
     <ClCompile Include="DataPacks.cpp" />
