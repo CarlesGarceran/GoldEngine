@@ -726,48 +726,98 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 			if (_reference->getTransform()->parent->GetUID() == parent->getTransform()->GetUID())
 			{
 				String^ refName = "";
-				for (int x = 0; x < depth; x++)
-				{
-					refName += "\t";
-				}
 
 				refName += _reference->name;
 				refName += (_reference->active == true) ? "" : "(INACTIVE)";
 
-				if (_type == ObjectType::Daemon || _type == ObjectType::Datamodel || _type == ObjectType::LightManager || _reference->isProtected())
+				if (_reference->GetChildren()->Count > 0)
 				{
-					if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+					bool isOpen = ImGui::TreeNodeEx(CastStringToNative("##_" + refName + "_(ENGINE_PROTECTED)_" + "###_" + _reference->getTransform()->GetUID() + x).c_str());
+					ImGui::SameLine();
+
+					if (_type == ObjectType::Daemon || _type == ObjectType::Datamodel || _type == ObjectType::LightManager || _reference->isProtected())
 					{
-						if (reparentLock)
-							reparentObject = _reference;
-						else if (selectionLock)
-							selectionObject = _reference;
-						else
+						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
 						{
-							readonlyLock = true;
-							selectedObject = _reference;
-							selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							if (reparentLock)
+								reparentObject = _reference;
+							else if (selectionLock)
+								selectionObject = _reference;
+							else
+							{
+								readonlyLock = true;
+								selectedObject = _reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
 						}
+					}
+					else
+					{
+						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						{
+							if (reparentLock)
+								reparentObject = _reference;
+							else if (selectionLock)
+								selectionObject = _reference;
+							else
+							{
+								readonlyLock = false;
+								selectedObject = _reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+
+					if (isOpen) 
+					{
+						DrawHierarchyInherits(scene, _reference, depth + 1);
+						ImGui::TreePop();
 					}
 				}
 				else
 				{
-					if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+					bool isOpen = ImGui::TreeNodeEx(CastStringToNative("##_" + refName + "_(ENGINE_PROTECTED)_" + "###_" + _reference->getTransform()->GetUID() + x).c_str(), ImGuiTreeNodeFlags_Leaf);
+					ImGui::SameLine();
+
+					if (_type == ObjectType::Daemon || _type == ObjectType::Datamodel || _type == ObjectType::LightManager || _reference->isProtected())
 					{
-						if (reparentLock)
-							reparentObject = _reference;
-						else if (selectionLock)
-							selectionObject = _reference;
-						else
+						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
 						{
-							readonlyLock = false;
-							selectedObject = _reference;
-							selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							if (reparentLock)
+								reparentObject = _reference;
+							else if (selectionLock)
+								selectionObject = _reference;
+							else
+							{
+								readonlyLock = true;
+								selectedObject = _reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
 						}
+					}
+					else
+					{
+						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						{
+							if (reparentLock)
+								reparentObject = _reference;
+							else if (selectionLock)
+								selectionObject = _reference;
+							else
+							{
+								readonlyLock = false;
+								selectedObject = _reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+
+					if (isOpen)
+					{
+						ImGui::TreePop();
 					}
 				}
 
-				DrawHierarchyInherits(scene, _reference, depth + 1);
 			}
 		}
 	}
@@ -1715,40 +1765,86 @@ void EditorWindow::DrawHierarchy()
 				String^ refName = reference->name;
 				refName += (reference->active == true) ? "" : " (INACTIVE)";
 
-				if (type == ObjectType::Datamodel || type == ObjectType::LightManager || reference->isProtected())
+				if (reference->GetChildren()->Count > 0)
 				{
-					if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x)))
-					{
-						if (reparentLock)
-							reparentObject = reference;
-						else if (selectionLock)
-							selectionObject = reference;
-						else
-						{
-							readonlyLock = true;
-							selectedObject = reference;
-							selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
-						}
-					}
-				}
-				else if (reference->getTransform()->parent == nullptr)
-				{
-					if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x)))
-					{
-						if (reparentLock)
-							reparentObject = reference;
-						else if (selectionLock)
-							selectionObject = reference;
-						else
-						{
-							readonlyLock = false;
-							selectedObject = reference;
-							selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
-						}
-					}
-				}
+					bool isOpen = ImGui::TreeNodeEx(CastStringToNative("##_" + refName + "_(ENGINE_PROTECTED)_" + "###_" + reference->getTransform()->GetUID() + x).c_str());
+					ImGui::SameLine();
 
-				DrawHierarchyInherits(scene, reference, 1);
+					if (type == ObjectType::Datamodel || type == ObjectType::LightManager || reference->isProtected())
+					{
+						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						{
+							if (reparentLock)
+								reparentObject = reference;
+							else if (selectionLock)
+								selectionObject = reference;
+							else
+							{
+								readonlyLock = true;
+								selectedObject = reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+					else if (reference->getTransform()->parent == nullptr)
+					{
+						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						{
+							if (reparentLock)
+								reparentObject = reference;
+							else if (selectionLock)
+								selectionObject = reference;
+							else
+							{
+								readonlyLock = false;
+								selectedObject = reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+
+					if (isOpen)
+					{
+						DrawHierarchyInherits(scene, reference, 1);
+						ImGui::TreePop();
+					}
+				}
+				else
+				{
+
+					if (type == ObjectType::Datamodel || type == ObjectType::LightManager || reference->isProtected())
+					{
+						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						{
+							if (reparentLock)
+								reparentObject = reference;
+							else if (selectionLock)
+								selectionObject = reference;
+							else
+							{
+								readonlyLock = true;
+								selectedObject = reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+					else if (reference->getTransform()->parent == nullptr)
+					{
+						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						{
+							if (reparentLock)
+								reparentObject = reference;
+							else if (selectionLock)
+								selectionObject = reference;
+							else
+							{
+								readonlyLock = false;
+								selectedObject = reference;
+								selectedObjectIndex = scene->GetRenderQueue()->IndexOf(selectedObject);
+							}
+						}
+					}
+				}
 			}
 
 		}

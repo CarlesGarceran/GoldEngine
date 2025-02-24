@@ -32,6 +32,11 @@ namespace Engine::Render
 		virtual void OnEffectApply(RAYLIB::RenderTexture2D* fboPtr) {};
 
 		virtual void OnEffectUnload() abstract;
+		
+		virtual void SetFramebuffer(RAYLIB::RenderTexture2D* FrameBuffer) {};
+
+		virtual void SetTexture(RAYLIB::Texture2D* texture) {};
+		virtual void SetDepth(RAYLIB::Texture2D* texture) {};
 
 		virtual bool ManualRendering() { return false; } // Manual rendering, if this option is triggered the rendering will be handled by the game engine instead of the Effect
 	};
@@ -60,7 +65,7 @@ namespace Engine::Render
 			this->width = Engine::Scripting::Screen::Width;
 
 			RAYLIB::RenderTexture renderTexture = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
-			framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex);
+			framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex, &UnloadRenderTextureDepthTex);
 
 			RAYLIB::Shader depthShader = RAYLIB::LoadShader("Data/Engine/Shaders/base.vs", "Data/Engine/Shaders/depth.frag");
 			depthShaderPtr = new Engine::Native::EnginePtr<RAYLIB::Shader>(depthShader, &RAYLIB::UnloadShader);
@@ -77,7 +82,7 @@ namespace Engine::Render
 					delete framebufferTexturePtr;
 
 				RAYLIB::RenderTexture renderTexture = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
-				framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex);
+				framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex, &UnloadRenderTextureDepthTex);
 
 				this->width = Engine::Scripting::Screen::Width;
 				this->height = Engine::Scripting::Screen::Height;
@@ -171,11 +176,16 @@ namespace Engine::Render
 				RLGL::rlDisableDepthTest();
 				EndTextureMode();
 
+				RAYLIB::RenderTexture2D savedTex = LoadRenderTextureDepthTex(this->width, this->height);
 
 				for each (ScriptableEffect ^ effect in effects)
 				{
-					RAYLIB::RenderTexture2D savedTex = framebufferTexturePtr->getInstance();
-					BeginTextureMode(framebufferTexturePtr->getInstance());
+					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
+					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
+					effect->SetTexture(&framebufferTexturePtr->getInstance().texture);
+
+					BeginTextureMode(savedTex);
+
 					if (effect->ManualRendering())
 						effect->OnEffectApply(&savedTex);
 					else
@@ -189,10 +199,12 @@ namespace Engine::Render
 						target.height = -Engine::Scripting::Screen::Height;
 
 						ClearBackground({ 0,0,0,255 });
-						DrawTextureRec(savedTex.texture, target, { 0,0 }, { 255,255,255,255 });
+						DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
 
 						effect->OnEffectEnd();
 					}
+
+					framebufferTexturePtr->setInstance(savedTex);
 
 					EndTextureMode();
 				}
@@ -271,10 +283,15 @@ namespace Engine::Render
 
 				EndTextureMode();
 
+				RAYLIB::RenderTexture2D savedTex = LoadRenderTextureDepthTex(this->width, this->height);
+
 				for each (ScriptableEffect ^ effect in effects)
 				{
-					RAYLIB::RenderTexture2D savedTex = framebufferTexturePtr->getInstance();
-					BeginTextureMode(framebufferTexturePtr->getInstance());
+					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
+					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
+					effect->SetTexture(&framebufferTexturePtr->getInstance().texture);
+
+					BeginTextureMode(savedTex);
 					if (effect->ManualRendering())
 						effect->OnEffectApply(&savedTex);
 					else
@@ -288,10 +305,12 @@ namespace Engine::Render
 						target.height = -Engine::Scripting::Screen::Height;
 
 						ClearBackground({ 0,0,0,255 });
-						DrawTextureRec(savedTex.texture, target, { 0,0 }, { 255,255,255,255 });
+						DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
 
 						effect->OnEffectEnd();
 					}
+
+					framebufferTexturePtr->setInstance(savedTex);
 
 					EndTextureMode();
 				}

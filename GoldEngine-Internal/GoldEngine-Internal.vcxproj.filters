@@ -346,6 +346,12 @@
     <Filter Include="Headers\Engine\ScriptingAPI">
       <UniqueIdentifier>{ecc8131f-793c-4b76-80f8-796e51ebf4a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Engine\Object\Locs">
+      <UniqueIdentifier>{ba5b5e88-e735-4526-830c-c876cbc2ac6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Object\Locs">
+      <UniqueIdentifier>{ecdc7834-35a5-4ef7-913f-7d2339912ad9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -374,12 +380,6 @@
     </ClInclude>
     <ClInclude Include="DataPacks.h">
       <Filter>Source\Engine\ObjectManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraPack.h">
-      <Filter>Source\Engine\ObjectManagement\Cameras</Filter>
-    </ClInclude>
-    <ClInclude Include="MaterialPack.h">
-      <Filter>Source\Engine\ObjectManagement\Materials</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Source\Engine\Management\Instance</Filter>
@@ -449,9 +449,6 @@
     </ClInclude>
     <ClInclude Include="imgui\TextEditor\TextEditor.h">
       <Filter>Deps\GUI\ImGui\TextEditor</Filter>
-    </ClInclude>
-    <ClInclude Include="Packs.h">
-      <Filter>Source\Engine\ObjectManagement\Types</Filter>
     </ClInclude>
     <ClInclude Include="LuaVM.h">
       <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
@@ -532,9 +529,6 @@
       <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="RenderPipelines\LitPBR_SRP.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Pipelines</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPipelines\RaymarchSRP.h">
       <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Pipelines</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Camera2D.h">
@@ -960,9 +954,6 @@
     <ClInclude Include="Window.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="AsmLoader.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Window.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -992,6 +983,21 @@
     </ClInclude>
     <ClInclude Include="Singleton.h">
       <Filter>Headers\Engine\ScriptingAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Material.h">
+      <Filter>Headers\Engine\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\ColorLoc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\TextureLoc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Reflection\ReflectableType.h">
+      <Filter>Headers\Engine\Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="AsmLoader.h">
+      <Filter>Headers\Engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1024,9 +1030,6 @@
     </ClCompile>
     <ClCompile Include="imgui\TextEditor\TextEditor.cpp">
       <Filter>Deps\GUI\ImGui\TextEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="Packs.cpp">
-      <Filter>Source\Engine\ObjectManagement\Types</Filter>
     </ClCompile>
     <ClCompile Include="Raylib\include\rlImGui.cpp">
       <Filter>Deps\raylib\include\impls\imgui</Filter>
@@ -1147,6 +1150,18 @@
     </ClCompile>
     <ClCompile Include="ObjectManager.cpp">
       <Filter>Source\Engine\ScriptingAPI\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Reflection\ReflectableType.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\ColorLoc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\TextureLoc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Material.cpp">
+      <Filter>Source\Engine\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
