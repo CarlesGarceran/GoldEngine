@@ -64,7 +64,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\GoldEngine-Internal\\GoldEngine-Internal.vcxproj",
-      "projectName": "GoldEngine-Internal",
+      "projectName": "GoldEngine",
       "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\GoldEngine-Internal\\GoldEngine-Internal.vcxproj",
       "packagesPath": "C:\\Users\\Carles\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\GoldEngine-Internal\\obj\\",

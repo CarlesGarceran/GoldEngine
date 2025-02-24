@@ -3,17 +3,27 @@
 
 using namespace Engine::Components;
 
-Engine::Components::Material::Material()
-{
-	MaterialProperties = gcnew System::Collections::Generic::Dictionary<System::String^, System::Object^>();
 
-	MaterialProperties->Add("Shader", 0);
-	MaterialProperties->Add("Base Color", gcnew Engine::Components::Color(255, 255, 255, 255));
-	MaterialProperties->Add("MainTexture", 0);
-	MaterialProperties->Add("NormalMap", 0);
+Engine::Components::Material::Material(unsigned int shaderId)
+{
+	this->shaderId = shaderId;
+	MaterialProperties = gcnew System::Collections::Generic::Dictionary<System::String^, Locs::Generic::MaterialLoc^>();
+
+	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(255, 255, 255, 255)));
+	MaterialProperties->Add("MainTexture", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("NormalMap", gcnew Locs::TextureLoc(0));
 }
 
-bool Engine::Components::Material::AddProperty(System::String^ propName, System::Object^ arg)
+Engine::Components::Material::Material()
+{
+	MaterialProperties = gcnew System::Collections::Generic::Dictionary<System::String^, Locs::Generic::MaterialLoc^>();
+
+	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(255, 255, 255, 255)));
+	MaterialProperties->Add("MainTexture", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("NormalMap", gcnew Locs::TextureLoc(0));
+}
+
+bool Engine::Components::Material::AddProperty(System::String^ propName, Locs::Generic::MaterialLoc^ arg)
 {
 	if (MaterialProperties->ContainsKey(propName))
 	{
@@ -24,7 +34,7 @@ bool Engine::Components::Material::AddProperty(System::String^ propName, System:
 	return false;
 }
 
-bool Engine::Components::Material::UpdateProperty(System::String^ propName, System::Object^ arg)
+bool Engine::Components::Material::UpdateProperty(System::String^ propName, Locs::Generic::MaterialLoc^ arg)
 {
 	if (MaterialProperties->ContainsKey(propName))
 	{
@@ -46,12 +56,7 @@ bool Engine::Components::Material::RemoveProperty(System::String^ propName)
 	return false;
 }
 
-System::Object^ Engine::Components::Material::GetComponent()
-{
-	return this;
-}
-
-System::Object^ Engine::Components::Material::GetMaterialProperty(System::String^ propName)
+Locs::Generic::MaterialLoc^ Engine::Components::Material::GetMaterialProperty(System::String^ propName)
 {
 	if (MaterialProperties->ContainsKey(propName))
 	{
@@ -61,7 +66,7 @@ System::Object^ Engine::Components::Material::GetMaterialProperty(System::String
 	return nullptr;
 }
 
-System::Object^ Engine::Components::Material::GetBaseColor()
+Locs::Generic::MaterialLoc^ Engine::Components::Material::GetBaseColor()
 {
 	if (MaterialProperties->ContainsKey("Base Color"))
 	{
@@ -75,7 +80,7 @@ unsigned int Engine::Components::Material::GetMainTexture()
 {
 	if (MaterialProperties->ContainsKey("MainTexture"))
 	{
-		return (int)MaterialProperties["MainTexture"];
+		return ((Locs::TextureLoc^)MaterialProperties["MainTexture"])->textureId->Instance;
 	}
 
 	return 0;
@@ -85,17 +90,7 @@ unsigned int Engine::Components::Material::GetNormalMap()
 {
 	if (MaterialProperties->ContainsKey("NormalMap"))
 	{
-		return (int)MaterialProperties["NormalMap"];
-	}
-
-	return 0;
-}
-
-unsigned int Engine::Components::Material::GetShader()
-{
-	if (MaterialProperties->ContainsKey("Shader"))
-	{
-		return (int)MaterialProperties["Shader"];
+		return ((Locs::TextureLoc^)MaterialProperties["NormalMap"])->textureId->Instance;
 	}
 
 	return 0;
@@ -116,7 +111,7 @@ void Engine::Components::Material::SetMainTexture(int textureId)
 {
 	if (MaterialProperties->ContainsKey("MainTexture"))
 	{
-		MaterialProperties["MainTexture"] = textureId;
+		((Locs::TextureLoc^)MaterialProperties["MainTexture"])[textureId];
 	}
 }
 
@@ -124,22 +119,6 @@ void Engine::Components::Material::SetNormalMap(int textureId)
 {
 	if (MaterialProperties->ContainsKey("NormalMap"))
 	{
-		MaterialProperties["NormalMap"] = textureId;
-	}
-}
-
-void Engine::Components::Material::SetShader(int shaderId)
-{
-	if (MaterialProperties->ContainsKey("Shader"))
-	{
-		MaterialProperties["Shader"] = shaderId;
-	}
-}
-
-void Engine::Components::Material::SetBaseColor(Object^ color)
-{
-	if (MaterialProperties->ContainsKey("Base Color"))
-	{
-		MaterialProperties["Base Color"] = color;
+		((Locs::TextureLoc^)MaterialProperties["NormalMap"])[textureId];
 	}
 }

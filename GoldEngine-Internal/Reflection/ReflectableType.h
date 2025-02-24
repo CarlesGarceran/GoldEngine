@@ -21,6 +21,7 @@ namespace Engine::Reflectable::Generic
 
 		T operator->();
 		T operator=(T value);
+		void operator[](T value);
 
 	private:
 		void deserialize();

@@ -4,9 +4,9 @@
 using namespace Engine::Reflectable::Generic;
 
 generic <class T>
-Reflectable<T>::Reflectable(T Instance)
+Reflectable<T>::Reflectable(T inst)
 {
-	Instance = Instance;
+	Instance = inst;
 	type = gcnew Engine::Reflectable::ReflectableType(Instance->GetType());
 }
 
@@ -28,4 +28,10 @@ T Reflectable<T>::operator=(T value)
 {
 	Instance = value;
 	return Instance;
+}
+
+generic <class T>
+void Reflectable<T>::operator[](T value)
+{
+	Instance = value;
 }

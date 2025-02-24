@@ -405,6 +405,8 @@
     <ClInclude Include="Object\GameObject.h" />
     <ClInclude Include="Object\Layer.h" />
     <ClInclude Include="Object\LayerManager.h" />
+    <ClInclude Include="Object\Locs\ColorLoc.h" />
+    <ClInclude Include="Object\Locs\TextureLoc.h" />
     <ClInclude Include="Object\Material.h" />
     <ClInclude Include="Object\ObjectType.h" />
     <ClInclude Include="Object\Prefab.h" />
@@ -492,6 +494,8 @@
     <ClCompile Include="Object\Color.cpp" />
     <ClCompile Include="Object\GameObject.cpp" />
     <ClCompile Include="Object\Layer.cpp" />
+    <ClCompile Include="Object\Locs\ColorLoc.cpp" />
+    <ClCompile Include="Object\Locs\TextureLoc.cpp" />
     <ClCompile Include="Object\Material.cpp" />
     <ClCompile Include="Object\Prefab.cpp" />
     <ClCompile Include="Object\Quaternion.cpp" />
