@@ -361,6 +361,9 @@
     <Filter Include="Source\Engine\BuiltIn\Effects">
       <UniqueIdentifier>{c54af503-63c8-4ef4-8c0c-e2cd0a7dc335}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Private">
+      <UniqueIdentifier>{e4e083a7-d383-42b1-9c1c-6a3d219d1a38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -1011,6 +1014,9 @@
     <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h">
       <Filter>Headers\BuiltIn\Effects</Filter>
     </ClInclude>
+    <ClInclude Include="Objects\Private\Scene.h">
+      <Filter>Source\Engine\EngineObjects\Private</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1177,6 +1183,9 @@
     </ClCompile>
     <ClCompile Include="BuiltIn\Effects\ACES_Tonemapper.cpp">
       <Filter>Source\Engine\BuiltIn\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Private\Scene.cpp">
+      <Filter>Source\Engine\EngineObjects\Private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

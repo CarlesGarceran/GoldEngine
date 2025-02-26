@@ -1,5 +1,8 @@
 #pragma managed(push,on)
 #include "../SDK.h"
+
+#if (!PRODUCTION_BUILD)
+
 #include "../imgui/FileExplorer/filedialog.h"
 #include "CodeEditor.h"
 #include "../LuaVM.h"
@@ -113,7 +116,7 @@ CodeEditor::CodeEditor(Engine::Window^ instance)
 	editorTabs.push_back(defaultTab); // DEFAULT TAB
 	bool value = false;
 	tabs = new Engine::Native::EnginePtr<std::vector<EditorTab>>(editorTabs, &onEditorTabsDispose);
-	
+
 	this->instance = instance;
 
 	try
@@ -181,6 +184,11 @@ void CodeEditor::Draw()
 				if (ImGui::MenuItem("Save"))
 				{
 					tabs->getInstance()[selectedTab].codeEditorChunk = tabs->getInstance()[selectedTab].codeEditor.GetText();
+					SaveEditorCode();
+				}
+				if (ImGui::MenuItem("Save As"))
+				{
+					tabs->getInstance()[selectedTab].codeEditorChunk = tabs->getInstance()[selectedTab].codeEditor.GetText();
 
 					((EditorWindow^)instance)->OpenFileExplorer("Save File", Engine::Editor::Gui::explorerMode::Save, (gcnew Engine::Editor::Gui::onFileSelected(this, &CodeEditor::SaveEditorContents)));
 				}
@@ -193,7 +201,7 @@ void CodeEditor::Draw()
 						tabs->getInstance().erase(tabs->getInstance().begin() + selectedTab);
 						if (selectedTab != 0)
 							selectedTab--;
-						else 
+						else
 							selectedTab = 0;
 					}
 				}
@@ -342,7 +350,7 @@ void CodeEditor::SaveEditorContents(String^ path)
 {
 	path = path->Replace("\\", "/");
 	if (path->LastIndexOf('/') != -1)
-		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path->Substring(path->LastIndexOf('/')+1));
+		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path->Substring(path->LastIndexOf('/') + 1));
 	else
 		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path);
 
@@ -381,7 +389,7 @@ void CodeEditor::createTab(String^ file, TextEditor::LanguageDefinition def)
 	newTab.language = def;
 
 	tabs->getInstance().push_back(newTab);
-	selectedTab = tabs->getInstance().size()-1;
+	selectedTab = tabs->getInstance().size() - 1;
 
 	SetEditorCode(file);
 }
@@ -396,6 +404,8 @@ bool CodeEditor::isCodeEditorOpen()
 	return codeEditorOpen;
 }
 
+
+#endif
 
 
 #pragma managed(pop)

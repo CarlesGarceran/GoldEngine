@@ -13,6 +13,7 @@
         "packagesPath": "C:\\Users\\Carles\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\GoldEngine-Internal\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -52,7 +53,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0-windows7.0": {
@@ -69,18 +71,12 @@
           "assetTargetFallback": true,
           "secondaryFramework": "native",
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.Windows.SDK.NET.Ref",
-              "version": "[10.0.22000.56, 10.0.22000.56]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.406/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -89,6 +85,7 @@
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj",
         "projectName": "glfw_x64",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj",
+        "UsingMicrosoftNETSdk": false,
         "frameworks": {
           "native": {
             "projectReferences": {}
@@ -104,6 +101,7 @@
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj",
         "projectName": "glfw_x86",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj",
+        "UsingMicrosoftNETSdk": false,
         "frameworks": {
           "native": {
             "projectReferences": {}
@@ -119,6 +117,7 @@
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj",
         "projectName": "raylib_x86",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj",
+        "UsingMicrosoftNETSdk": false,
         "frameworks": {
           "native": {
             "projectReferences": {}

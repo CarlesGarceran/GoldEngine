@@ -1,11 +1,12 @@
 #pragma once
 
+using namespace System;
 using namespace MoonSharp::Interpreter;
 
 namespace Engine::Lua::VM
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-	public ref class LuaVM
+		public ref class LuaVM
 	{
 	public:
 		String^ BINARY_HEADER = "GoldVM";
@@ -51,7 +52,7 @@ namespace Engine::Lua::VM
 	public:
 		void WriteLuaCodeToFile(String^ src);
 		void ReadLuaCodeFromFile(String^ src);
-		
+
 		String^ ReadFromFile(String^ src);
 
 		String^ LoadLuaCodeFromFile(String^ src)
@@ -61,12 +62,14 @@ namespace Engine::Lua::VM
 
 	private:
 		LuaVM^ RequireOverride(System::Object^ luaSource);
-		void RegisterGlobalFunctions();
 
 		static System::Collections::Generic::List<Type^>^ GetMoonSharpTypes(System::Reflection::Assembly^ a);
 
 	public:
 		static void GenerateLuaBindings();
+
+		void RegisterGlobalFunctions();
+		void ClearGlobals();
 
 		void RegisterGlobal(String^ functionName, System::Type^ userData)
 		{
@@ -188,7 +191,7 @@ namespace Engine::Lua::VM
 			{
 				if (hasFunction(functionName))
 				{
-					scriptState->Call(scriptState->Globals[functionName], args);
+					scriptState->Call(scriptState->Globals[functionName], args->ToArray());
 					return true;
 				}
 			}

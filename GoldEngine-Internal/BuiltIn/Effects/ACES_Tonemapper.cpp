@@ -125,16 +125,16 @@ void onUnloadShader(Shader& shader)
 ACES_Tonemapper::ACES_Tonemapper()
 {
 	RAYLIB::Shader shader = LoadShaderFromMemory(vertexShader, fragmentShader);
-	
+
 	shader.locs[0] = RAYLIB::GetShaderLocation(shader, "texture0");
 	shader.locs[1] = RAYLIB::GetShaderLocation(shader, "u_exposure");
 
 	tonemapper = new Engine::Native::EnginePtr<RAYLIB::Shader>(shader, &onUnloadShader, &onUnloadShader);
 
-	SharedInstance::Create<float>("SE_ACES_Exposure", 2.0f);
+	SharedInstance::Create<double>("SE_ACES_Exposure", 2.0f);
 }
 
-bool ACES_Tonemapper::ManualRendering() 
+bool ACES_Tonemapper::ManualRendering()
 {
 	return false; // DISABLE MANUAL RENDERING 
 	// The rendering is done to a texture that will be overriden per effect, creating a render stack (post processing)
@@ -155,7 +155,7 @@ void ACES_Tonemapper::OnEffectEnd()
 
 void ACES_Tonemapper::OnEffectUnload()
 {
-	delete tonemapper;
+	tonemapper->release();
 }
 
 void ACES_Tonemapper::SetTexture(RAYLIB::Texture* texturePtr)
@@ -163,7 +163,7 @@ void ACES_Tonemapper::SetTexture(RAYLIB::Texture* texturePtr)
 	float exposure = 1.0f;
 
 	if (SharedInstance::ExistsInstance("SE_ACES_Exposure"))
-		exposure = SharedInstance::Get<float>("SE_ACES_Exposure");
+		exposure = (float)SharedInstance::Get<double>("SE_ACES_Exposure");
 
 	RAYLIB::SetShaderValueTexture(tonemapper->getInstance(), RAYLIB::GetShaderLocation(tonemapper->getInstance(), "texture0"), *texturePtr);
 	RAYLIB::SetShaderValue(tonemapper->getInstance(), RAYLIB::GetShaderLocation(tonemapper->getInstance(), "u_exposure"), &exposure, SHADER_UNIFORM_FLOAT);

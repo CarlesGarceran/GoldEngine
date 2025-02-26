@@ -3,13 +3,13 @@
 namespace Engine::EngineObjects
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-	public ref class LuaScript : public Engine::EngineObjects::Script
+		public ref class LuaScript : public Engine::EngineObjects::Script
 	{
 	private:
 		String^ luaSource = "";
 	public:
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-		Engine::Lua::VM::LuaVM^ virtualMachine;
+			Engine::Lua::VM::LuaVM^ virtualMachine;
 
 		String^ luaFilePath = "./";
 
@@ -50,7 +50,7 @@ namespace Engine::EngineObjects
 			if (File::Exists(luaFilePath))
 			{
 				printWarning("Loading Lua binary: " + luaFilePath);
-				
+
 				MoonSharp::Interpreter::Script::DefaultOptions->CheckThreadAccess = false;
 				virtualMachine = gcnew Engine::Lua::VM::LuaVM();
 				virtualMachine->GetScriptState()->Options->CheckThreadAccess = false;
@@ -59,7 +59,6 @@ namespace Engine::EngineObjects
 
 				virtualMachine->RegisterGlobal("script", this);
 				virtualMachine->RegisterGlobal("attributes", attributes);
-				virtualMachine->RegisterGlobal("SignalManager", Singleton<Engine::Managers::SignalManager^>::Instance);
 				virtualMachine->RegisterGlobal("Globals", virtualMachine->GetGlobals());
 
 				virtualMachine->RegisterScript(luaSource);
@@ -68,7 +67,7 @@ namespace Engine::EngineObjects
 			}
 			else
 			{
-				if (!loadErrorCalledBack) 
+				if (!loadErrorCalledBack)
 				{
 					print("[IO/EX]:", "Lua binary: " + luaFilePath + " file does not exist");
 					loadErrorCalledBack = true;
@@ -150,7 +149,7 @@ namespace Engine::EngineObjects
 		{
 			if (!Engine::Management::Scene::getLoadedScene()->sceneLoaded())
 				return;
-			
+
 			if (virtualMachine == nullptr)
 				initVM();
 
@@ -158,7 +157,7 @@ namespace Engine::EngineObjects
 				virtualMachine->InvokeFunction("Update");
 		}
 
-		void PhysicsUpdate() override 
+		void PhysicsUpdate() override
 		{
 			if (!Engine::Management::Scene::getLoadedScene()->sceneLoaded())
 				return;
@@ -170,7 +169,7 @@ namespace Engine::EngineObjects
 				virtualMachine->InvokeFunction("PhysicsUpdate");
 		}
 
-		void DrawGizmo() override 
+		void DrawGizmo() override
 		{
 			if (!Engine::Management::Scene::getLoadedScene()->sceneLoaded())
 				return;

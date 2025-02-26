@@ -102,6 +102,7 @@ void LuaVM::RegisterGlobalFunctions()
 		}
 	}
 
+	// REGISTER ENGINE CLASSES
 	RegisterGlobal("Logging", Engine::Scripting::Logging::typeid);
 	RegisterGlobal("Attribute", Engine::Scripting::Attribute::typeid);
 	RegisterGlobal("DataManager", Engine::Internal::DataManager::typeid);
@@ -117,13 +118,28 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("Color", Engine::Components::Color::typeid);
 	RegisterGlobal("Event", Engine::Scripting::Events::Event::typeid);
 
+	// REGISTER DATAMODEL INSTANCES (workspace, gui)
+	if (Singleton<Engine::Scripting::ObjectManager^>::Instantiated)
+	{
+		RegisterGlobal("workspace", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("workspace"));
+		RegisterGlobal("gui", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("gui"));
+		RegisterGlobal("lighting", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("lighting"));
+	}
 
+	if (Singleton<Engine::Managers::SignalManager^>::Instantiated)
+	{
+		RegisterGlobal("SignalManager", Singleton<Engine::Managers::SignalManager^>::Instance);
+	}
+
+	// OVERRIDE LUA FUNCTIONS
 	RegisterGlobal("print", gcnew System::Action<String^>(&Logging::Log));
 	RegisterGlobal("warn", gcnew System::Action<String^>(&Logging::LogWarning));
 	RegisterGlobal("error", gcnew System::Action<String^>(&Logging::LogError));
 	RegisterGlobal("info", gcnew System::Action<String^>(&Logging::LogDebug));
 	RegisterGlobal("require", gcnew System::Func<System::Object^, LuaVM^>(this, &LuaVM::RequireOverride));
 	RegisterGlobal("log", gcnew System::Action<String^, String^>(&Logging::LogCustom));
+
+	// CREATE CUSTOM LUA FUNCTIONS
 	RegisterGlobal("HasProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, bool>(&VMWrapper::HasProperty));
 	RegisterGlobal("GetAttributes", gcnew System::Func<Engine::Internal::Components::GameObject^, Engine::Scripting::AttributeManager^>(&VMWrapper::GetAttributeManager));
 	RegisterGlobal("SetProperty", gcnew System::Action<Engine::Internal::Components::GameObject^, String^, Object^>(&VMWrapper::SetProperty));
@@ -146,6 +162,11 @@ System::Collections::Generic::List<Type^>^ LuaVM::GetMoonSharpTypes(System::Refl
 	}
 
 	return result;
+}
+
+void LuaVM::ClearGlobals()
+{
+	this->scriptState->Globals->Clear();
 }
 
 void LuaVM::GenerateLuaBindings()

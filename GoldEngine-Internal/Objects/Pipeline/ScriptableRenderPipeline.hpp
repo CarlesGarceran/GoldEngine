@@ -32,7 +32,7 @@ namespace Engine::Render
 		virtual void OnEffectApply(RAYLIB::RenderTexture2D* fboPtr) {};
 
 		virtual void OnEffectUnload() abstract;
-		
+
 		virtual void SetFramebuffer(RAYLIB::RenderTexture2D* FrameBuffer) {};
 
 		virtual void SetTexture(RAYLIB::Texture2D* texture) {};
@@ -47,6 +47,7 @@ namespace Engine::Render
 		int height, width;
 
 	public:
+		Engine::Native::EnginePtr<RAYLIB::RenderTexture>* savedTexPtr; // used for the effects, interwinds with framebuffer.
 		Engine::Native::EnginePtr<RAYLIB::RenderTexture>* framebufferTexturePtr;
 		Engine::Native::EnginePtr<RAYLIB::Shader>* depthShaderPtr;
 		Engine::Native::EnginePtr<cameraData*>* cameraDataPtr;
@@ -65,7 +66,9 @@ namespace Engine::Render
 			this->width = Engine::Scripting::Screen::Width;
 
 			RAYLIB::RenderTexture renderTexture = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
-			framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex, &UnloadRenderTextureDepthTex);
+			framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex);
+			RAYLIB::RenderTexture rt2 = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
+			savedTexPtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(rt2, &UnloadRenderTextureDepthTex);
 
 			RAYLIB::Shader depthShader = RAYLIB::LoadShader("Data/Engine/Shaders/base.vs", "Data/Engine/Shaders/depth.frag");
 			depthShaderPtr = new Engine::Native::EnginePtr<RAYLIB::Shader>(depthShader, &RAYLIB::UnloadShader);
@@ -82,7 +85,9 @@ namespace Engine::Render
 					delete framebufferTexturePtr;
 
 				RAYLIB::RenderTexture renderTexture = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
-				framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex, &UnloadRenderTextureDepthTex);
+				framebufferTexturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(renderTexture, &UnloadRenderTextureDepthTex);
+				RAYLIB::RenderTexture rt2 = LoadRenderTextureDepthTex(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
+				savedTexPtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture>(rt2, &UnloadRenderTextureDepthTex);
 
 				this->width = Engine::Scripting::Screen::Width;
 				this->height = Engine::Scripting::Screen::Height;
@@ -130,6 +135,9 @@ namespace Engine::Render
 	public:
 		void ExecuteRenderWorkflow(Engine::Window^ windowHandle, Engine::Management::Scene^ scene)
 		{
+			auto c = gcnew Engine::Components::Color(scene->skyColor);
+			RAYLIB::Color clearColor = c->toNative();
+
 			PreFirstPassRender(scene);
 			PostFirstPassRender();
 
@@ -141,7 +149,7 @@ namespace Engine::Render
 
 				OnRenderBegin();
 
-				ClearBackground(GetColor(scene->skyColor));
+				ClearBackground(clearColor);
 				RLGL::rlClearScreenBuffers();
 				RLGL::rlEnableDepthTest();
 				PreRenderFrame();
@@ -176,21 +184,40 @@ namespace Engine::Render
 				RLGL::rlDisableDepthTest();
 				EndTextureMode();
 
-				RAYLIB::RenderTexture2D savedTex = LoadRenderTextureDepthTex(this->width, this->height);
-
 				for each (ScriptableEffect ^ effect in effects)
 				{
 					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
 					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
 					effect->SetTexture(&framebufferTexturePtr->getInstance().texture);
 
-					BeginTextureMode(savedTex);
-
-					if (effect->ManualRendering())
-						effect->OnEffectApply(&savedTex);
-					else
+					BeginTextureMode(savedTexPtr->getInstance());
 					{
-						effect->OnEffectBegin();
+						ClearBackground(clearColor);
+
+						if (effect->ManualRendering())
+							effect->OnEffectApply(&framebufferTexturePtr->getInstance());
+						else
+						{
+							effect->OnEffectBegin();
+
+							Rectangle target;
+							target.x = 0;
+							target.y = 0;
+							target.width = Engine::Scripting::Screen::Width;
+							target.height = -Engine::Scripting::Screen::Height;
+
+							DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
+
+							effect->OnEffectEnd();
+						}
+					}
+					EndTextureMode();
+
+					// RESET
+
+					BeginTextureMode(framebufferTexturePtr->getInstance());
+					{
+						ClearBackground(clearColor);
 
 						Rectangle target;
 						target.x = 0;
@@ -198,18 +225,14 @@ namespace Engine::Render
 						target.width = Engine::Scripting::Screen::Width;
 						target.height = -Engine::Scripting::Screen::Height;
 
-						ClearBackground({ 0,0,0,255 });
-						DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
-
-						effect->OnEffectEnd();
+						DrawTextureRec(savedTexPtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
 					}
-
-					framebufferTexturePtr->setInstance(savedTex);
-
 					EndTextureMode();
 				}
 
 				PreRenderStack();
+
+				ClearBackground(clearColor);
 
 				Rectangle target;
 				target.x = 0;
@@ -217,9 +240,8 @@ namespace Engine::Render
 				target.width = Engine::Scripting::Screen::Width;
 				target.height = -Engine::Scripting::Screen::Height;
 
-				ClearBackground({ 0,0,0,255 });
-
 				DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
+
 				PostRenderStack();
 
 				OnRenderEnd();
@@ -246,6 +268,9 @@ namespace Engine::Render
 
 		void ExecuteRenderWorkflow_Editor(Engine::Window^ windowHandle, Engine::Management::Scene^ scene)
 		{
+			auto c = gcnew Engine::Components::Color(scene->skyColor);
+			RAYLIB::Color clearColor = c->toNative();
+
 			PreFirstPassRender(scene); // FIRSTPASS
 			PostFirstPassRender();
 
@@ -257,7 +282,7 @@ namespace Engine::Render
 
 				OnRenderBegin(); // BEGIN
 
-				ClearBackground(GetColor(scene->skyColor));
+				ClearBackground(clearColor);
 
 				PreRenderFrame(); // PRE FRAME
 				{
@@ -283,20 +308,40 @@ namespace Engine::Render
 
 				EndTextureMode();
 
-				RAYLIB::RenderTexture2D savedTex = LoadRenderTextureDepthTex(this->width, this->height);
-
 				for each (ScriptableEffect ^ effect in effects)
 				{
 					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
 					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
 					effect->SetTexture(&framebufferTexturePtr->getInstance().texture);
 
-					BeginTextureMode(savedTex);
-					if (effect->ManualRendering())
-						effect->OnEffectApply(&savedTex);
-					else
+					BeginTextureMode(savedTexPtr->getInstance());
 					{
-						effect->OnEffectBegin();
+						ClearBackground(clearColor);
+
+						if (effect->ManualRendering())
+							effect->OnEffectApply(&framebufferTexturePtr->getInstance());
+						else
+						{
+							effect->OnEffectBegin();
+
+							Rectangle target;
+							target.x = 0;
+							target.y = 0;
+							target.width = Engine::Scripting::Screen::Width;
+							target.height = -Engine::Scripting::Screen::Height;
+
+							DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
+
+							effect->OnEffectEnd();
+						}
+					}
+					EndTextureMode();
+
+					// RESET
+
+					BeginTextureMode(framebufferTexturePtr->getInstance());
+					{
+						ClearBackground(clearColor);
 
 						Rectangle target;
 						target.x = 0;
@@ -304,14 +349,8 @@ namespace Engine::Render
 						target.width = Engine::Scripting::Screen::Width;
 						target.height = -Engine::Scripting::Screen::Height;
 
-						ClearBackground({ 0,0,0,255 });
-						DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
-
-						effect->OnEffectEnd();
+						DrawTextureRec(savedTexPtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
 					}
-
-					framebufferTexturePtr->setInstance(savedTex);
-
 					EndTextureMode();
 				}
 
@@ -412,9 +451,9 @@ namespace Engine::Render
 
 				if (cL != nullptr)
 				{
-					for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
+					if (scene->sceneLoaded())
 					{
-						if (scene->sceneLoaded())
+						for each (Engine::Internal::Components::GameObject ^ sceneObject in scene->GetRenderQueue())
 						{
 							Engine::Internal::Components::GameObject^ reference = (Engine::Internal::Components::GameObject^)sceneObject;
 
@@ -588,7 +627,7 @@ namespace Engine::Render
 			delete framebufferTexturePtr;
 			delete depthShaderPtr;
 
-			for each (ScriptableEffect^ effect in effects)
+			for each (ScriptableEffect ^ effect in effects)
 			{
 				effect->OnEffectUnload();
 			}

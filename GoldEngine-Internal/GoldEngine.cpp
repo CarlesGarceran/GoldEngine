@@ -73,6 +73,10 @@ using namespace Engine::Attributes;
 #include "Objects/Script.h"
 #include "Objects/LuaScript.h"
 
+// Root datamodel
+
+#include "Objects/Private/Scene.h"
+
 // audio
 
 #include "Objects/Audio/AudioSource.h"
@@ -104,7 +108,7 @@ using namespace Engine::Management::MiddleLevel;
 using namespace Engine::Managers;
 using namespace Engine::Scripting;
 
-DataPacks dataPack; 
+DataPacks dataPack;
 unsigned int passwd = 0;
 int max_lights = 4;
 
@@ -130,7 +134,7 @@ static void engine_bootstrap()
 	if (!Directory::Exists("Bin/"))
 		Directory::CreateDirectory("Bin");
 
-	if(!Directory::Exists("Bin/Asm"))
+	if (!Directory::Exists("Bin/Asm"))
 		Directory::CreateDirectory("Bin/Asm");
 
 	if (!Directory::Exists("Data"))
@@ -154,6 +158,8 @@ static void engine_bootstrap()
 	if (!Directory::Exists("Data/UserData/"))
 		Directory::CreateDirectory("Data/UserData/");
 }
+
+char fileName[] = "Level0";
 
 #if !defined(PRODUCTION_BUILD)
 
@@ -180,7 +186,7 @@ bool readonlyLock = false;
 bool fpsCap = true;
 bool fpsCheck = true;
 bool reparentLock = false;
-char* consoleBufferData = new char[4096];
+std::string consoleBufferData = "";
 
 std::string styleFN;
 Texture modelTexture;
@@ -191,7 +197,7 @@ Texture soundTexture;
 bool fileDialogOpen = false;
 int tmp1;
 char* password = new char[512];
-char* packDataFileName = new char[64];
+std::string packDataFileName = "";
 int positionSelector = 0;
 
 bool gameViewMode = false;
@@ -200,8 +206,6 @@ bool gameViewMode = false;
 char* errorReason;
 
 bool ce1, ce2, ce3, ce4, ce5, ce6;
-
-char fileName[] = "Level0";
 
 bool hierarchyVisible = true;
 bool propertiesVisible = true;
@@ -227,6 +231,39 @@ typedef enum assetDisplay
 assetDisplay displayingAssets;
 
 int displayingAsset = 0;
+
+
+void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
+{
+	if (
+		consoleCommand.find("help()") != std::string::npos ||
+		consoleCommand.find("Help()") != std::string::npos ||
+		consoleCommand.find("cmds()") != std::string::npos ||
+		consoleCommand.find("Cmds()") != std::string::npos)
+	{
+		printConsole("Console Commands (case-sensitive):");
+		printConsole("clear() | Clear() - Clears the console");
+		printConsole("help() | Help() | cmds() | Cmds() - Shows this message");
+		printConsole("Anything else will be ran in the internal LUAVM of the GameEngine.");
+
+	}
+	if (consoleCommand.find("clear()") != std::string::npos || consoleCommand.find("Clear()") != std::string::npos)
+	{
+		Engine::Scripting::Logging::clearLogs();
+	}
+	else
+	{
+		try
+		{
+			windowPtr->getLuaVM()->RegisterScript(gcnew String(consoleCommand.c_str()));
+		}
+		catch (Exception^ ex)
+		{
+			printError("Failed executing script: " + ex);
+			printError("Do you want to see the help? type help()");
+		}
+	}
+}
 
 void ThrowUIError(String^ eR)
 {
@@ -284,7 +321,6 @@ EditorWindow::EditorWindow()
 	codeEditor = gcnew CodeEditor(this);
 
 	strcpy(password, ENCRYPTION_PASSWORD);
-	strcpy(consoleBufferData, "");
 
 	engine_bootstrap();
 
@@ -694,8 +730,8 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 		}
 	}
 }
-Engine::Lua::VM::LuaVM^ EditorWindow::getLuaVM() 
-{ 
+Engine::Lua::VM::LuaVM^ EditorWindow::getLuaVM()
+{
 	return luaVM;
 }
 void EditorWindow::OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback)
@@ -768,7 +804,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 						}
 					}
 
-					if (isOpen) 
+					if (isOpen)
 					{
 						DrawHierarchyInherits(scene, _reference, depth + 1);
 						ImGui::TreePop();
@@ -941,7 +977,7 @@ void EditorWindow::createAssetEntries(String^ path)
 			{
 				auto scriptData = Prefab::LoadPrefab(f);
 
-				for each (GameObject^ d in scriptData)
+				for each (GameObject ^ d in scriptData)
 				{
 					scene->AddObjectToScene(d);
 				}
@@ -1019,9 +1055,10 @@ void EditorWindow::DrawConsole()
 
 		ImGui::Text("Console Commands:");
 		ImGui::SameLine();
-		if (ImGui::InputText("###CONSOLE_COMMANDS", consoleBufferData, IM_ARRAYSIZE(consoleBufferData), ImGuiInputTextFlags_EnterReturnsTrue))
+		if (ImGui::InputText("###CONSOLE_COMMANDS", &consoleBufferData, ImGuiInputTextFlags_EnterReturnsTrue))
 		{
-			ThrowUIError("Console commands not implemented yet!");
+			ExecuteConsoleCommand(this, consoleBufferData);
+			consoleBufferData = "";
 		}
 
 	}
@@ -1623,7 +1660,7 @@ void EditorWindow::DrawMainMenuBar()
 									if (ImGui::MenuItem(CastToNative(T->Name)))
 									{
 										Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-										
+
 										scene->AddObjectToScene(retn);
 									}
 
@@ -1635,7 +1672,7 @@ void EditorWindow::DrawMainMenuBar()
 								if (ImGui::MenuItem(CastToNative(T->Name)))
 								{
 									Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-									
+
 									scene->AddObjectToScene(retn);
 								}
 							}
@@ -1661,7 +1698,7 @@ void EditorWindow::DrawMainMenuBar()
 						), 64, 1.0f);
 
 					scene->AddObjectToScene(cubeRenderer);
-					
+
 				}
 
 				if (ImGui::MenuItem("Editor Camera"))
@@ -2149,7 +2186,7 @@ void EditorWindow::DrawAssets()
 
 		ImVec2 size = ImGui::GetWindowSize();
 
-		const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS"};
+		const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS" };
 		ImGui::Text("Display assets: ");
 		ImGui::SameLine();
 		if (ImGui::Combo("###Display assets: ", &displayingAsset, constData, IM_ARRAYSIZE(constData)))
@@ -2470,6 +2507,12 @@ void EditorWindow::DrawImGui()
 				}
 
 				{
+					ImGui::Text("Transparent:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_Transparent"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Transparent);
+				}
+
+				{
 					ImGui::Text("Borderless Windowed:");
 					ImGui::SameLine();
 					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_BorderlessFullScreen"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->BorderlessWindowed);
@@ -2746,10 +2789,49 @@ void EditorWindow::Draw()
 }
 void EditorWindow::create()
 {
-	scene->GetDatamodelMember("workspace", true);
-	scene->GetDatamodelMember("editor only", true);
-	scene->GetDatamodelMember("gui", true);
+	Engine::EngineObjects::Private::Scene^ gameRoot = nullptr;
+
+	if (!scene->ExistsMember("game"))
+	{
+		gameRoot = gcnew Engine::EngineObjects::Private::Scene(
+			"game",
+			gcnew Engine::Internal::Components::Transform(
+				gcnew Engine::Components::Vector3(0, 0, 0),
+				gcnew Engine::Components::Vector3(0, 0, 0),
+				gcnew Engine::Components::Vector3(0, 0, 0),
+				nullptr
+			)
+		);
+		scene->PushToRenderQueue(gameRoot);
+	}
+	else
+	{
+		try
+		{
+			gameRoot = scene->GetMember("game")->ToObjectType<Engine::EngineObjects::Private::Scene^>();
+		}
+		catch (Exception^ ex)
+		{
+			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
+				"game",
+				gcnew Engine::Internal::Components::Transform(
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					nullptr
+				)
+			);
+		}
+	}
+
+	auto workspace = scene->GetDatamodelMember("workspace", true);
+	workspace->setParent(gameRoot);
+	auto editor_only = scene->GetDatamodelMember("editor only", true);
+	editor_only->setParent(gameRoot);
+	auto gui = scene->GetDatamodelMember("gui", true);
+	gui->setParent(gameRoot);
 	auto daemonParent = scene->GetDatamodelMember("daemons", true);
+	daemonParent->setParent(gameRoot);
 
 #ifdef USE_BULLET_PHYS
 
@@ -2781,14 +2863,31 @@ void EditorWindow::create()
 			"Data/Engine/Shaders/rPBR/pbr.vert",
 			"Data/Engine/Shaders/rPBR/pbr.frag"
 		);
-
+		lightManager->setParent(gameRoot);
 		lightManager->protectMember();
 
 		scene->PushToRenderQueue(lightManager);
 	}
 	else
 	{
-		lightManager = scene->GetMember("lighting")->ToObjectType<LightManager^>();
+		try
+		{
+			lightManager = scene->GetMember("lighting")->ToObjectType<LightManager^>();
+		}
+		catch (Exception^ ex)
+		{
+			lightManager = lightManager = gcnew LightManager("lighting",
+				gcnew Engine::Internal::Components::Transform(
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					nullptr
+				),
+				"Data/Engine/Shaders/rPBR/pbr.vert",
+				"Data/Engine/Shaders/rPBR/pbr.frag"
+			);
+		}
+		lightManager->setParent(gameRoot);
 		lightManager->protectMember();
 	}
 
@@ -2820,7 +2919,7 @@ void EditorWindow::create()
 			)
 		);
 		//camera3D->SetParent(((Engine::Internal::Components::GameObject^)Singleton<ObjectManager^>::Instance->GetDatamodel("workspace")));
-
+		camera3D->setParent(gameRoot);
 		scene->PushToRenderQueue(camera3D);
 	}
 }
@@ -2846,6 +2945,9 @@ void EditorWindow::Init()
 	ImGui::GetIO().ConfigErrorRecoveryEnableAssert = true;
 	ImGui::GetIO().ConfigErrorRecoveryEnableDebugLog = false;
 	ImGui::GetIO().ConfigErrorRecoveryEnableTooltip = true;
+
+	this->luaVM->ClearGlobals();
+	this->luaVM->RegisterGlobalFunctions();
 }
 void EditorWindow::Preload()
 {
@@ -2909,7 +3011,7 @@ void EditorWindow::Update()
 	{
 		auto renderQue = renderQueue->ToArray();
 
-		for each (GameObject^ obj in renderQue)
+		for each (GameObject ^ obj in renderQue)
 		{
 			if (scene->sceneLoaded())
 			{
@@ -3070,7 +3172,7 @@ public:
 		//Engine::Assets::Management::DataPack::SetSingletonReference(packedData);
 		create();
 
-		Logging::LogCustom("[GL Version]:", "Current OpenGL version is -> " + rlGetVersion() + ".");
+		Logging::LogCustom("[GL Version]:", "Current OpenGL version is -> " + RLGL::rlGetVersion() + ".");
 
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
 
@@ -3121,7 +3223,7 @@ public:
 
 	virtual void Update() override
 	{
-		if(Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance != renderPipeline)
+		if (Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance != renderPipeline)
 			renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
 
 		for each (GameObject ^ obj in scene->GetRenderQueue())
@@ -3186,8 +3288,8 @@ public:
 
 
 #ifdef _DEBUG
-	int main()
-	{
-		InitializeGoldEngine();
-	}
+int main()
+{
+	InitializeGoldEngine();
+}
 #endif

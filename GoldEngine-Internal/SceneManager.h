@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "EngineIncludes.h"
@@ -10,7 +11,7 @@ namespace Engine::Managers
 	public ref class SceneManager
 	{
 	private:
-		static System::Collections::Generic::List<EngineAssembly^> ^assemblyManager;
+		static System::Collections::Generic::List<EngineAssembly^>^ assemblyManager;
 
 	public:
 		static void SetAssemblyManager(System::Collections::Generic::List <EngineAssembly^>^ manager)
@@ -49,14 +50,14 @@ namespace Engine::Managers
 				loadedScene->setPassword(passwd);
 				// bridge all the unsetted values from the parsed scene
 				loadedScene->assetPacks = parsedScene->assetPacks;
-				loadedScene->sceneName = parsedScene->sceneName; 
+				loadedScene->sceneName = parsedScene->sceneName;
 				loadedScene->scene_assemblies = parsedScene->scene_assemblies;
 				loadedScene->skyColor = parsedScene->skyColor;
 				loadedScene->sceneRequirements = parsedScene->sceneRequirements;
 
 
 				List<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
-				
+
 				msclr::lock lock(sceneObjects);
 				if (lock.try_acquire(1000))
 				{
@@ -71,7 +72,7 @@ namespace Engine::Managers
 					}
 				}
 
-				for each (GameObject^ object in parsedScene->GetRenderQueue())
+				for each (GameObject ^ object in parsedScene->GetRenderQueue())
 				{
 					loadedScene->AddObjectToScene((GameObject^)object);
 				}
@@ -150,9 +151,9 @@ namespace Engine::Managers
 							nullptr,
 							deserializedData
 						);
-						
+
 						Engine::EngineObjects::ScriptBehaviour^ script = (Engine::EngineObjects::ScriptBehaviour^)sceneObject->GetReference();
-						
+
 						for each (auto assembly in assemblyManager)
 						{
 							if (assembly != nullptr)
@@ -199,7 +200,7 @@ namespace Engine::Managers
 						);
 
 						loadedScene->PushToRenderQueue(sceneObj);
-						
+
 						//pbrRenderer->Init(pbrRenderer->model_id, pbrRenderer->shader_id, pbrRenderer->texture_id, pbrRenderer->color_hex);
 					}
 					break;
@@ -281,7 +282,7 @@ namespace Engine::Managers
 			else
 				return gcnew Engine::Management::Scene(sceneName, "Assets_" + sceneName, assetPacks, gcnew System::Collections::Generic::List<Engine::Management::MiddleLevel::SceneObject^>(), 0x000000FF, gcnew System::Collections::Generic::List<System::String^>());
 		}
-		
+
 		static void SaveSceneToFile(Engine::Management::Scene^ scene, unsigned int password)
 		{
 			scene->SerializeObjects();
@@ -289,7 +290,7 @@ namespace Engine::Managers
 			if (scene->sceneName)
 			{
 				String^ serializedData = Newtonsoft::Json::JsonConvert::SerializeObject(scene, Newtonsoft::Json::Formatting::Indented);
-				String^ cipheredContents = CypherLib::EncryptFileContents(serializedData, password);
+				//String^ cipheredContents = CypherLib::EncryptFileContents(serializedData, password);
 
 				//System::IO::File::WriteAllText("Data/" + scene->sceneName + ".scn", System::Convert::ToBase64String(Encoding::UTF8->GetBytes(cipheredContents)));
 				System::IO::File::WriteAllText("Data/" + scene->sceneName + ".scn", serializedData);

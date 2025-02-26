@@ -51,19 +51,6 @@ namespace Engine::Signals
 			return nullptr;
 		}
 
-		System::Object^ Callback(System::Object^ arg)
-		{
-			if (bindedSignal != nullptr)
-			{
-				if (!closure)
-					return ((System::Delegate^)bindedSignal)->DynamicInvoke(arg);
-				else
-					return ((MoonSharp::Interpreter::Closure^)bindedSignal)->Call(arg);
-			}
-
-			return nullptr;
-		}
-
 		System::Object^ Callback(cli::array<System::Object^>^ args)
 		{
 			if (bindedSignal != nullptr)
@@ -175,24 +162,14 @@ namespace Engine::Signals
 			return Callback();
 		}
 
-		System::Object^ Call(System::Object^ arg)
-		{
-			return Callback(arg);
-		}
-
 		System::Object^ Call(cli::array<System::Object^>^ args)
 		{
 			return Callback(args);
 		}
 
-		System::Object^ CallUsingInvoker()
-		{
-			return Callback(invoker);
-		}
-
 		System::Object^ Invoke()
 		{
-			return CallUsingInvoker();
+			return Call();
 		}
 
 		void DisposeSignal()

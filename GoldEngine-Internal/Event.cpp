@@ -73,7 +73,7 @@ System::Object^ Event::invoke()
 		if (invokables == nullptr)
 			return nullptr;
 
-		for each (System::Object^ pInvokable in invokables)
+		for each (System::Object ^ pInvokable in invokables)
 		{
 			if (isLuaFunction)
 			{
@@ -115,6 +115,9 @@ System::Object^ Event::invoke(cli::array<System::Object^>^ objects)
 {
 	try
 	{
+		if (this == nullptr)
+			return nullptr;
+
 		if (invokables == nullptr)
 			return nullptr;
 
@@ -123,7 +126,7 @@ System::Object^ Event::invoke(cli::array<System::Object^>^ objects)
 			if (isLuaFunction)
 			{
 				MoonSharp::Interpreter::ScriptFunctionDelegate^ delegate = (MoonSharp::Interpreter::ScriptFunctionDelegate^)pInvokable;
-				
+
 				return delegate->Invoke(objects);
 			}
 			else if (isDelegate)
