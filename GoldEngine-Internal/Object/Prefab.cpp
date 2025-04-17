@@ -113,10 +113,11 @@ List<GameObject^>^ Prefab::LoadPrefab(String^ prefabPath)
 	p->DeserializeObject();
 
 	List<GameObject^>^ instances = p->getInstances();
+	instances[0]->transform->setParent(Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDatamodel("workspace", false)->transform);
 
 	fixInstance(instances);
 
-	return p->getInstances();
+	return instances;
 }
 
 Prefab^ Prefab::GetPrefab(String^ prefabPath)

@@ -2,6 +2,12 @@
 
 #pragma managed(push, on)
 
+// ATTRIBUTES \\
+
+#include "ExecuteInEditModeAttribute.h"
+#include "LuaAPI.h"
+#include "Instantiable.h"
+
 #include "Singleton.h"
 #include <msclr/gcroot.h>
 #include <msclr/lock.h>
@@ -11,10 +17,5 @@
 #include "WinAPI.h"
 #include "Cast.h"
 #include "CastToNative.h"
-
-// ATTRIBUTES \\
-
-#include "ExecuteInEditModeAttribute.h"
-#include "Instantiable.h"
 
 #pragma managed(pop)

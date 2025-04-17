@@ -14,6 +14,7 @@ namespace Engine::Native
 		Engine::Native::EnginePtr <btCollisionObject*>* collisionObject;
 		System::Runtime::InteropServices::GCHandle handle;
 		void* userHandler;
+		msclr::gcroot<GameObject^> gameObject;
 
 	public:
 		CollisionShape(Engine::Internal::Components::GameObject^);
@@ -25,7 +26,7 @@ namespace Engine::Native
 		btCollisionObject* getCollisonObject();
 		btCollisionShape* getCollisionShape();
 
-
+		GameObject^ getGameObject();
 	};
 }
 

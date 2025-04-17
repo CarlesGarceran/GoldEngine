@@ -8,6 +8,7 @@
 namespace Engine::Scripting
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		[Engine::Attributes::LuaAPIAttribute("Screen")]
 	public ref class Screen
 	{
 	private:

@@ -3,6 +3,7 @@
 namespace Engine::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Quaternion
 	{
 	public:

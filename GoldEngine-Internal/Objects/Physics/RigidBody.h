@@ -20,8 +20,8 @@ namespace Engine::EngineObjects::Physics
 	{
 	private:
 		btRigidBody* rigidBody;
-		void onModelIdChanged(String^ propName, unsigned int newValue, unsigned int oldValue);
-		void onMeshIdChanged(String^ propName, unsigned int newValue, unsigned int oldValue);
+		void onModelIdChanged(unsigned int newValue, unsigned int oldValue);
+		void onMeshIdChanged(unsigned int newValue, unsigned int oldValue);
 
 	public:
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
@@ -39,7 +39,6 @@ namespace Engine::EngineObjects::Physics
 
 		void Start() override;
 
-		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override;
 
 		void OnUnactive() override;
@@ -49,6 +48,10 @@ namespace Engine::EngineObjects::Physics
 		void addForce(Engine::Components::Vector3^ position, ForceMode mode) { return AddForce(position, mode); }
 
 		btRigidBody* getRigidBody();
+
+
+	private:
+		void createRigidBody();
 	};
 }
 

@@ -62,6 +62,14 @@ void GameObject::createCollisionShape()
 
 #endif
 
+void MoveChildren(GameObject^ root, List<GameObject^>^ childs)
+{
+	for each (GameObject ^ child in childs)
+	{
+		//kchild->transform->position = (root->transform->position - child->transform->localPosition);
+	}
+}
+
 // BUBBLING \\
 
 void GameObject::descendantAdded(GameObject^ descendant)
@@ -165,6 +173,7 @@ void GameObject::OnPropChanged()
 	if (!transform->position->Equals(lastTransform->position))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "position", transform->position, lastTransform->position });
+		MoveChildren(this, this->childs);
 
 		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
@@ -208,19 +217,22 @@ void fixChilds(GameObject^ root)
 
 void GameObject::Start()
 {
-#ifdef USE_BULLET_PHYS
-	getCollider(this)->createCollisionShape(NativeSingleton<Engine::EngineObjects::Physics::Native::NativePhysicsService*>::Get()->getCollisionShapeForBox(1, 1, 1));
-	getCollider(this)->createBulletObject();
-#endif
 }
 
 void GameObject::GameUpdate()
 {
+#ifdef USE_BULLET_PHYS
+	if (!collisionObjectInitialized && getCollider(this)->getCollisonObject() == nullptr)
+	{
+		getCollider(this)->createCollisionShape(NativeSingleton<Engine::EngineObjects::Physics::Native::NativePhysicsService*>::Get()->getCollisionShapeForBox(1, 1, 1));
+		getCollider(this)->createBulletObject();
+
+		collisionObjectInitialized = true;
+	}
+#endif
+
 	OnPropChanged();
 	this->childs = GetChildren();
-
-	UpdateLocalPosition();
-	UpdatePosition();
 
 	if (!active)
 	{

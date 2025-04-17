@@ -28,6 +28,7 @@ namespace Engine::Scripting
 	};
 
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Logging abstract
 	{
 	private:

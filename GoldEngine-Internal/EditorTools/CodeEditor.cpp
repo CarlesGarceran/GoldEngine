@@ -327,10 +327,9 @@ void CodeEditor::SetEditorCode(String^ file)
 	SaveEditorCode();
 
 	file = file->Replace("\\", "/");
-	if (file->LastIndexOf('/') != -1)
-		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(file->Substring(file->LastIndexOf('/') + 1));
-	else
-		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(file);
+	file = file->Replace(Directory::GetCurrentDirectory()->Replace("\\", "/"), ".")->Substring(2);
+
+	tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(file);
 
 	String^ content = File::ReadAllText(file);
 
@@ -348,11 +347,7 @@ void CodeEditor::SetEditorCode(String^ file)
 
 void CodeEditor::SaveEditorContents(String^ path)
 {
-	path = path->Replace("\\", "/");
-	if (path->LastIndexOf('/') != -1)
-		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path->Substring(path->LastIndexOf('/') + 1));
-	else
-		tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path);
+	tabs->getInstance()[selectedTab].codeEditorFile = CastStringToNative(path);
 
 	StreamWriter^ streamWriter = gcnew StreamWriter(path);
 

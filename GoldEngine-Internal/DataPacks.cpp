@@ -35,10 +35,15 @@ NativeDataPack::NativeDataPack()
 	textures2d = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Texture2D>*>();
 	sounds = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Sound>*>();
 	musics = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Music>*>();
+	meshes = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Mesh>*>();
+	//animations = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::ModelAnimation>*>();
+	materials = std::map<unsigned int, void*>();
 
 	fallbackModel = nullptr;
 	fallbackTexture = nullptr;
 	fallbackShader = nullptr;
+	fallbackMaterial = nullptr;
+	fallbackMesh = nullptr;
 }
 
 DataPacks* DataPacks::instance = nullptr;
@@ -80,6 +85,12 @@ void DataPacks::LoadDefaultAssets()
 		nativePacks->fallbackShader = new Engine::Native::EnginePtr(RAYLIB::LoadShader("./Data/Engine/Shaders/base.vs", "./Data/Engine/Shaders/base.fs"));
 
 	printConsole(String::Format("Loaded Default Shader (ID:{0})", nativePacks->fallbackShader->getInstance().id));
+
+	if (nativePacks->fallbackMaterial == nullptr)
+		nativePacks->fallbackMaterial = new msclr::gcroot(gcnew Engine::Components::Material(0));
+
+	if (nativePacks->fallbackMesh == nullptr)
+		nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(RAYLIB::GenMeshCube(1,1,1));
 }
 
 Texture2D& DataPacks::GetTexture2D(unsigned int textureId)
@@ -128,6 +139,19 @@ RAYLIB::Shader& DataPacks::GetShader(unsigned int shaderId)
 	}
 }
 
+Engine::Components::Material^ DataPacks::GetMaterial(unsigned int materialId)
+{
+	try
+	{
+		auto sP = nativePacks->materials.at(materialId);
+		return *((msclr::gcroot<Engine::Components::Material^>*)sP);
+	}
+	catch (std::exception ex)
+	{
+		return nullptr;
+	}
+}
+
 Sound& DataPacks::GetSound(unsigned int soundId)
 {
 	try
@@ -167,7 +191,19 @@ Music* DataPacks::GetMusicPtr(unsigned int musicId)
 	return &(GetMusic(musicId));
 }
 
-void DataPacks::AddMusic(unsigned int soundId, Music sound)
+void DataPacks::AddMaterial(unsigned int materialId, Engine::Components::Material^ material)
+{
+	try
+	{
+		nativePacks->materials.at(materialId) = new msclr::gcroot(material);
+	}
+	catch (std::exception ex)
+	{
+		nativePacks->materials.emplace(materialId, new msclr::gcroot<Engine::Components::Material^>(msclr::gcroot(material)));
+	}
+}
+
+void DataPacks::AddMusic(unsigned int soundId, RAYLIB::Music& sound)
 {
 	try 
 	{
@@ -180,7 +216,7 @@ void DataPacks::AddMusic(unsigned int soundId, Music sound)
 }
 
 
-void DataPacks::AddModel(unsigned int modelId, Model modelRef)
+void DataPacks::AddModel(unsigned int modelId, RAYLIB::Model& modelRef)
 {
 	try 
 	{
@@ -204,7 +240,7 @@ void DataPacks::AddShader(unsigned int shaderId, Shader& shader)
 	}
 }
 
-void DataPacks::AddTexture2D(unsigned int textureId, Texture2D texture)
+void DataPacks::AddTexture2D(unsigned int textureId, Texture2D& texture)
 {
 	try 
 	{
@@ -217,7 +253,7 @@ void DataPacks::AddTexture2D(unsigned int textureId, Texture2D texture)
 }
 
 
-void DataPacks::AddSound(unsigned int soundId, Sound sound)
+void DataPacks::AddSound(unsigned int soundId, RAYLIB::Sound& sound)
 {
 	try
 	{
@@ -227,4 +263,37 @@ void DataPacks::AddSound(unsigned int soundId, Sound sound)
 	{
 		nativePacks->sounds.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Sound>(sound, &onUnloadSound, &onUnloadSound));
 	}
+}
+
+RAYLIB::Mesh& DataPacks::GetMesh(unsigned int musicId)
+{
+	try
+	{
+		auto sP = nativePacks->meshes.at(musicId);
+		return sP->getInstance();
+	}
+	catch (std::exception ex)
+	{
+		if (nativePacks->fallbackMesh == nullptr)
+			nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(nativePacks->fallbackModel->getInstance().meshes[0]);
+
+		return nativePacks->fallbackMesh->getInstance();
+	}
+}
+
+void DataPacks::AddMesh(unsigned int soundId, RAYLIB::Mesh& sound)
+{
+	try
+	{
+		nativePacks->meshes.at(soundId)->setInstance(sound);
+	}
+	catch (std::exception ex)
+	{
+		nativePacks->meshes.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Mesh>(sound, &RAYLIB::UnloadMesh, &RAYLIB::UnloadMesh));
+	}
+}
+
+RAYLIB::Mesh* DataPacks::GetMeshPtr(unsigned int musicId)
+{
+	return &(GetMesh(musicId));
 }

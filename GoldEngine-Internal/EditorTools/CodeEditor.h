@@ -13,7 +13,7 @@ public:
 	bool ce1;
 };
 
-ref class CodeEditor
+public ref class CodeEditor
 {
 private:
 	int selectedTab = 0;

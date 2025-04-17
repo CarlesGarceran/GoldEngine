@@ -21,7 +21,7 @@ struct Light
     float outerCutOff;
 };
 
-struct shadowMap
+struct ShadowMap
 {
     int casterType;
     sampler2D shadowMap;
@@ -45,7 +45,7 @@ uniform sampler2D albedoMap;
 uniform sampler2D mraMap;
 uniform sampler2D normalMap;
 uniform sampler2D emissiveMap; // r: Hight g:emissive
-uniform shadowMap shadowMaps[MAX_LIGHTS];
+uniform ShadowMap shadowMaps[MAX_LIGHTS];
 
 uniform vec2 tiling;
 uniform vec2 offset;
@@ -162,20 +162,20 @@ vec3 ComputePBR()
 
         // shadow calculations
 
-        float shadowFactor = 1.0;
+        vec4 shadowFactor = vec4(0);
 
         if(shadowMaps[i].casterType == LIGHT_DIRECTIONAL)
         {
             vec4 projCoords = shadowPos * vec4(fragPosition, 1.0);
-            shadowFactor = textureProj(shadowMaps[i].shadowMap, projCoords);
+            shadowFactor = textureProj(shadowMaps[i].shadowMap, projCoords.xyz);
         }
         else if (shadowMaps[i].casterType == LIGHT_POINT) {
             vec4 projCoords = vec4(fragPosition, 1.0);
-            shadowFactor = texture(shadowMaps[i].shadowCube, projCoords);
+            shadowFactor = texture(shadowMaps[i].shadowCube, projCoords.xyz);
         }
         else if (shadowMaps[i].casterType == LIGHT_SPOT) {
             vec4 projCoords = shadowPos * vec4(fragPosition, 1.0);
-            shadowFactor = textureProj(shadowMaps[i].shadowMap, projCoords);
+            shadowFactor = textureProj(shadowMaps[i].shadowMap, projCoords.xyz);
         }
 
         // Cook-Torrance BRDF distribution function
@@ -195,7 +195,7 @@ vec3 ComputePBR()
         
         // Mult kD by the inverse of metallnes, only non-metals should have diffuse light
         kD *= 1.0 - metallic;
-        lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL*shadowFactor)*lights[i].enabled; // Angle of light has impact on result
+        lightAccum += ((kD*albedo.rgb/PI + spec)*radiance*nDotL*(shadowFactor.xyz))*lights[i].enabled; // Angle of light has impact on result
     }
     
     vec3 ambientFinal = (ambientColor + albedo)*ambient*0.5;

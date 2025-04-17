@@ -66,7 +66,21 @@ namespace Engine::Management::MiddleLevel
 
 		void deserialize()
 		{
-			sceneObject = (GameObject^)Deserialize(serializedData, reflectableType->getTypeReference());
+			if (reflectableType->getTypeReference() == nullptr)
+			{
+				this->sceneObject = gcnew Engine::EngineObjects::ScriptBehaviour(
+					gcnew System::String("Null Instance"),
+					gcnew Engine::Internal::Components::Transform(
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						nullptr)
+				);
+
+				return;
+			}
+
+			this->sceneObject = (GameObject^)Deserialize(serializedData, reflectableType->getTypeReference());
 		}
 
 	public:

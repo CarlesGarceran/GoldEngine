@@ -84,21 +84,30 @@ void _addForce(btRigidBody* rigidBody, float x, float y, float z, int forceMode)
 
 #pragma managed(pop)
 
-
-void RigidBody::onModelIdChanged(String^ propName, unsigned int newValue, unsigned int oldValue)
+void RigidBody::createRigidBody()
 {
 	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
 
-	//delete rigidBody->getCollisionShape();
-	//rigidBody->setCollisionShape(physicsService->getNativePhysicsService()->getCollisionShapeFromID(newValue, meshId, (int)collisionType));
+	rigidBody = createPhysBody({ transform->position->x, transform->position->y, transform->position->z });
+
+	// Add it to the service
+	Singleton<PhysicsService^>::Instance->AddPhysicsObject(this);
+
+	// hook binding
+	if (attributes->hasAttribute("modelId"))
+		attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew System::Action<unsigned int, unsigned int>(this, &RigidBody::onModelIdChanged));
+	if (attributes->hasAttribute("meshId"))
+		attributes->getAttribute("meshId")->onPropertyChanged->connect(gcnew System::Action<unsigned int, unsigned int>(this, &RigidBody::onMeshIdChanged));
 }
 
-void RigidBody::onMeshIdChanged(String^ propName, unsigned int newValue, unsigned int oldValue)
+void RigidBody::onModelIdChanged(unsigned int newValue, unsigned int oldValue)
 {
 	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
+}
 
-	//delete rigidBody->getCollisionShape();
-	//rigidBody->setCollisionShape(physicsService->getNativePhysicsService()->getCollisionShapeFromID(newValue, meshId, (int)collisionType));
+void RigidBody::onMeshIdChanged(unsigned int newValue, unsigned int oldValue)
+{
+	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
 }
 
 RigidBody::RigidBody(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
@@ -121,30 +130,18 @@ void RigidBody::Start()
 	if (hookedObject == nullptr)
 		return;
 
-	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
-	//NativePhysicsService* nativePhysicsService = physicsService->getNativePhysicsService();
-
-	rigidBody = createPhysBody({ transform->position->x, transform->position->y, transform->position->z });
-
-	// Add it to the service
-	Singleton<PhysicsService^>::Instance->AddPhysicsObject(this);
-
-	// hook binding
-	{
-		if (attributes->hasAttribute("modelId"))
-		{
-			Action<String^, unsigned int, unsigned int>^ action = gcnew System::Action<String^, unsigned int, unsigned int>(this, &RigidBody::onModelIdChanged);
-
-			attributes->getAttribute("modelId")->onPropertyChanged->connect(action);
-		}
-	}
+	createRigidBody();
 }
 
-[Engine::Attributes::ExecuteInEditModeAttribute]
 void RigidBody::Update()
 {
 	if (!Singleton<PhysicsService^>::Instantiated || hookedObject == nullptr || this->rigidBody == nullptr)
-		return;
+		if (!Singleton<PhysicsService^>::Instantiated)
+			return;
+		else if (hookedObject == nullptr)
+			return;
+		else if (this->rigidBody == nullptr)
+			createRigidBody();
 
 	if (!rigidBody->isActive())
 		printError("Rigidbody not active");

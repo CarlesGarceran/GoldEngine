@@ -1,9 +1,11 @@
 #pragma once
+#include "EditorTools/MaterialEditor.h"
 
 public ref class EditorWindow : Engine::Window 
 {
 private:
 	CodeEditor^ codeEditor;
+	MaterialEditor^ materialEditor;
 	Layer^ selectedLayer;
 	DataPack^ packedData;
 	Engine::Management::Scene^ scene;
@@ -13,6 +15,8 @@ private:
 	int selectedObjectIndex;
 	bool selectionLock = false;
 	Engine::Internal::Components::GameObject^ selectionObject;
+
+	
 
 	Engine::Internal::Components::GameObject^ reparentObject;
 	System::Collections::Generic::List<EngineAssembly^>^ assemblies;

@@ -313,9 +313,6 @@
     <Filter Include="Headers\Engine\Reflection">
       <UniqueIdentifier>{bd38ae50-e0af-48a8-bc06-7bb84642bce9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Rigidbody">
-      <UniqueIdentifier>{a65309c7-5f19-494c-aed7-b238054578d8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Physics\Native">
       <UniqueIdentifier>{00c92128-a556-4cfd-8de4-e41559b93c0f}</UniqueIdentifier>
     </Filter>
@@ -363,6 +360,24 @@
     </Filter>
     <Filter Include="Source\Engine\EngineObjects\Private">
       <UniqueIdentifier>{e4e083a7-d383-42b1-9c1c-6a3d219d1a38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Triggers">
+      <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Rigidbody">
+      <UniqueIdentifier>{a65309c7-5f19-494c-aed7-b238054578d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Service">
+      <UniqueIdentifier>{84cfdd9d-47dc-4daf-882c-081a6b8f4131}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Processors">
+      <UniqueIdentifier>{35b43d00-c2b6-4717-a1d0-029db95202a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Processors\Threads">
+      <UniqueIdentifier>{e36bc586-344a-4bce-8dae-d524f14917cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\Engine\Shaders\Illumina">
+      <UniqueIdentifier>{82d8c09c-1387-41df-9d0f-853e992ce80e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -611,9 +626,6 @@
     </ClInclude>
     <ClInclude Include="Objects\UI\Image.h">
       <Filter>Source\Engine\EngineObjects\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Physics\PhysicsService.h">
-      <Filter>Source\Engine\EngineObjects\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Includes.h">
       <Filter>Headers</Filter>
@@ -937,7 +949,7 @@
       <Filter>Headers\Engine\Object</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Physics\RigidBody.h">
-      <Filter>Source\Engine\EngineObjects\Rigidbody</Filter>
+      <Filter>Source\Engine\EngineObjects\Physics\Rigidbody</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Physics\CollisionType.h">
       <Filter>Source\Engine\EngineObjects\Physics</Filter>
@@ -968,9 +980,6 @@
     </ClInclude>
     <ClInclude Include="VMWrapper.h">
       <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorWindow.h">
-      <Filter>Source\EngineTools\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Object\Prefab.h">
       <Filter>Headers\Engine\Object</Filter>
@@ -1016,6 +1025,30 @@
     </ClInclude>
     <ClInclude Include="Objects\Private\Scene.h">
       <Filter>Source\Engine\EngineObjects\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\miniaudio.h">
+      <Filter>Headers\Engine\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="Native\miniaudio_hook.h">
+      <Filter>Headers\Engine\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorWindow.h">
+      <Filter>Headers\EngineTools\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorTools\MaterialEditor.h">
+      <Filter>Headers\EngineTools\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\PhysicsService.h">
+      <Filter>Source\Engine\EngineObjects\Physics\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\Triggers\Trigger.h">
+      <Filter>Source\Engine\EngineObjects\Physics\Triggers</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaAPI.h">
+      <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="Threads\EngineThread.h">
+      <Filter>Source\Engine\Processors\Threads</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1076,9 +1109,6 @@
     <ClCompile Include="Reflection\ReflectedType.cpp">
       <Filter>Source\Engine\Reflection</Filter>
     </ClCompile>
-    <ClCompile Include="imguistyleserializer.cpp">
-      <Filter>Source\EngineTools\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="imguizmo\GraphEditor.cpp">
       <Filter>Deps\GUI\ImGuizmo</Filter>
     </ClCompile>
@@ -1105,9 +1135,6 @@
     </ClCompile>
     <ClCompile Include="imgui\Style\ScopedStyle.cpp">
       <Filter>Deps\GUI\ImGui\style</Filter>
-    </ClCompile>
-    <ClCompile Include="Objects\Physics\PhysicsService.cpp">
-      <Filter>Source\Engine\EngineObjects\Physics</Filter>
     </ClCompile>
     <ClCompile Include="DataPacks.cpp">
       <Filter>Source\Engine\ObjectManagement</Filter>
@@ -1137,7 +1164,7 @@
       <Filter>Source\Engine\Object</Filter>
     </ClCompile>
     <ClCompile Include="Objects\Physics\RigidBody.cpp">
-      <Filter>Source\Engine\EngineObjects\Rigidbody</Filter>
+      <Filter>Source\Engine\EngineObjects\Physics\Rigidbody</Filter>
     </ClCompile>
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp">
       <Filter>Source\Engine\EngineObjects\Physics\Native</Filter>
@@ -1187,6 +1214,24 @@
     <ClCompile Include="Objects\Private\Scene.cpp">
       <Filter>Source\Engine\EngineObjects\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Native\miniaudio.cpp">
+      <Filter>Source\Engine\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="imguistyleserializer.cpp">
+      <Filter>Source\EngineTools\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorTools\MaterialEditor.cpp">
+      <Filter>Source\EngineTools\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\PhysicsService.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\Triggers\Trigger.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Triggers</Filter>
+    </ClCompile>
+    <ClCompile Include="Threads\EngineThread.cpp">
+      <Filter>Source\Engine\Processors\Threads</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -1196,6 +1241,9 @@
   <ItemGroup>
     <Image Include="app.ico">
       <Filter>Source\Resources</Filter>
+    </Image>
+    <Image Include="EditorAssets\Icons\Texture.png">
+      <Filter>Data\EditorAssets\Icons</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -1252,6 +1300,12 @@
     </CopyFileToFolders>
     <CopyFileToFolders Include="Data\Engine\Models\Error.mtl">
       <Filter>Data\Engine\Models</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Data\Engine\Shaders\Illumina\Illumina.vert">
+      <Filter>Data\Engine\Shaders\Illumina</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Data\Engine\Shaders\Illumina\Illumina.frag">
+      <Filter>Data\Engine\Shaders\Illumina</Filter>
     </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>

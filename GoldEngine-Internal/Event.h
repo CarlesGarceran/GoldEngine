@@ -3,6 +3,7 @@
 namespace Engine::Scripting::Events
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		[Engine::Attributes::LuaAPIAttribute]
 	public ref class Event : Engine::Interfaces::IInstantiable<Event^>
 	{
 	private:

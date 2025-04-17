@@ -94,6 +94,10 @@ void testCollision(btDiscreteDynamicsWorld* world)
 
 PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
 {
+}
+
+void PhysicsService::Start()
+{
 	this->protectMember();
 
 	if (this->Gravity == nullptr)
@@ -112,17 +116,11 @@ PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Trans
 	maxSubSteps = 10;
 
 	Singleton<PhysicsService^>::Create(this);
-}
-
-void PhysicsService::Start()
-{
-	Singleton<PhysicsService^>::Create(this);
 
 	if (!attributes->hasAttribute("Gravity"))
 		attributes->addAttribute(Engine::Scripting::Attribute::New(Engine::Scripting::AccessLevel::Public, "Gravity", gcnew Engine::Components::Vector3(0, 9.81f, 0), Engine::Components::Vector3::typeid));
 }
 
-[Engine::Attributes::ExecuteInEditModeAttribute]
 void PhysicsService::Update()
 {
 	if (maxSubSteps <= 0)
@@ -140,9 +138,9 @@ void PhysicsService::AddPhysicsObject(Engine::EngineObjects::Physics::RigidBody^
 	}
 	else
 		if (world == nullptr)
-			printError("Physics World not instantiated");
+			throw gcnew Exception("Physics World not instantiated");
 		else if (rigidBody->getRigidBody() == nullptr)
-			printError("Rigidbody not instantiated");
+			throw gcnew Exception("Rigidbody not instantiated");
 }
 
 void PhysicsService::RemovePhysicsObject(Engine::EngineObjects::Physics::RigidBody^ rigidBody)
@@ -153,16 +151,16 @@ void PhysicsService::RemovePhysicsObject(Engine::EngineObjects::Physics::RigidBo
 	}
 	else
 		if (world == nullptr)
-			printError("Physics World not instantiated");
+			throw gcnew Exception("Physics World not instantiated");
 		else if (rigidBody->getRigidBody() == nullptr)
-			printError("Rigidbody not instantiated");
+			throw gcnew Exception("Rigidbody not instantiated");
 }
 
 void PhysicsService::AddCollisionObject(btCollisionObject* collisionObject)
 {
 	if (this == nullptr)
 	{
-		printError("Physics Service not initialized");
+		throw gcnew Exception("Physics Service is not initialized");
 		return;
 	}
 
@@ -172,9 +170,9 @@ void PhysicsService::AddCollisionObject(btCollisionObject* collisionObject)
 	}
 	else
 		if (world == nullptr)
-			printError("Physics World not instantiated");
+			throw gcnew Exception("Physics World is not instantiated");
 		else if (collisionObject == nullptr)
-			printError("CollisionObject is not a pointer to an instance");
+			throw gcnew Exception("CollisionObject is not a pointer to an instance");
 }
 
 void PhysicsService::RemoveCollisionObject(btCollisionObject* collisionObject)

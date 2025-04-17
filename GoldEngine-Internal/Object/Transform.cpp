@@ -10,23 +10,10 @@ using namespace Engine::Internal::Components;
 Engine::Internal::Components::Transform::Transform(Engine::Components::Vector3^ position, Engine::Components::Vector3^ rotation, Engine::Components::Vector3^ scale, Transform^ parent)
 {
 	this->uid = System::Guid::NewGuid().ToString();
-	this->localPosition = position;
-	this->localRotation = rotation;
+	this->position = position;
+	this->rotation = rotation;
 	this->scale = scale;
-
-	if (parent != nullptr)
-	{
-		this->parent = parent;
-		this->position = Engine::Components::Vector3::add(parent->position, this->localPosition);
-		this->rotation = Engine::Components::Vector3::add(parent->rotation, this->localRotation);
-
-		this->localPosition = Engine::Components::Vector3::sub(parent->position, this->position);
-	}
-	else
-	{
-		this->position = this->localPosition;
-		this->rotation = this->localRotation;
-	}
+	this->parent = parent;
 }
 
 String^ Engine::Internal::Components::Transform::GetUID()
@@ -59,4 +46,56 @@ T Engine::Internal::Components::Transform::GetObject()
 System::Object^ Engine::Internal::Components::Transform::GetObject()
 {
 	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjectByUid(this->uid);
+}
+
+Engine::Components::Vector3^ Engine::Internal::Components::Transform::position::get()
+{
+	return worldPosition;
+}
+
+void Engine::Internal::Components::Transform::position::set(Engine::Components::Vector3^ value)
+{
+	worldPosition = value;
+}
+
+Engine::Components::Vector3^ Engine::Internal::Components::Transform::rotation::get()
+{
+	return worldRotation;
+}
+
+void Engine::Internal::Components::Transform::rotation::set(Engine::Components::Vector3^ value)
+{
+	worldRotation = value;
+}
+
+Engine::Components::Vector3^ Engine::Internal::Components::Transform::localPosition::get()
+{
+	if (GetParent() == nullptr)
+		return worldPosition;
+
+	return GetParent()->position - worldPosition;
+}
+
+void Engine::Internal::Components::Transform::localPosition::set(Engine::Components::Vector3^ value)
+{
+	if (GetParent() == nullptr)
+		worldPosition = value;
+
+	worldPosition = GetParent()->position + value;
+}
+
+Engine::Components::Vector3^ Engine::Internal::Components::Transform::localRotation::get()
+{
+	if (GetParent() == nullptr)
+		return worldRotation;
+
+	return GetParent()->rotation - worldRotation;
+}
+
+void Engine::Internal::Components::Transform::localRotation::set(Engine::Components::Vector3^ value)
+{
+	if (GetParent() == nullptr)
+		worldRotation = value;
+
+	worldRotation = GetParent()->rotation + value;
 }

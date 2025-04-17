@@ -11,6 +11,8 @@
 
 #include "Objects/LuaScript.h"
 
+#include "LuaAPI.h"
+
 using namespace Engine::Scripting;
 using namespace Engine::Lua::VM;
 
@@ -87,13 +89,121 @@ LuaVM^ LuaVM::RequireOverride(System::Object^ luaSource)
 
 // LUAVM \\
 
+void RegisterChild(MoonSharp::Interpreter::Table^ tableRoot, String^ typeName, System::Object^ object, String^ moduleName)
+{
+	if (moduleName == "")
+	{
+		
+	}
+	else
+	{
+
+	}
+}
+
+bool AwaitDebuggerAttach(MoonSharp::VsCodeDebugger::MoonSharpVsCodeDebugServer^ server)
+{
+	System::Reflection::BindingFlags flags = System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::NonPublic;
+	System::Reflection::FieldInfo^ fieldInfo = server->GetType()->GetField("m_Current", flags);
+
+	Object^ current = fieldInfo->GetValue(server);
+	System::Reflection::FieldInfo^ prop = current->GetType()->GetField("m_Client__", flags);
+
+	System::Diagnostics::Stopwatch^ stopWatch = gcnew System::Diagnostics::Stopwatch();
+	stopWatch->Start();
+	printConsole("Waiting for VSCode debugger");
+	while (prop->GetValue(current) == nullptr)
+	{
+		System::Threading::Thread::Sleep(500);
+		if (stopWatch->Elapsed.TotalSeconds > 60) return false;
+	}
+	stopWatch->Stop();
+	printConsole("VSCode Debugger Attached");
+	return true;
+}
+
+void LuaVM::AttachDebugger()
+{
+	MoonSharp::VsCodeDebugger::MoonSharpVsCodeDebugServer^ debugServer = gcnew MoonSharp::VsCodeDebugger::MoonSharpVsCodeDebugServer();
+	debugServer->Start();
+	debugServer->AttachToScript(this->scriptState, "DebugScript");
+
+	bool attached = AwaitDebuggerAttach(debugServer);
+	if (!attached)
+		printError("Could not attach debugger to Script.");
+}
+
+inline void LuaVM::RegisterGlobal(String^ functionName, System::Type^ userData)
+{
+	scriptState->Globals[functionName] = userData;
+}
+
+inline void LuaVM::RegisterTable(String^ tableName, MoonSharp::Interpreter::Table^ table)
+{
+	scriptState->Globals[tableName] = table;
+}
+
+inline void LuaVM::RegisterGlobal(String^ functionName, System::Object^ userData)
+{
+	scriptState->Globals[functionName] = userData;
+}
+
+inline void LuaVM::RegisterModule(String^ moduleName)
+{
+	scriptState->Globals[moduleName] = {};
+}
+
+String^ GetAPIName(System::Type^ type)
+{
+	array<System::Object^>^ arr = nullptr;
+	if ((arr = type->GetCustomAttributes(Engine::Attributes::LuaAPIAttribute::typeid, false))->Length > 0)
+	{
+		for each (auto t in arr)
+		{
+			if (t->GetType() == Engine::Attributes::LuaAPIAttribute::typeid)
+				return ((Engine::Attributes::LuaAPIAttribute^)t)->globalName;
+		}
+	}
+	return "";
+}
+
 void LuaVM::RegisterGlobalFunctions()
 {
 	for each (auto asms in VMWrapper::GetAssemblies())
 	{
 		try
 		{
+			if (asms->getLoadedAssembly() == nullptr)
+				continue;
+
 			UserData::RegisterAssembly(asms->getLoadedAssembly(), true);
+
+			List<System::Type^> types = asms->getLoadedAssembly()->GetTypes();
+
+			for each (System::Type ^ type in types)
+			{
+				if (type == System::Type::typeid)
+					continue;
+
+				for each (System::Object ^ T in type->GetCustomAttributes(Engine::Attributes::LuaAPIAttribute::typeid, false))
+				{
+					if (T == nullptr)
+						break;
+
+					Engine::Attributes::LuaAPIAttribute^ attrib = (Engine::Attributes::LuaAPIAttribute^)T;
+
+					if (attrib == nullptr)
+						break;
+
+					if (attrib->isStatic)
+					{
+						if (attrib->globalName == "")
+							RegisterGlobal(type->Name, type);
+						else
+							RegisterGlobal(attrib->globalName, type);
+					}
+				}
+			}
 		}
 		catch (Exception^ ex)
 		{
@@ -109,9 +219,13 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("ObjectManager", Engine::Scripting::ObjectManager::singleton());
 	RegisterGlobal("Input", Engine::Scripting::InputManager::typeid);
 	RegisterGlobal("KeyCode", Engine::Scripting::KeyCodes::typeid);
+	RegisterGlobal("MouseButton", Engine::Scripting::MouseButtons::typeid);
+	RegisterGlobal("CursorStatus", Engine::Scripting::CursorStatus::typeid);
+	RegisterGlobal("CursorVisibility", Engine::Scripting::CursorVisibility::typeid);
 	RegisterGlobal("SharedInstance", SharedInstance::typeid);
 	RegisterGlobal("VMWrap", VMWrapper::typeid);
 	RegisterGlobal("Time", Engine::Scripting::Time::typeid);
+	RegisterGlobal("Screen", Engine::Scripting::Screen::typeid);
 	RegisterGlobal("Graphics", Engine::Internal::GraphicsWrapper::typeid);
 	RegisterGlobal("Vector2", Engine::Components::Vector2::typeid);
 	RegisterGlobal("Vector3", Engine::Components::Vector3::typeid);
@@ -155,7 +269,7 @@ System::Collections::Generic::List<Type^>^ LuaVM::GetMoonSharpTypes(System::Refl
 
 	for each (Type ^ t in a->GetTypes())
 	{
-		if (t->GetCustomAttributes(MoonSharp::Interpreter::MoonSharpUserDataAttribute::typeid, false)->Length > 0)
+		if (t->GetCustomAttributes(Engine::Attributes::LuaAPIAttribute::typeid, false)->Length > 0)
 		{
 			result->Add(t);
 		}
@@ -167,6 +281,124 @@ System::Collections::Generic::List<Type^>^ LuaVM::GetMoonSharpTypes(System::Refl
 void LuaVM::ClearGlobals()
 {
 	this->scriptState->Globals->Clear();
+}
+
+void RemapFunctions(String^% luaSrcFile, System::Type^ type, String^ apiName)
+{
+	auto methods = type->GetMethods();
+	for each (auto method in methods)
+	{
+		if (method->IsPublic)
+		{
+			if (method->IsStatic)
+			{
+				luaSrcFile += "function " + apiName + "." + method->Name + "(";
+			}
+			else
+			{
+				continue;
+				//luaSrcFile += "function " + apiName + ":" + method->Name + "(";
+			}
+
+
+			auto params = method->GetParameters();
+			int length = params->Length;
+			for (int x = 0; x < length; x++)
+			{
+				auto param = params[x];
+				if (x < length - 1)
+				{
+					luaSrcFile += param->Name + "__" + param->ParameterType->Name + ",";
+				}
+				else
+				{
+					luaSrcFile += param->Name + "__" + param->ParameterType->Name + "";
+				}
+			}
+
+			luaSrcFile += ")end\n";
+		}
+	}
+}
+
+System::Object^ GetDefaultValue(System::Type^ type)
+{
+	return type->IsValueType ? System::Activator::CreateInstance(type) : nullptr;
+}
+
+void RemapConstructors(String^% luaSrcFile, System::Type^ type, String^ apiName)
+{
+	auto members = type->GetMembers();
+	auto constructors = type->GetConstructors();
+	for each (auto constructor in constructors)
+	{
+		if (constructor->IsPrivate)
+			continue;
+
+		luaSrcFile += "function " + apiName + ".new(";
+
+		auto params = constructor->GetParameters();
+		int length = params->Length;
+		for (int x = 0; x < length; x++)
+		{
+			auto param = params[x];
+			if (x < length - 1)
+			{
+				luaSrcFile += param->Name +",";
+			}
+			else
+			{
+				luaSrcFile += param->Name;
+			}
+		}
+		luaSrcFile += ")\n";
+		luaSrcFile += "local self = setmetatable({}, " + apiName + ");\n";
+
+		for each (auto member in members)
+		{
+			if (member->MemberType == System::Reflection::MemberTypes::Field || member->MemberType == System::Reflection::MemberTypes::Property)
+			{
+				if (member->MemberType == System::Reflection::MemberTypes::Field)
+				{
+					System::Reflection::FieldInfo^ fieldInfo = (System::Reflection::FieldInfo^)member;
+					luaSrcFile += ("self." + member->Name + " = ") + (GetDefaultValue(fieldInfo->FieldType) == nullptr ? fieldInfo->FieldType->Name + ".new()" : GetDefaultValue(fieldInfo->FieldType)) + "\n";
+				}
+				else
+				{
+					System::Reflection::PropertyInfo^ fieldInfo = (System::Reflection::PropertyInfo^)member;
+					luaSrcFile += ("self." + fieldInfo->Name + " = ") + (GetDefaultValue(fieldInfo->PropertyType) == nullptr ? fieldInfo->PropertyType->Name + ".new()" : GetDefaultValue(fieldInfo->PropertyType)) + "\n";
+				}
+			}
+			else if (member->MemberType == System::Reflection::MemberTypes::Method)
+			{
+				System::Reflection::MethodInfo^ methodInfo = (System::Reflection::MethodInfo^)member;
+			
+				if (methodInfo->IsPrivate || methodInfo->IsStatic)
+					continue;
+
+				luaSrcFile += "function self:" + member->Name + "(";
+				auto _params = methodInfo->GetParameters();
+				int _length = _params->Length;
+				for (int x = 0; x < _length; x++)
+				{
+					auto param = _params[x];
+					if (x < _length - 1)
+					{
+						luaSrcFile += param->Name + ",";
+					}
+					else
+					{
+						luaSrcFile += param->Name;
+					}
+				}
+				luaSrcFile += ")";
+				luaSrcFile += "end;\n";
+			}
+		}
+
+		luaSrcFile += "return self;\n";
+		luaSrcFile += "end\n";
+	}
 }
 
 void LuaVM::GenerateLuaBindings()
@@ -186,52 +418,44 @@ void LuaVM::GenerateLuaBindings()
 			{
 				List<Type^>^ lua_proxy_types = GetMoonSharpTypes(asms->getLoadedAssembly());
 
-
 				for each (Type ^ type in lua_proxy_types)
 				{
-					String^ fullName = type->Name;
+					String^ apiName = GetAPIName(type);
 
-					if (fullName->Contains("Proxy"))
+					if(apiName == "")
+						apiName = type->Name;
+
+					if (apiName->Contains("Proxy"))
 						continue;
 
-					luaSrcFile += "\n--[[ " + fullName + " CLASS DEFINITION ]]--\n";
+					luaSrcFile += "\n--[[ " + apiName + " CLASS DEFINITION ]]--\n";
 
-					luaSrcFile += fullName + " = {}\n";
+					luaSrcFile += apiName + " = {}\n";
 
 					auto members = type->GetMembers();
 					for each (auto member in members)
 					{
 						if (member->MemberType == System::Reflection::MemberTypes::Field || member->MemberType == System::Reflection::MemberTypes::Property)
 						{
-							luaSrcFile += fullName + "." + member->Name + " = nil;\n";
-						}
-					}
-
-					auto methods = type->GetMethods();
-					for each (auto method in methods)
-					{
-						if (method->IsPublic)
-						{
-							luaSrcFile += "function " + fullName + "." + method->Name + "(";
-
-							auto params = method->GetParameters();
-							int length = params->Length;
-							for (int x = 0; x < length; x++)
+							if (member->MemberType == System::Reflection::MemberTypes::Field)
 							{
-								auto param = params[x];
-								if (x < length - 1)
+								System::Reflection::FieldInfo^ methodInfo = (System::Reflection::FieldInfo^)member;
+								if (methodInfo->IsStatic)
 								{
-									luaSrcFile += param->Name + "__" + param->ParameterType->Name + ",";
-								}
-								else
-								{
-									luaSrcFile += param->Name + "__" + param->ParameterType->Name + "";
+									luaSrcFile += apiName + "." + member->Name + " = nil;\n";
 								}
 							}
-
-							luaSrcFile += ")end\n";
+							else if (member->MemberType == System::Reflection::MemberTypes::Property)
+							{
+								System::Reflection::PropertyInfo^ methodInfo = (System::Reflection::PropertyInfo^)member;
+								luaSrcFile += "-- THIS IS A PROPERTY, IT MIGHT COULD NOT BE ACCESSED\n";
+								luaSrcFile += apiName + "." + member->Name + " = nil;\n";
+							}
 						}
 					}
+
+					RemapConstructors(luaSrcFile, type, apiName);
+					RemapFunctions(luaSrcFile, type, apiName);
 				}
 			}
 			catch (Exception^ ex)

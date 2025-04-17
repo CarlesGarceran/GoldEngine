@@ -340,6 +340,7 @@
     <ClInclude Include="DataManager.h" />
     <ClInclude Include="EditorGUI.h" />
     <ClInclude Include="EditorTools\CodeEditor.h" />
+    <ClInclude Include="EditorTools\MaterialEditor.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGC.h" />
@@ -370,11 +371,14 @@
     <ClInclude Include="Instantiable.h" />
     <ClInclude Include="LogFileReporter.h" />
     <ClInclude Include="LoggingAPI.h" />
+    <ClInclude Include="LuaAPI.h" />
     <ClInclude Include="LuaVM.h" />
     <ClInclude Include="ManagedIncludes.h" />
     <ClInclude Include="ManagedSignal.h" />
     <ClInclude Include="native\CollisionShape.h" />
     <ClInclude Include="native\json.hpp" />
+    <ClInclude Include="Native\miniaudio.h" />
+    <ClInclude Include="Native\miniaudio_hook.h" />
     <ClInclude Include="native\NativeSingleton.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="Macros.h" />
@@ -390,6 +394,7 @@
     <ClInclude Include="Objects\Physics\CollisionType.h" />
     <ClInclude Include="Objects\Physics\PhysicsService.h" />
     <ClInclude Include="Objects\Physics\RigidBody.h" />
+    <ClInclude Include="Objects\Physics\Triggers\Trigger.h" />
     <ClInclude Include="Objects\Private\Scene.h" />
     <ClInclude Include="Objects\Script.h" />
     <ClInclude Include="Objects\GridRenderer.h" />
@@ -432,6 +437,7 @@
     <ClInclude Include="SDK.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="Singleton.h" />
+    <ClInclude Include="Threads\EngineThread.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="VMWrapper.h" />
     <ClInclude Include="VoxelMatrix.h" />
@@ -467,6 +473,7 @@
     <ClCompile Include="cimgui\cimgui.cpp" />
     <ClCompile Include="DataPacks.cpp" />
     <ClCompile Include="EditorTools\CodeEditor.cpp" />
+    <ClCompile Include="EditorTools\MaterialEditor.cpp" />
     <ClCompile Include="EngineGC.cpp" />
     <ClCompile Include="GoldEngine.cpp" />
     <ClCompile Include="Event.cpp" />
@@ -488,11 +495,13 @@
     <ClCompile Include="Instantiable.cpp" />
     <ClCompile Include="LuaVM.cpp" />
     <ClCompile Include="native\CollisionShape.cpp" />
+    <ClCompile Include="Native\miniaudio.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="Objects\Audio\AudioSource.cpp" />
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\PhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\RigidBody.cpp" />
+    <ClCompile Include="Objects\Physics\Triggers\Trigger.cpp" />
     <ClCompile Include="Objects\Pipeline\ScriptableRenderPipeline.cpp" />
     <ClCompile Include="Objects\Private\Scene.cpp" />
     <ClCompile Include="Object\Color.cpp" />
@@ -512,6 +521,7 @@
     <ClCompile Include="Reflection\ReflectedType.cpp" />
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="Screen.h" />
+    <ClCompile Include="Threads\EngineThread.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="WinAPI.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -577,6 +587,7 @@
       <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|x64'">EditorAssets/Icons/%(Filename)%(Extension)</DestinationFileName>
       <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EditorAssets/Icons/%(Filename)%(Extension)</DestinationFileName>
     </CopyFileToFolders>
+    <Image Include="EditorAssets\Icons\Texture.png" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="Data\Engine\Models\Error.obj">
@@ -671,6 +682,9 @@
     <Reference Include="MoonSharp.Interpreter">
       <HintPath>..\netasm\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
+    <Reference Include="MoonSharp.VsCodeDebugger">
+      <HintPath>..\netasm\MoonSharp.VsCodeDebugger.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\netasm\Newtonsoft.Json.dll</HintPath>
       <Private>true</Private>
@@ -719,6 +733,24 @@
       <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Data/Engine/Models/%(Filename)%(Extension)</DestinationFileName>
       <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|x64'">Data/Engine/Models/%(Filename)%(Extension)</DestinationFileName>
       <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Data/Engine/Models/%(Filename)%(Extension)</DestinationFileName>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Data\Engine\Shaders\Illumina\Illumina.frag">
+      <FileType>Document</FileType>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Data\Engine\Shaders\Illumina\Illumina.vert">
+      <FileType>Document</FileType>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
+      <DestinationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Data/Engine/Shaders/Illumina/%(Filename)%(Extension)</DestinationFileName>
     </CopyFileToFolders>
     <None Include="Data\Engine\Shaders\Lighting\rlights.frag" />
     <None Include="Data\Engine\Shaders\Lighting\rlights.vert" />

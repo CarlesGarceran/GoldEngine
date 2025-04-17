@@ -3,6 +3,7 @@
 namespace Engine::Scripting
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		[Engine::Attributes::LuaAPIAttribute("Time")]
 	public ref class Time
 	{
 	public:

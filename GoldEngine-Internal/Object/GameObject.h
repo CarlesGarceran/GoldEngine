@@ -5,11 +5,13 @@
 namespace Engine::Internal::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-		public ref class GameObject
+	[Engine::Attributes::LuaAPIAttribute]
+	public ref class GameObject
 	{
 	private:
 #ifdef USE_BULLET_PHYS
 		void* collisionShape;
+		bool collisionObjectInitialized = false;
 #endif
 		Engine::Internal::Components::Transform^ lastTransform;
 		[Newtonsoft::Json::JsonPropertyAttribute]
@@ -116,24 +118,6 @@ namespace Engine::Internal::Components
 	private:
 		void descendantAdded(GameObject^ descendant);
 		void OnPropChanged();
-
-		void UpdateLocalPosition()
-		{
-			if (transform->parent != nullptr)
-			{
-				Engine::Components::Vector3^ diff = (transform->parent->position - transform->position);
-				transform->localPosition = transform->position + diff;
-			}
-		}
-
-		void UpdatePosition()
-		{
-			if (transform->parent != nullptr)
-			{
-				Engine::Components::Vector3^ diff = (transform->parent->position - transform->position);
-				transform->position = transform->localPosition - diff;
-			}
-		}
 
 	public:
 		void GameUpdate();

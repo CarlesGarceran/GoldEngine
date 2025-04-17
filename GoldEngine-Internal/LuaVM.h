@@ -71,20 +71,12 @@ namespace Engine::Lua::VM
 		void RegisterGlobalFunctions();
 		void ClearGlobals();
 
-		void RegisterGlobal(String^ functionName, System::Type^ userData)
-		{
-			scriptState->Globals[functionName] = userData;
-		}
+		inline void RegisterModule(String^ moduleName);
+		inline void RegisterGlobal(String^ functionName, System::Type^ userData);
+		inline void RegisterTable(String^ tableName, MoonSharp::Interpreter::Table^ table);
+		inline void RegisterGlobal(String^ functionName, System::Object^ userData);
 
-		void RegisterTable(String^ tableName, MoonSharp::Interpreter::Table^ table)
-		{
-			scriptState->Globals[tableName] = table;
-		}
-
-		void RegisterGlobal(String^ functionName, System::Object^ userData)
-		{
-			scriptState->Globals[functionName] = userData;
-		}
+		void AttachDebugger();
 
 		generic <class T>
 		void RegisterGlobalFunction(String^ functionName, System::Func<T>^ func)

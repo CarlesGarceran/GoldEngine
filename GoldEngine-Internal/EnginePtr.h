@@ -47,6 +47,19 @@ namespace Engine::Native
 			return ptrInstance;
 		}
 
+		void setInstanceInstance(T instance)
+		{
+			if (onObjectChanged != nullptr)
+				onObjectChanged(this->ptrInstance);
+
+			if ((&instance) != NULL)
+				this->loaded = true;
+			else
+				this->loaded = false;
+
+			this->ptrInstance = instance;
+		}
+
 		void setInstance(T& instance)
 		{
 			if(onObjectChanged != nullptr)

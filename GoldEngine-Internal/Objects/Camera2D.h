@@ -46,6 +46,7 @@ namespace Engine::EngineObjects
 
 		void setTarget(Engine::Components::Vector3^ target) override
 		{
+			attributes->getAttribute("camera direction")->setValue(target);
 			this->nativeCamera->setCameraTarget(target->toNative());
 		}
 
@@ -62,16 +63,22 @@ namespace Engine::EngineObjects
 		void ApplyCameraYaw(float yaw, bool local) override
 		{
 			RAYLIB::CameraYaw(nativeCamera->getCameraPtr(), yaw, local);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 
 		void ApplyCameraPitch(float yaw) override
 		{
 			RAYLIB::CameraPitch(nativeCamera->getCameraPtr(), yaw);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 
 		void ApplyCameraRoll(float roll) override
 		{
 			RAYLIB::CameraRoll(nativeCamera->getCameraPtr(), roll);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 	};
 }

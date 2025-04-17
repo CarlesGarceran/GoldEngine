@@ -43,8 +43,20 @@ namespace Engine::EngineObjects
 			DrawLine3D(transform->position->toNative(), nativeCamera->get().target, GetColor(0xFF0000FF));
 		}
 
+		void setTarget(Engine::Components::Vector2^ target) override
+		{
+			auto nativeCameraPtr = this->nativeCamera->getCameraPtr();
+
+			nativeCameraPtr->target.x = nativeCameraPtr->position.x + cosf(DEG2RAD * target->x) * cosf(DEG2RAD * target->y);
+			nativeCameraPtr->target.y = nativeCameraPtr->position.y + sinf(DEG2RAD * target->y);
+			nativeCameraPtr->target.z = nativeCameraPtr->position.z + sinf(DEG2RAD * target->x) * cosf(DEG2RAD * target->y);
+
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(nativeCameraPtr->target.x, nativeCameraPtr->target.y, nativeCameraPtr->target.z));
+		}
+
 		void setTarget(Engine::Components::Vector3^ target) override
 		{
+			attributes->getAttribute("camera direction")->setValue(target);
 			this->nativeCamera->setCameraTarget(target->toNative());
 		}
 
@@ -58,19 +70,45 @@ namespace Engine::EngineObjects
 			return true;
 		}
 
+		void LookAt(Engine::Components::Vector3^ target)
+		{
+			attributes->getAttribute("camera direction")->setValue(target);
+
+			nativeCamera->get().target = target->toNative();
+
+			RAYLIB::Vector3 forward = RAYMATH::Vector3Normalize(RAYMATH::Vector3Subtract(target->toNative(), nativeCamera->get().position));
+			RAYLIB::Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+			RAYLIB::Vector3 right = RAYMATH::Vector3Normalize(RAYMATH::Vector3CrossProduct(worldUp, forward));
+			RAYLIB::Vector3 up = RAYMATH::Vector3CrossProduct(forward, right);
+
+			nativeCamera->get().up = up;
+		}
+
+		void LookAt(GameObject^ instance)
+		{
+			LookAt(instance->transform->position);
+		}
+
 		void ApplyCameraYaw(float yaw, bool local) override
 		{
 			RAYLIB::CameraYaw(nativeCamera->getCameraPtr(), yaw, local);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 
 		void ApplyCameraPitch(float yaw) override
 		{
 			RAYLIB::CameraPitch(nativeCamera->getCameraPtr(), yaw);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 
 		void ApplyCameraRoll(float roll) override
 		{
 			RAYLIB::CameraRoll(nativeCamera->getCameraPtr(), roll);
+			RAYLIB::Vector3 v3 = nativeCamera->get().target;
+			attributes->getAttribute("camera direction")->setValue(gcnew Engine::Components::Vector3(v3.x, v3.y, v3.z));
 		}
 	};
 }

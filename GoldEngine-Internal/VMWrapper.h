@@ -5,6 +5,7 @@ using namespace MoonSharp::Interpreter;
 namespace Engine::Lua::VM
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		[Engine::Attributes::LuaAPIAttribute("VMWrap")]
 		public ref class VMWrapper // Lua Wrapper for System::Type^
 	{
 	public:

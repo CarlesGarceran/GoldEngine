@@ -15,6 +15,15 @@ namespace Engine::EngineObjects
 			}
 		}
 
+		Script() : Engine::EngineObjects::ScriptBehaviour("Script", gcnew Engine::Internal::Components::Transform(Engine::Components::Vector3::zero(), Engine::Components::Vector3::zero(), gcnew Engine::Components::Vector3(1,1,1), nullptr))
+		{
+			for each (Engine::Scripting::Attribute ^ attrib in attributes->attributes)
+			{
+				Singleton<Engine::Scripting::ObjectManager^>::Instance->PatchAttributeObject(attrib);
+				attrib->synchronizeDescriptor();
+			}
+		}
+
 		virtual void Init() override
 		{
 			Engine::EngineObjects::ScriptBehaviour::Setup();

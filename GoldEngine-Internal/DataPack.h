@@ -70,7 +70,7 @@ namespace Engine::Assets::Management
 			shaders = gcnew Dictionary<unsigned int, array<String^>^>(newPack->shaders);
 			models = gcnew Dictionary<unsigned int, String^>(newPack->models);
 			textures2d = gcnew Dictionary<unsigned int, String^>(newPack->textures2d);
-			materials = gcnew Dictionary<unsigned int, unsigned int>(newPack->materials);
+			materials = gcnew Dictionary<unsigned int, String^>(newPack->materials);
 			sounds = gcnew Dictionary<unsigned int, String^>(newPack->sounds);
 			musics = gcnew Dictionary<unsigned int, String^>(newPack->musics);
 
@@ -81,7 +81,7 @@ namespace Engine::Assets::Management
 		{
 			shaders = gcnew Dictionary<unsigned int, array<String^>^>();
 			models = gcnew Dictionary<unsigned int, String^>();
-			materials = gcnew Dictionary<unsigned int, unsigned int>();
+			materials = gcnew Dictionary<unsigned int, String^>();
 			textures2d = gcnew Dictionary<unsigned int, String^>();
 			sounds = gcnew Dictionary<unsigned int, String^>();
 			musics = gcnew Dictionary<unsigned int, String^>();
@@ -90,7 +90,7 @@ namespace Engine::Assets::Management
 	public:
 		System::Collections::Generic::Dictionary<unsigned int, array<String^>^>^ shaders;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ models;
-		System::Collections::Generic::Dictionary<unsigned int, unsigned int>^ materials;
+		System::Collections::Generic::Dictionary<unsigned int, String^>^ materials;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ textures2d;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ sounds;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ musics;
@@ -102,7 +102,7 @@ namespace Engine::Assets::Management
 			
 			shaders = gcnew Dictionary<unsigned int, array<String^>^>();
 			models = gcnew Dictionary<unsigned int, String^>();
-			materials = gcnew Dictionary<unsigned int, unsigned int>();
+			materials = gcnew Dictionary<unsigned int, String^>();
 			textures2d = gcnew Dictionary<unsigned int, String^>();
 			sounds = gcnew Dictionary<unsigned int, String^>();
 			musics = gcnew Dictionary<unsigned int, String^>();
@@ -165,6 +165,28 @@ namespace Engine::Assets::Management
 				Engine::Assets::Storage::DataPacks::singleton().AddShader(id, s);
 
 				return s;
+			}
+		}
+
+		Engine::Components::Material^ AddMaterial(unsigned int id, String^ path)
+		{
+			if (!materials->ContainsKey(id))
+			{
+				materials->Add(id, path);
+				
+				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
+
+				return material;
+			}
+			else
+			{
+				materials->Add(id, path);
+
+				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
+
+				return material;
 			}
 		}
 
@@ -413,7 +435,7 @@ namespace Engine::Assets::Management
 			case _Material:
 				for each (auto T in materials)
 				{
-					if (T.Value == std::atoi(CastStringToNative(value).c_str()))
+					if (T.Value == value)
 					{
 						return std::tuple<bool, int>(true, T.Key);
 					}
@@ -585,6 +607,12 @@ namespace Engine::Assets::Management
 			String^ vertexShader = str[0];
 			String^ fragmentShader = str[1];
 			AddShader(shaderId, vertexShader, fragmentShader);
+		}
+		
+		void ReloadMaterial(unsigned int materialId)
+		{
+			String^ soundStr = this->materials[materialId];
+			AddMaterial(materialId, soundStr);
 		}
 
 		void ReloadSound(unsigned int soundId)

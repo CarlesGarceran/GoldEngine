@@ -3,7 +3,8 @@
 namespace Engine::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-		public ref class Vector2 : Engine::Interfaces::IInstantiable<Vector2^>
+	[Engine::Attributes::LuaAPIAttribute]
+	public ref class Vector2 : Engine::Interfaces::IInstantiable<Vector2^>
 	{
 	public:
 		float x, y;
@@ -18,15 +19,19 @@ namespace Engine::Components
 	public:
 		static Vector2^ lerp(Vector2^ origin, Vector2^ target, float interpolate)
 		{
-			auto newX = RAYMATH::Lerp(origin->x, target->x, interpolate);
-			auto newY = RAYMATH::Lerp(origin->y, target->y, interpolate);
+			auto result = RAYMATH::Vector2Lerp(origin->toNative(), target->toNative(), interpolate);
 
-			return gcnew Vector2(newX, newY);
+			return gcnew Vector2(result.x, result.y);
 		}
 
 		static Vector2^ zero()
 		{
 			return gcnew Vector2(0, 0);
+		}
+
+		static Vector2^ Zero()
+		{
+			return zero();
 		}
 
 		System::Numerics::Vector2^ toNumericsVector2()
@@ -59,6 +64,48 @@ namespace Engine::Components
 			return gcnew Vector2();
 		}
 
+		Vector2^ add(Vector2^ origin);
+		Vector2^ add(float x, float y)
+		{
+			return add(gcnew Engine::Components::Vector2(x, y));
+		}
+		Vector2^ add(float x)
+		{
+			return add(x, x);
+		}
+
+		Vector2^ multiply(Vector2^ origin);
+		Vector2^ multiply(float x, float y)
+		{
+			return multiply(gcnew Engine::Components::Vector2(x, y));
+		}
+		Vector2^ multiply(float x)
+		{
+			return multiply(x, x);
+		}
+
+		Vector2^ divide(Vector2^ origin);
+		Vector2^ divide(float x, float y)
+		{
+			return divide(gcnew Engine::Components::Vector2(x, y));
+		}
+		Vector2^ divide(float x)
+		{
+			return divide(x, x);
+		}
+
+		Vector2^ sub(Vector2^ origin);
+		Vector2^ sub(float x, float y)
+		{
+			return sub(gcnew Engine::Components::Vector2(x, y));
+		}
+		Vector2^ sub(float x)
+		{
+			return sub(x, x);
+		}
+
+		void copy(const Vector2^ inVec);
+
 		bool Equals(Vector2^ value) override
 		{
 			return ((this->x == value->x) && (this->y == value->y));
@@ -79,10 +126,21 @@ namespace Engine::Components
 			return gcnew Vector2(left->x * right->x, left->y * right->y);
 		}
 
+		static Vector2^ multiply(Vector2^ left, float value)
+		{
+			return gcnew Vector2(left->x * value, left->y * value);
+		}
+
 		static Vector2^ divide(Vector2^ left, Vector2^ right)
 		{
 			return gcnew Vector2(left->x / right->x, left->y / right->y);
 		}
+
+		static Vector2^ divide(Vector2^ left, float value)
+		{
+			return gcnew Vector2(left->x / value, left->y / value);
+		}
+
 
 		Engine::Components::Vector2^ operator+(Vector2^ other)
 		{
@@ -102,6 +160,12 @@ namespace Engine::Components
 		Engine::Components::Vector2^ operator/(Vector2^ other)
 		{
 			return Vector2::divide(this, other);
+		}
+
+
+		float magnitude()
+		{
+			return sqrt((x * x) + (y * y));
 		}
 	};
 }

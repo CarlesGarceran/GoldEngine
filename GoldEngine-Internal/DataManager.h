@@ -71,5 +71,39 @@ namespace Engine::Internal
 			Engine::Assets::Storage::DataPacks::singleton().FreeShader(shaderId);
 		}
 
+		inline static RAYLIB::Model* GetModel(unsigned int modelId)
+		{
+			return &Engine::Assets::Storage::DataPacks::singleton().GetModel(modelId);
+		}
+
+		inline static RAYLIB::Shader* GetShader(unsigned int shaderId)
+		{
+			return &Engine::Assets::Storage::DataPacks::singleton().GetShader(shaderId);
+		}
+
+		inline static RAYLIB::Texture2D* GetTexture2D(unsigned int textureId)
+		{
+			return &Engine::Assets::Storage::DataPacks::singleton().GetTexture2D(textureId);
+		}
+
+		inline static RAYLIB::Mesh* GetMesh(unsigned int meshId)
+		{
+			return Engine::Assets::Storage::DataPacks::singleton().GetMeshPtr(meshId);
+		}
+
+		inline static RAYLIB::Sound* GetSound(unsigned int soundId)
+		{
+			return Engine::Assets::Storage::DataPacks::singleton().GetSoundPtr(soundId);
+		}
+
+		inline static RAYLIB::Music* GetMusic(unsigned int musicId)
+		{
+			return Engine::Assets::Storage::DataPacks::singleton().GetMusicPtr(musicId);
+		}
+
+		inline static Engine::Components::Material^ GetMaterial(unsigned int materialId)
+		{
+			return Engine::Assets::Storage::DataPacks::singleton().GetMaterial(materialId);
+		}
 	};
 }

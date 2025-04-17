@@ -8,6 +8,7 @@ using namespace System;
 /// </summary>
 
 [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+[Engine::Attributes::LuaAPIAttribute]
 public ref class ShaderManager abstract
 {
 public:

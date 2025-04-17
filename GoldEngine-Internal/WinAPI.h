@@ -7,5 +7,8 @@ public:
 	static void AllocCons();
 	static void SetWindowStatus(void* winHandle, int windowId);
 	static void SetAttribute(const char* path, int ptr);
+
+
+	static void LoadLib(const char* libraryName);
 };
 

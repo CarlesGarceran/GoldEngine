@@ -45,61 +45,52 @@ RAYLIB::Vector3 Engine::Components::Vector3::toNative()
 	return { x,y,z };
 }
 
-
-void Engine::Components::Vector3::add(float x, float y, float z)
+Engine::Components::Vector3^ Engine::Components::Vector3::add(Vector3^ origin)
 {
-	this->x += x;
-	this->y += y;
-	this->z += z;
+	Vector3^ copy = Vector3::Create();
+	copy->copy(this);
+
+	copy->x += origin->x;
+	copy->y += origin->y;
+	copy->z += origin->z;
+	
+	return copy;
 }
 
-void Engine::Components::Vector3::add(Vector3^ origin)
+Engine::Components::Vector3^ Engine::Components::Vector3::multiply(Vector3^ origin)
 {
-	this->x += origin->x;
-	this->y += origin->y;
-	this->z += origin->z;
+	Vector3^ copy = Vector3::Create();
+	copy->copy(this);
+
+	copy->x *= origin->x;
+	copy->y *= origin->y;
+	copy->z *= origin->z;
+
+	return copy;
 }
 
-void Engine::Components::Vector3::multiply(Vector3^ origin)
+Engine::Components::Vector3^ Engine::Components::Vector3::divide(Vector3^ origin)
 {
-	this->x *= origin->x;
-	this->y *= origin->y;
-	this->z *= origin->z;
+	Vector3^ copy = Vector3::Create();
+	copy->copy(this);
+
+	copy->x /= origin->x;
+	copy->y /= origin->y;
+	copy->z /= origin->z;
+
+	return this;
 }
 
-void Engine::Components::Vector3::multiply(float x, float y, float z)
+Engine::Components::Vector3^ Engine::Components::Vector3::sub(Vector3^ origin)
 {
-	this->x *= x;
-	this->y *= y;
-	this->z *= z;
-}
+	Vector3^ copy = Vector3::Create();
+	copy->copy(this);
 
-void Engine::Components::Vector3::divide(Vector3^ origin)
-{
-	this->x /= origin->x;
-	this->y /= origin->y;
-	this->z /= origin->z;
-}
+	copy->x -= origin->x;
+	copy->y -= origin->y;
+	copy->z -= origin->z;
 
-void Engine::Components::Vector3::divide(float x, float y, float z)
-{
-	this->x /= x;
-	this->y /= y;
-	this->z /= z;
-}
-
-void Engine::Components::Vector3::sub(float x, float y, float z)
-{
-	this->x -= x;
-	this->y -= y;
-	this->z -= z;
-}
-
-void Engine::Components::Vector3::sub(Vector3^ origin)
-{
-	this->x -= origin->x;
-	this->y -= origin->y;
-	this->z -= origin->z;
+	return copy;
 }
 
 void Engine::Components::Vector3::copy(const Vector3^ origin)

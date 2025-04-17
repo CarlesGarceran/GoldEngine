@@ -5,6 +5,7 @@
 #include <map>
 #include "Includes.h"
 #include "GlIncludes.h"
+#include "Object/Material.h"
 #include "Object/Transform.h"
 #include "LoggingAPI.h"
 
@@ -20,15 +21,18 @@ namespace Engine::Assets::Storage
 	public:
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Shader>*> shaders;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Model>*> models;
-		//std::map<unsigned int, Engine::Assets::Storage::Types::CameraPack> cameras;
-		//std::map<unsigned int, Engine::Assets::Storage::Types::MaterialPack> materials;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Texture2D>*> textures2d;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Sound>*> sounds;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Music>*> musics;
+		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Mesh>*> meshes;
+		//std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::ModelAnimation>*> animations;
+		std::map<unsigned int, void*> materials;
 
 		Engine::Native::EnginePtr<RAYLIB::Shader>* fallbackShader = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Model>* fallbackModel = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Texture2D>* fallbackTexture = nullptr;
+		msclr::gcroot<Engine::Components::Material^>* fallbackMaterial = nullptr;
+		Engine::Native::EnginePtr<RAYLIB::Mesh>* fallbackMesh = nullptr;
 
 		NativeDataPack();
 	};
@@ -50,8 +54,8 @@ namespace Engine::Assets::Storage
 			assetCount += nativePacks->shaders.size();
 			assetCount += nativePacks->models.size();
 			assetCount += nativePacks->textures2d.size();
-			//assetCount += nativePacks->materials.size();
-			//assetCount += nativePacks->cameras.size();
+			assetCount += nativePacks->materials.size();
+			//assetCount += nativePacks->meshes.size();
 			assetCount += nativePacks->sounds.size();
 			assetCount += nativePacks->musics.size();
 
@@ -98,27 +102,30 @@ namespace Engine::Assets::Storage
 
 		void FreeShader(unsigned int shaderId)
 		{
-			for (int x = 0; x < nativePacks->shaders.size(); x++)
+			try
 			{
-				auto sP = nativePacks->shaders[x];
-
+				auto sP = nativePacks->shaders.at(shaderId);
 				sP->release();
 			}
+			catch (std::exception ex)
+			{
+
+			}
+
+			nativePacks->shaders.erase(shaderId);
 		}
 
 		void FreeMaterials()
 		{
-			/*
 			for (int x = 0; x < nativePacks->materials.size(); x++)
 			{
-				if (&nativePacks->materials[x].MaterialReference != nullptr)
+				if (nativePacks->materials.at(x) != nullptr)
 				{
-					UnloadMaterial(nativePacks->materials[x].MaterialReference);
+					delete nativePacks->materials[x];
 				}
 			}
-			*/
 
-			//nativePacks->materials.clear();
+			nativePacks->materials.clear();
 		}
 
 		void FreeModels()
@@ -131,11 +138,6 @@ namespace Engine::Assets::Storage
 			}
 
 			nativePacks->models.clear();
-		}
-
-		void FreeCameras()
-		{
-			//nativePacks->cameras.clear();
 		}
 
 		void FreeTextures2D()
@@ -161,56 +163,33 @@ namespace Engine::Assets::Storage
 			FreeTextures2D();
 			FreeMaterials();
 			FreeShaders();
-			FreeCameras();
 			FreeSounds();
 			FreeMusics();
 		}
 
-		RAYLIB::Camera3D GetCamera3D(unsigned int cameraId)
-		{
-			RAYLIB::Camera3D camera = { };
-			/*
-			for each (Engine::Assets::Storage::Types::CameraPack  cP in nativePacks->cameras)
-			{
-				if ((cP.cameraId == cameraId) && (cP.cameraType == Engine::Internal::Components::CameraType::C3D))
-				{
-					camera = cP.camera3D;
-					break;
-				}
-			}
-			*/
-			return camera;
-		}
-
-		RAYLIB::Camera2D GetCamera2D(unsigned int cameraId)
-		{
-			RAYLIB::Camera2D camera = { };
-			/*
-			auto cP = nativePacks->cameras[cameraId];
-			if ((cP.cameraId == cameraId) && (cP.cameraType == Engine::Internal::Components::CameraType::C2D))
-			{
-				camera = cP.camera2D;
-			}
-			*/
-			return camera;
-		}
+		RAYLIB::Mesh& GetMesh(unsigned int meshId);
+		RAYLIB::Mesh* GetMeshPtr(unsigned int meshId);
+		void AddMesh(unsigned int meshId, RAYLIB::Mesh& mesh);
 
 		Texture2D& GetTexture2D(unsigned int textureId);
+		void AddTexture2D(unsigned int textureId, Texture2D& texture);
 
 		Sound& GetSound(unsigned int soundId);
 		Sound* GetSoundPtr(unsigned int soundId);
-		void AddSound(unsigned int soundId, Sound sound);
+		void AddSound(unsigned int soundId, RAYLIB::Sound& sound);
 
 		Music& GetMusic(unsigned int musicId);
 		Music* GetMusicPtr(unsigned int musicId);
-		void AddMusic(unsigned int musicId, Music music);
+		void AddMusic(unsigned int musicId, RAYLIB::Music& music);
 
 		Model& GetModel(unsigned int modelId);
-		RAYLIB::Shader& GetShader(unsigned int shaderId);
+		void AddModel(unsigned int modelId, RAYLIB::Model& modelRef);
 
+		RAYLIB::Shader& GetShader(unsigned int shaderId);
 		void AddShader(unsigned int shaderId, RAYLIB::Shader& shader);
-		void AddModel(unsigned int modelId, Model modelRef);
-		void AddTexture2D(unsigned int textureId, Texture2D texture);
+
+		Engine::Components::Material^ GetMaterial(unsigned int materialId);
+		void AddMaterial(unsigned int materialId, Engine::Components::Material^ material);
 
 		bool HasTexture2D(unsigned int textureId)
 		{

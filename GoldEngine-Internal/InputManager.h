@@ -5,7 +5,8 @@
 namespace Engine::Scripting
 {
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-        public ref class MouseButtons
+        [Engine::Attributes::LuaAPIAttribute("MouseButton")]
+    public ref class MouseButtons
     {
     public:
         static int const MOUSE_BUTTON_LEFT = 0;
@@ -18,10 +19,11 @@ namespace Engine::Scripting
     };
 
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-        public ref class KeyCodes
+    [Engine::Attributes::LuaAPIAttribute("KeyCode")]
+    public ref class KeyCodes
     {
     public:
-        static int const KEY_NULL = 0;        // Key: NULL; used for no key pressed
+        static int const KEY_NULL = 0;      // Key: NULL; used for no key pressed
         // Alphanumeric keys
         static int const KEY_APOSTROPHE = 39;       // Key: '
         static int const KEY_COMMA = 44;       // Key: ;
@@ -138,7 +140,26 @@ namespace Engine::Scripting
     };
 
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-        public ref class InputManager
+        [Engine::Attributes::LuaAPIAttribute("CursorStatus")]
+    public ref class CursorStatus
+    {
+    public:
+        static int Locked = 0;
+        static int Unlocked = 1;
+    };
+
+    [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+        [Engine::Attributes::LuaAPIAttribute("CursorVisibility")]
+    public ref class CursorVisibility
+    {
+    public:
+        static int Visible = 0;
+        static int Hidden = 1;
+    };
+
+    [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+        [Engine::Attributes::LuaAPIAttribute("Input")]
+    public ref class InputManager
     {
     public:
         static bool IsKeyPressed(int key_id)
@@ -177,6 +198,12 @@ namespace Engine::Scripting
             return RAYLIB::IsMouseButtonPressed(button_press);
         }
 
+        static Engine::Components::Vector2^ GetMouseDelta()
+        {
+            auto mdelta = RAYLIB::GetMouseDelta();
+            return gcnew Engine::Components::Vector2(mdelta.x, mdelta.y);
+        }
+
         static Engine::Components::Vector2^ GetMousePosition()
         {
 #if !PRODUCTION_BUILD
@@ -210,30 +237,61 @@ namespace Engine::Scripting
         {
             return RAYLIB::IsMouseButtonUp(MOUSE_BUTTON_LEFT);
         }
-
         static bool IsMouseButton2Up()
         {
             return RAYLIB::IsMouseButtonUp(MOUSE_BUTTON_RIGHT);
         }
-
         static bool IsMouseButton1Down()
         {
             return RAYLIB::IsMouseButtonDown(MOUSE_BUTTON_LEFT);
         }
-
         static bool IsMouseButton2Down()
         {
             return RAYLIB::IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
         }
-
         static bool IsMouseButton1Pressed()
         {
             return RAYLIB::IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         }
-
         static bool IsMouseButton2Pressed()
         {
             return RAYLIB::IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
+        }
+        static float GetMouseScroll()
+        {
+            return RAYLIB::GetMouseWheelMove();
+        }
+        static bool IsCursorOnScreen() { return RAYLIB::IsCursorOnScreen(); }
+        static bool IsCursorOnHidden() { return RAYLIB::IsCursorHidden(); }
+
+        static void SetCursorStatus(int status)
+        {
+            if (status == CursorStatus::Locked)
+            {
+                RAYLIB::DisableCursor();
+                return;
+            }
+
+            if (status == CursorStatus::Unlocked)
+            {
+                RAYLIB::EnableCursor();
+                return;
+            }
+        }
+
+        static void SetCursorVisible(int visible)
+        {
+            if (visible == CursorVisibility::Visible)
+            {
+                RAYLIB::ShowCursor();
+                return;
+            }
+
+            if (visible == CursorVisibility::Hidden)
+            {
+                RAYLIB::HideCursor();
+                return;
+            }
         }
     };
 }

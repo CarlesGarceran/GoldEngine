@@ -5,6 +5,7 @@
 #include "ManagedIncludes.h"
 #include "GlIncludes.h"
 #include "Instantiable.h"
+#include "LuaAPI.h"
 #include "ExecuteInEditModeAttribute.h"
 #include "Event.h"
 #include "LoggingAPI.h"

@@ -185,6 +185,7 @@ namespace Engine::Signals
 namespace Engine::Managers
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		[Engine::Attributes::LuaAPIAttribute]
 	public ref class SignalManager
 	{
 	private:

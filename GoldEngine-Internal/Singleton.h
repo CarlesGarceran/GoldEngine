@@ -75,6 +75,7 @@ public:
 };
 
 [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+[Engine::Attributes::LuaAPIAttribute]
 public ref class SharedInstance
 {
 public:

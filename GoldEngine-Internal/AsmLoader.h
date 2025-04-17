@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PreloadScript.h"
+#include "CastToNative.h"
 
 ref class EngineAssembly
 {
@@ -37,13 +38,25 @@ private:
 		if (assemblyLoaded)
 			return;
 
-		loadedAssembly = loadedAssembly->LoadFile(fileName);
-		Engine::Reflectable::ReflectableManager::assemblies->Add(loadedAssembly);
-
-		for each (auto referencedAssembly in loadedAssembly->GetReferencedAssemblies())
+		try
 		{
-
+			loadedAssembly = loadedAssembly->LoadFile(fileName);
+			Engine::Reflectable::ReflectableManager::assemblies->Add(loadedAssembly);
 		}
+		catch (System::BadImageFormatException^ ex)
+		{
+			WinAPI::LoadLib(CastStringToNative(fileName).c_str());
+			loadedAssembly = nullptr;
+			return;
+		}
+		catch (System::Exception^ exception)
+		{
+			printError("Assembly " + fileName + " Failed to load.");
+			printError(exception->Message);
+			loadedAssembly = nullptr;
+			return;
+		}
+
 	}
 	
 	void LoadAssemblyFromRawAssembly(System::Reflection::Assembly^ assembly)
@@ -80,21 +93,25 @@ public:
 public:
 	void ListAssemblyTypes()
 	{
-		if (loadedAssembly != nullptr)
+		if (this == nullptr)
+			return;
+
+		if (loadedAssembly == nullptr)
+			return;
+
+		printf(" -- Assembly Types -- \n");
+		for each (Type ^ type in loadedAssembly->GetTypes())
 		{
-			printf(" -- Assembly Types -- \n");
-			for each (Type ^ type in loadedAssembly->GetTypes())
+			if (type->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || type->IsSubclassOf(Engine::Internal::Components::GameObject::typeid))
 			{
-				if (type->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || type->IsSubclassOf(Engine::Internal::Components::GameObject::typeid))
-				{
-					Console::WriteLine("Type Found: " + type->FullName);
-				}
+				Console::WriteLine("Type Found: " + type->FullName);
+			}
+			/*
+			if (!type->Namespace->IsNullOrEmpty(type->Namespace))
+			*/
+			{
+
 				/*
-				if (!type->Namespace->IsNullOrEmpty(type->Namespace))
-				*/
-				{
-					
-					/*
 #if !PRODUCTION_BUILD
 					if (type->Namespace->Contains("EditorScripts"))
 					{
@@ -102,11 +119,10 @@ public:
 					}
 #endif
 */
-				}
 			}
-
-			registerMoonsharpTypes();
 		}
+
+		registerMoonsharpTypes();
 	}
 
 private:

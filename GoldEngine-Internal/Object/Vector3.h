@@ -3,7 +3,8 @@
 namespace Engine::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-	public ref class Vector3 : Engine::Interfaces::IInstantiable<Vector2^>
+	[Engine::Attributes::LuaAPIAttribute]
+	public ref class Vector3 : Engine::Interfaces::IInstantiable<Vector3^>
 	{
 	public:
 		float x, y, z;
@@ -24,21 +25,45 @@ namespace Engine::Components
 
 		RAYLIB::Color toColor();
 
-		void add(float x, float y, float z);
+		Vector3^ add(Vector3^ origin);
+		Vector3^ add(float x, float y, float z) 
+		{
+			return add(gcnew Engine::Components::Vector3(x, y, z));
+		}
+		Vector3^ add(float x)
+		{
+			return add(x, x, x);
+		}
 
-		void add(Vector3^ origin);
+		Vector3^ multiply(Vector3^ origin);
+		Vector3^ multiply(float x, float y, float z)
+		{
+			return multiply(gcnew Engine::Components::Vector3(x, y, z));
+		}
+		Vector3^ multiply(float x)
+		{
+			return multiply(x, x, x);
+		}
 
-		void multiply(Vector3^ origin);
+		Vector3^ divide(Vector3^ origin);
+		Vector3^ divide(float x, float y, float z) 
+		{
+			return divide(gcnew Engine::Components::Vector3(x, y, z));
+		}
+		Vector3^ divide(float x)
+		{
+			return divide(x, x, x);
+		}
 
-		void multiply(float x, float y, float z);
-
-		void divide(Vector3^ origin);
-
-		void divide(float x, float y, float z);
-
-		void sub(float x, float y, float z);
-
-		void sub(Vector3^ origin);
+		Vector3^ sub(Vector3^ origin);
+		Vector3^ sub(float x, float y, float z)
+		{
+			return sub(gcnew Engine::Components::Vector3(x, y, z));
+		}
+		Vector3^ sub(float x)
+		{
+			return sub(x, x, x);
+		}
 
 		void copy(const Vector3^ inVec);
 
@@ -54,6 +79,11 @@ namespace Engine::Components
 		static Vector3^ zero()
 		{
 			return gcnew Vector3(0, 0, 0);
+		}
+
+		static Vector3^ Zero()
+		{
+			return zero();
 		}
 
 		static Vector3^ add(Vector3^ left, Vector3^ right)
@@ -129,6 +159,11 @@ namespace Engine::Components
 		Engine::Components::Vector3^ operator/(Vector3^ other)
 		{
 			return Vector3::divide(this, other);
+		}
+
+		float magnitude()
+		{
+			return sqrt((x * x) + (y * y) + (z * z));
 		}
 	};
 

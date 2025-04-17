@@ -18,6 +18,7 @@ namespace Engine::Scripting
 	/// Getting parents, etc.
 	/// </summary>
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class ObjectManager
 	{
 		// singleton

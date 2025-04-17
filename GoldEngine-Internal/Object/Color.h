@@ -5,7 +5,8 @@ namespace Engine::Components
 	[System::SerializableAttribute]
 	[Newtonsoft::Json::JsonObjectAttribute]
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-	public ref class Color
+	[Engine::Attributes::LuaAPIAttribute]
+	public ref class Color : public Engine::Interfaces::IInstantiable<Color^>
 	{
 	private:
 		[Newtonsoft::Json::JsonRequiredAttribute]

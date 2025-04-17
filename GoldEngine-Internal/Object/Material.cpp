@@ -1,3 +1,4 @@
+#include "../Instantiable.h"
 #include "Material.h"
 #include "../SDK.h"
 
@@ -9,18 +10,18 @@ Engine::Components::Material::Material(unsigned int shaderId)
 	this->shaderId = shaderId;
 	MaterialProperties = gcnew System::Collections::Generic::Dictionary<System::String^, Locs::Generic::MaterialLoc^>();
 
-	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(255, 255, 255, 255)));
-	MaterialProperties->Add("MainTexture", gcnew Locs::TextureLoc(0));
-	MaterialProperties->Add("NormalMap", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(0xFFFFFFFF)));
+	MaterialProperties->Add("albedoMap", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("normalMap", gcnew Locs::TextureLoc(0));
 }
 
 Engine::Components::Material::Material()
 {
 	MaterialProperties = gcnew System::Collections::Generic::Dictionary<System::String^, Locs::Generic::MaterialLoc^>();
 
-	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(255, 255, 255, 255)));
-	MaterialProperties->Add("MainTexture", gcnew Locs::TextureLoc(0));
-	MaterialProperties->Add("NormalMap", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("Base Color", gcnew Locs::ColorLoc(gcnew Engine::Components::Color(0xFFFFFFFF)));
+	MaterialProperties->Add("albedoMap", gcnew Locs::TextureLoc(0));
+	MaterialProperties->Add("normalMap", gcnew Locs::TextureLoc(0));
 }
 
 bool Engine::Components::Material::AddProperty(System::String^ propName, Locs::Generic::MaterialLoc^ arg)
@@ -78,9 +79,9 @@ Locs::Generic::MaterialLoc^ Engine::Components::Material::GetBaseColor()
 
 unsigned int Engine::Components::Material::GetMainTexture()
 {
-	if (MaterialProperties->ContainsKey("MainTexture"))
+	if (MaterialProperties->ContainsKey("albedoMap"))
 	{
-		return ((Locs::TextureLoc^)MaterialProperties["MainTexture"])->textureId->Instance;
+		return ((Locs::TextureLoc^)MaterialProperties["albedoMap"])->textureId->Instance;
 	}
 
 	return 0;
@@ -88,9 +89,9 @@ unsigned int Engine::Components::Material::GetMainTexture()
 
 unsigned int Engine::Components::Material::GetNormalMap()
 {
-	if (MaterialProperties->ContainsKey("NormalMap"))
+	if (MaterialProperties->ContainsKey("normalMap"))
 	{
-		return ((Locs::TextureLoc^)MaterialProperties["NormalMap"])->textureId->Instance;
+		return ((Locs::TextureLoc^)MaterialProperties["normalMap"])->textureId->Instance;
 	}
 
 	return 0;
@@ -109,16 +110,26 @@ T Engine::Components::Material::GetMaterialProperty(System::String^ propName)
 
 void Engine::Components::Material::SetMainTexture(int textureId)
 {
-	if (MaterialProperties->ContainsKey("MainTexture"))
+	if (MaterialProperties->ContainsKey("albedoMap"))
 	{
-		((Locs::TextureLoc^)MaterialProperties["MainTexture"])[textureId];
+		((Locs::TextureLoc^)MaterialProperties["albedoMap"])[textureId];
 	}
 }
 
 void Engine::Components::Material::SetNormalMap(int textureId)
 {
-	if (MaterialProperties->ContainsKey("NormalMap"))
+	if (MaterialProperties->ContainsKey("normalMap"))
 	{
-		((Locs::TextureLoc^)MaterialProperties["NormalMap"])[textureId];
+		((Locs::TextureLoc^)MaterialProperties["normalMap"])[textureId];
 	}
+}
+
+Engine::Components::Material^ Engine::Components::Material::Create()
+{
+	return gcnew Engine::Components::Material();
+}
+
+Engine::Components::Material^ Engine::Components::Material::New()
+{
+	return gcnew Engine::Components::Material();
 }

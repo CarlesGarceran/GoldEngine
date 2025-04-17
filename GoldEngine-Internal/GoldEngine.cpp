@@ -2,6 +2,7 @@
 
 #include "Instantiable.h"
 #include "ExecuteInEditModeAttribute.h"
+#include "LuaAPI.h"
 
 using namespace Engine::Attributes;
 
@@ -88,6 +89,7 @@ using namespace Engine::Attributes;
 #include "Objects/Physics/CollisionType.h"
 #include "Objects/Physics/Native/NativePhysicsService.h"
 #include "Objects/Physics/RigidBody.h"
+#include "Objects/Physics/Triggers/Trigger.h"
 #include "Objects/Physics/PhysicsService.h"
 
 #endif
@@ -97,6 +99,10 @@ using namespace Engine::Attributes;
 #include "Objects/Pipeline/ScriptableRenderPipeline.hpp"
 #include "RenderPipelines/LitPBR_SRP.h"
 #include "RenderPipelines/LightweightSRP.h"
+
+// MiniAudio Init
+#include "native/miniaudio.h"
+
 
 using namespace Engine;
 using namespace Engine::EngineObjects;
@@ -111,6 +117,29 @@ using namespace Engine::Scripting;
 DataPacks dataPack;
 unsigned int passwd = 0;
 int max_lights = 4;
+
+static System::Reflection::Assembly^ ResolveAssembly(System::Object^ sender, System::ResolveEventArgs^ args)
+{
+	System::Reflection::AssemblyName^ requestedName = gcnew System::Reflection::AssemblyName(args->Name);
+
+	for each(System::Reflection::Assembly^ loadedAssembly in System::AppDomain::CurrentDomain->GetAssemblies())
+	{
+		if (System::Reflection::AssemblyName::ReferenceMatchesDefinition(gcnew System::Reflection::AssemblyName(loadedAssembly->FullName), requestedName))
+			return loadedAssembly;
+	}
+
+	System::String^ assemblyFolder = System::IO::Path::Combine(AppDomain::CurrentDomain->BaseDirectory, "Bin/Asm/");
+	System::String^ assemblyPath = System::IO::Path::Combine(assemblyFolder, requestedName->Name + ".dll");
+
+	if (File::Exists(assemblyPath))
+	{
+		return System::Reflection::Assembly::LoadFrom(assemblyPath);
+	}
+
+	return nullptr;
+}
+
+
 
 static Newtonsoft::Json::JsonSerializerSettings^ SerializerSettings()
 {
@@ -127,8 +156,14 @@ static void engine_keybinds()
 		ToggleFullscreen();
 }
 
+static void SetupAssemblyResolver()
+{
+	AppDomain::CurrentDomain->AssemblyResolve += gcnew ResolveEventHandler(&ResolveAssembly);
+}
+
 static void engine_bootstrap()
 {
+	SetupAssemblyResolver();
 	Newtonsoft::Json::JsonConvert::DefaultSettings = gcnew Func<Newtonsoft::Json::JsonSerializerSettings^>(&SerializerSettings);
 
 	if (!Directory::Exists("Bin/"))
@@ -187,9 +222,10 @@ bool fpsCap = true;
 bool fpsCheck = true;
 bool reparentLock = false;
 std::string consoleBufferData = "";
-
+std::string asset_filter_name = "";
 std::string styleFN;
 Texture modelTexture;
+Texture textureTexture;
 Texture materialTexture;
 Texture scriptTexture;
 Texture soundTexture;
@@ -215,6 +251,7 @@ bool scenevpVisible = true;
 msclr::gcroot<String^> jsonData = "";
 
 #include "EditorTools/CodeEditor.h"
+#include "EditorTools/MaterialEditor.h"
 #include "EditorWindow.h"
 
 typedef enum assetDisplay
@@ -225,7 +262,8 @@ typedef enum assetDisplay
 	SOUND,
 	MUSIC,
 	SCRIPTS,
-	PREFAB
+	PREFAB,
+	MATERIALS
 };
 
 assetDisplay displayingAssets;
@@ -264,7 +302,6 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 		}
 	}
 }
-
 void ThrowUIError(String^ eR)
 {
 	std::string convErrRes = CastStringToNative(eR);
@@ -290,13 +327,11 @@ void ShowError()
 		ImGui::EndPopup();
 	}
 }
-
 void SaveToFile(String^ filePath)
 {
 	File::WriteAllText(filePath, jsonData);
 	jsonData = "";
 }
-
 String^ GetParentRoute(Engine::Internal::Components::Transform^ transform)
 {
 	if (transform != nullptr && transform->parent != nullptr)
@@ -319,6 +354,7 @@ EditorWindow::EditorWindow()
 #endif
 
 	codeEditor = gcnew CodeEditor(this);
+	materialEditor = gcnew MaterialEditor(this);
 
 	strcpy(password, ENCRYPTION_PASSWORD);
 
@@ -866,6 +902,10 @@ void EditorWindow::createAssetEntries(String^ path)
 		array<String^>^ tmp = f->Split('/');
 		auto t = tmp[tmp->Length - 1] + "\n";
 
+		if (asset_filter_name != "")
+			if (CastStringToNative(t).find(asset_filter_name) == std::string::npos)
+				continue;
+
 		if ((f->Contains(".obj") || f->Contains(".glb") || f->Contains(".gltf") || f->Contains(".vox")) && (displayingAssets == ALL || displayingAssets == MODELS)) // model types
 		{
 			if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &modelTexture))
@@ -986,9 +1026,9 @@ void EditorWindow::createAssetEntries(String^ path)
 			ImGui::Text(CastStringToNative(t).c_str());
 		}
 
-		if ((f->Contains(".png") || f->Contains(".jpg") || f->Contains(".bmp") || f->Contains(".hdr")) && (displayingAssets == ALL || displayingAssets == TEXTURES))
+		if (((f->Contains(".png") || f->Contains(".jpg") || f->Contains(".bmp") || f->Contains(".dds") || f->Contains(".hdr"))) && (displayingAssets == ALL || displayingAssets == TEXTURES))
 		{
-			if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &materialTexture))
+			if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &textureTexture))
 			{
 				unsigned int assetId = 0;
 				auto res = packedData->hasAsset(Engine::Assets::Management::assetType::_Texture2D, f);
@@ -1004,6 +1044,32 @@ void EditorWindow::createAssetEntries(String^ path)
 				{
 					assetId = std::get<1>(res);
 				}
+			}
+			ImGui::SameLine();
+			ImGui::Text(CastStringToNative(t).c_str());
+		}
+
+		if (((f->Contains(".mat")) || f->Contains(".material")) && (displayingAssets == ALL || displayingAssets == MATERIALS))
+		{
+			if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &materialTexture))
+			{
+				unsigned int assetId = 0;
+				auto res = packedData->hasAsset(Engine::Assets::Management::assetType::_Material, f);
+				if (!std::get<0>(res))
+				{
+					assetId = packedData->GetAssetID(Engine::Assets::Management::assetType::_Material);
+
+					//TODO: Create and Call AddMaterial
+					//packedData->(assetId, f); 
+
+					packedData->WriteToFile(packedData->getFile(), passwd);
+				}
+				else
+				{
+					assetId = std::get<1>(res);
+				}
+	
+				// TODO: Set Material into material editor, create datapacks ()
 			}
 			ImGui::SameLine();
 			ImGui::Text(CastStringToNative(t).c_str());
@@ -1262,6 +1328,11 @@ void EditorWindow::DrawMainMenuBar()
 			{
 				b8 = true;
 			}
+
+			if (ImGui::MenuItem("Material Editor"))
+			{
+				materialEditor->ShowGUI();
+			}
 			ImGui::EndMenu();
 		}
 
@@ -1487,8 +1558,23 @@ void EditorWindow::DrawMainMenuBar()
 
 					scene->AddObjectToScene(meshRenderer);
 				}
+
+				if (ImGui::MenuItem("Trigger"))
+				{
+					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Trigger(
+						"Trigger",
+						gcnew Engine::Internal::Components::Transform(
+							gcnew Engine::Components::Vector3(0, 0, 0),
+							gcnew Engine::Components::Vector3(0, 0, 0),
+							gcnew Engine::Components::Vector3(1, 1, 1),
+							scene->GetDatamodelMember("workspace")->transform
+						)
+					);
+
+					scene->AddObjectToScene(meshRenderer);
+				}
 #else
-				ImGui::Text("Engine not compiled with physics module");
+				ImGui::Text("Engine not compiled with physics engine module");
 #endif
 				ImGui::EndMenu();
 			}
@@ -1649,6 +1735,9 @@ void EditorWindow::DrawMainMenuBar()
 
 				for each (auto assembly in assemblies)
 				{
+					if (assembly == nullptr) continue;
+					if (assembly->getLoadedAssembly() == nullptr) continue;
+
 					if (!assembly->getLoadedAssembly()->Equals(System::Reflection::Assembly::GetExecutingAssembly()))
 					{
 						for each (auto T in assembly->GetAssemblyTypes())
@@ -2122,7 +2211,7 @@ void EditorWindow::DrawProperties()
 
 					if (ImGui::DragFloat3("Local Position", pos, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
-						selectedObject->getTransform()->UpdateLocalPosition(gcnew Engine::Components::Vector3(pos[0], pos[1], pos[2]));
+						selectedObject->getTransform()->localPosition = gcnew Engine::Components::Vector3(pos[0], pos[1], pos[2]);
 					}
 				}
 
@@ -2186,7 +2275,10 @@ void EditorWindow::DrawAssets()
 
 		ImVec2 size = ImGui::GetWindowSize();
 
-		const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS" };
+		const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS", "MATERIALS" };
+		ImGui::Text("Asset Name: ");
+		ImGui::SameLine();
+		ImGui::InputText("###AssetNameFilter", &asset_filter_name);
 		ImGui::Text("Display assets: ");
 		ImGui::SameLine();
 		if (ImGui::Combo("###Display assets: ", &displayingAsset, constData, IM_ARRAYSIZE(constData)))
@@ -2213,6 +2305,9 @@ void EditorWindow::DrawAssets()
 				break;
 			case 6:
 				displayingAssets = assetDisplay::PREFAB;
+				break;
+			case 7:
+				displayingAssets = assetDisplay::MATERIALS;
 				break;
 			}
 		}
@@ -2247,9 +2342,10 @@ void EditorWindow::DrawImGui()
 	DrawHierarchy();
 
 	if (codeEditor->isCodeEditorOpen())
-	{
 		codeEditor->Draw();
-	}
+
+	if (materialEditor->isMaterialEditorOpen())
+		materialEditor->GUI();
 
 	DrawAssets();
 
@@ -2845,6 +2941,7 @@ void EditorWindow::create()
 				nullptr
 			)
 		);
+		physicsService->setParent(gameRoot);
 
 		scene->PushToRenderQueue(physicsService);
 	}
@@ -2860,8 +2957,8 @@ void EditorWindow::create()
 				gcnew Engine::Components::Vector3(0, 0, 0),
 				nullptr
 			),
-			"Data/Engine/Shaders/rPBR/pbr.vert",
-			"Data/Engine/Shaders/rPBR/pbr.frag"
+			"Data/Engine/Shaders/Illumina/Illumina.vert",
+			"Data/Engine/Shaders/Illumina/Illumina.frag"
 		);
 		lightManager->setParent(gameRoot);
 		lightManager->protectMember();
@@ -2883,8 +2980,8 @@ void EditorWindow::create()
 					gcnew Engine::Components::Vector3(0, 0, 0),
 					nullptr
 				),
-				"Data/Engine/Shaders/rPBR/pbr.vert",
-				"Data/Engine/Shaders/rPBR/pbr.frag"
+				"Data/Engine/Shaders/Illumina/Illumina.vert",
+				"Data/Engine/Shaders/Illumina/Illumina.frag"
 			);
 		}
 		lightManager->setParent(gameRoot);
@@ -2926,6 +3023,7 @@ void EditorWindow::create()
 void EditorWindow::Init()
 {
 	modelTexture = LoadTexture("EditorAssets/Icons/Model.png");
+	textureTexture = LoadTexture("EditorAssets/Icons/Texture.png");
 	materialTexture = LoadTexture("EditorAssets/Icons/Material.png");
 	soundTexture = LoadTexture("EditorAssets/Icons/Sound.png");
 	scriptTexture = LoadTexture("EditorAssets/Icons/Script.png");
@@ -2996,13 +3094,9 @@ void EditorWindow::Update()
 		UpdateCamera(((NativeCamera3D*)cameraLocal)->getCameraPtr(), CAMERA_FREE);
 
 	if (fpsCap)
-	{
 		SetFPS(60);
-	}
 	else
-	{
 		SetFPS(-1);
-	}
 
 	auto renderQueue = scene->GetRenderQueue();
 
@@ -3089,14 +3183,12 @@ public:
 		config->windowFlags = config->_windowFlags->toWindowFlags();
 
 		SetWindowFlags(config->windowFlags);
-		OpenWindow(1, 1, config->getWindowName().c_str());
+		OpenWindow(config->resolution->w, config->resolution->h, config->getWindowName().c_str());
 
 		if (config->resolution->x != -1 && config->resolution->y != -1)
 			SetWindowPosition(config->resolution->x, config->resolution->y);
 		else
-			SetWindowPosition(config->resolution->w - (config->resolution->w / 2), config->resolution->h - (config->resolution->h / 2));
-
-		SetWindowSize(config->resolution->w, config->resolution->h);
+			SetWindowPosition(config->resolution->x + (config->resolution->w / 2), config->resolution->y + (config->resolution->h / 2));
 
 		gcnew Engine::Managers::SignalManager();
 
@@ -3118,10 +3210,67 @@ private:
 	void create()
 	{
 		LightManager^ lightManager = nullptr;
+		Engine::EngineObjects::Private::Scene^ gameRoot = nullptr;
 
-		scene->GetDatamodelMember("workspace", true);
-		scene->GetDatamodelMember("gui", true);
-		auto daemonParent = scene->GetDatamodelMember("daemons");
+		if (!scene->ExistsMember("game"))
+		{
+			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
+				"game",
+				gcnew Engine::Internal::Components::Transform(
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					nullptr
+				)
+			);
+			scene->PushToRenderQueue(gameRoot);
+		}
+		else
+		{
+			try
+			{
+				gameRoot = scene->GetMember("game")->ToObjectType<Engine::EngineObjects::Private::Scene^>();
+			}
+			catch (Exception^ ex)
+			{
+				gameRoot = gcnew Engine::EngineObjects::Private::Scene(
+					"game",
+					gcnew Engine::Internal::Components::Transform(
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						nullptr
+					)
+				);
+			}
+		}
+
+		auto workspace = scene->GetDatamodelMember("workspace", true);
+		workspace->setParent(gameRoot);
+		auto editor_only = scene->GetDatamodelMember("editor only", true);
+		editor_only->setParent(gameRoot);
+		auto gui = scene->GetDatamodelMember("gui", true);
+		gui->setParent(gameRoot);
+		auto daemonParent = scene->GetDatamodelMember("daemons", true);
+		daemonParent->setParent(gameRoot);
+
+#ifdef USE_BULLET_PHYS
+
+		if (!scene->ExistsMember("PhysicsService"))
+		{
+			auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService("PhysicsService",
+				gcnew Engine::Internal::Components::Transform(
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					gcnew Engine::Components::Vector3(0, 0, 0),
+					nullptr
+				)
+			);
+
+			scene->PushToRenderQueue(physicsService);
+		}
+
+#endif
 
 		if (!scene->ExistsMember("lighting"))
 		{
@@ -3132,20 +3281,36 @@ private:
 					gcnew Engine::Components::Vector3(0, 0, 0),
 					nullptr
 				),
-				"Data/Engine/Shaders/rPBR/pbr.vert",
-				"Data/Engine/Shaders/rPBR/pbr.frag"
+				"Data/Engine/Shaders/Illumina/Illumina.vert",
+				"Data/Engine/Shaders/Illumina/Illumina.frag"
 			);
-
+			lightManager->setParent(gameRoot);
 			lightManager->protectMember();
 
-			scene->AddObjectToScene(lightManager);
+			scene->PushToRenderQueue(lightManager);
 		}
 		else
 		{
-			lightManager = scene->GetMember("lighting")->ToObjectType<LightManager^>();
+			try
+			{
+				lightManager = scene->GetMember("lighting")->ToObjectType<LightManager^>();
+			}
+			catch (Exception^ ex)
+			{
+				lightManager = lightManager = gcnew LightManager("lighting",
+					gcnew Engine::Internal::Components::Transform(
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						gcnew Engine::Components::Vector3(0, 0, 0),
+						nullptr
+					),
+					"Data/Engine/Shaders/Illumina/Illumina.vert",
+					"Data/Engine/Shaders/Illumina/Illumina.frag"
+				);
+			}
+			lightManager->setParent(gameRoot);
 			lightManager->protectMember();
 		}
-
 
 		if (ObjectManager::singleton()->GetChildrenOf(daemonParent)->Count <= 0)
 		{
@@ -3159,7 +3324,7 @@ private:
 				lightManager
 			);
 			lightdm->SetParent(daemonParent);
-			scene->AddObjectToScene(lightdm);
+			scene->PushToRenderQueue(lightdm);
 		}
 	}
 

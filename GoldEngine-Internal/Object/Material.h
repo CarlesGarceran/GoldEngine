@@ -11,8 +11,8 @@ namespace Engine::Components::Locs::Generic
 
 namespace Engine::Components
 {
-
-	public ref class Material
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+		public ref class Material
 	{
 	public:
 		unsigned int shaderId;
@@ -39,5 +39,8 @@ namespace Engine::Components
 
 		void SetMainTexture(int textureId);
 		void SetNormalMap(int textureId);
+
+		static Material^ Create();
+		static Material^ New();
 	};
 }

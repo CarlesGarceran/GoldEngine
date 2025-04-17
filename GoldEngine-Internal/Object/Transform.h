@@ -17,6 +17,7 @@ using namespace System;
 namespace Engine::Internal::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Transform
 	{
 	private:
@@ -25,12 +26,37 @@ namespace Engine::Internal::Components
 	public:
 		Engine::Internal::Components::Transform^ parent;
 		// worldspace
-		Engine::Components::Vector3^ position;
-		Engine::Components::Vector3^ rotation;
-		Engine::Components::Vector3^ scale;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property Engine::Components::Vector3^ position
+		{
+			Engine::Components::Vector3 ^ get();
+			void set(Engine::Components::Vector3^ position);
+		}
+
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property Engine::Components::Vector3^ rotation
+		{
+			Engine::Components::Vector3 ^ get();
+			void set(Engine::Components::Vector3^ position);
+		}
+
 		// localspace
-		Engine::Components::Vector3^ localPosition;
-		Engine::Components::Vector3^ localRotation;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property Engine::Components::Vector3^ localPosition
+		{
+			Engine::Components::Vector3 ^ get();
+			void set(Engine::Components::Vector3^ position);
+		}
+
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property Engine::Components::Vector3^ localRotation
+		{
+			Engine::Components::Vector3 ^ get();
+			void set(Engine::Components::Vector3^ position);
+		}
+
+		Engine::Components::Vector3^ scale;
+
 		// CONSTANT VECTORS
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 			const Engine::Components::Vector3^ forward = gcnew Engine::Components::Vector3(0, 0, 1);
@@ -45,15 +71,16 @@ namespace Engine::Internal::Components
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 			const Engine::Components::Vector3^ left = gcnew Engine::Components::Vector3(-1, 0, 0);
 
+	private:
+		[Newtonsoft::Json::JsonPropertyAttribute]
+		Engine::Components::Vector3^ worldPosition = Engine::Components::Vector3::Zero();
+		[Newtonsoft::Json::JsonPropertyAttribute]
+		Engine::Components::Vector3^ worldRotation = Engine::Components::Vector3::Zero();
+
 	public:
 		Transform(Engine::Components::Vector3^ position, Engine::Components::Vector3^ rotation, Engine::Components::Vector3^ scale, Transform^ parent);
 
 	public:
-		void UpdateLocalPosition(Engine::Components::Vector3^ newLocalPosition)
-		{
-			position = localPosition - newLocalPosition;
-		}
-
 		String^ GetUID();
 
 		void setParent(Transform^);
@@ -66,6 +93,6 @@ namespace Engine::Internal::Components
 		T GetObject();
 		System::Object^ GetObject();
 
-		void SetUID(String^ uid);
+		void SetUID(System::String^ uid);
 	};
 }
