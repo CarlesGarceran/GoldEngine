@@ -1061,8 +1061,7 @@ void EditorWindow::createAssetEntries(String^ path)
 				{
 					assetId = packedData->GetAssetID(Engine::Assets::Management::assetType::_Material);
 
-					//TODO: Create and Call AddMaterial
-					//packedData->(assetId, f); 
+					packedData->AddMaterial(assetId, f); 
 
 					packedData->WriteToFile(packedData->getFile(), passwd);
 				}
@@ -1071,7 +1070,7 @@ void EditorWindow::createAssetEntries(String^ path)
 					assetId = std::get<1>(res);
 				}
 	
-				// TODO: Set Material into material editor, create datapacks ()
+				materialEditor->SetMaterial(assetId);
 			}
 			ImGui::SameLine();
 			ImGui::Text(CastStringToNative(t).c_str());

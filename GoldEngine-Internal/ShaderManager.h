@@ -35,4 +35,12 @@ public:
 	{
 		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, ::LoadShaderFromMemory(CastStringToNative(vertexShader).c_str(), CastStringToNative(fragmentShader).c_str()));
 	}
+
+	static void ReloadShader(unsigned int shaderId)
+	{
+		auto shaderElements = Engine::Assets::Management::DataPack::singleton()->shaders[shaderId];
+
+		Engine::Assets::Storage::DataPacks::singleton().FreeShader(shaderId);
+		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, RAYLIB::LoadShader(CastStringToNative(shaderElements[0]).c_str(), CastStringToNative(shaderElements[1]).c_str()));
+	}
 };

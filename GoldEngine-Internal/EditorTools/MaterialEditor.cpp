@@ -23,6 +23,7 @@ unsigned int matLocType = 0;
 bool memEditing = false;
 
 bool saveToMem = false;
+bool loadFromMem = false;
 
 unsigned int materialId;
 int shaderId = 0;
@@ -92,7 +93,7 @@ void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Com
 		float ptr = texLoc->value;
 		ImGui::Text("Value:");
 		ImGui::SameLine();
-		if (ImGui::InputFloat(CastStringToNative("###FLOAT_LOC_" + location->locName).c_str(), &ptr))
+		if (ImGui::DragFloat(CastStringToNative("###FLOAT_LOC_" + location->locName).c_str(), &ptr))
 		{
 			texLoc->value = (float)ptr;
 		}
@@ -158,6 +159,8 @@ void MaterialEditor::GUI()
 					ImGui::CloseCurrentPopup();
 				}
 
+				ImGui::SameLine();
+
 				if (ImGui::Button("Close"))
 				{
 					saveToMem = false;
@@ -167,71 +170,94 @@ void MaterialEditor::GUI()
 				ImGui::EndPopup();
 			}
 
-			if (selectedMaterial == nullptr)
+			if (ImGui::BeginPopupModal("Load Material from Memory", &loadFromMem))
 			{
-				ImGui::Text("No Material Selected");
-				if (ImGui::Button("Create One Now"))
+				ImGui::Text("Material ID:");
+				ImGui::InputScalar("###MATERIAL_ID", ImGuiDataType_U32, &materialId);
+
+				if (ImGui::Button("Load"))
 				{
-					selectedMaterial = gcnew Engine::Components::Material(0);
+					this->LoadMaterial(materialId);
+					loadFromMem = false;
+					ImGui::CloseCurrentPopup();
 				}
-			}
-			else
-			{
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Close"))
 				{
-					ImGui::BeginMenuBar();
+					loadFromMem = false;
+					ImGui::CloseCurrentPopup();
+				}
 
-					if (ImGui::BeginMenu("File"))
+				ImGui::EndPopup();
+			}
+
+			{
+				ImGui::BeginMenuBar();
+
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::BeginMenu("Load Material"))
 					{
-						if (ImGui::BeginMenu("Load Material"))
+						if (ImGui::MenuItem("From File"))
 						{
-							if (ImGui::MenuItem("From File"))
-							{
-								((EditorWindow^)instance)->OpenFileExplorer("Load File", Engine::Editor::Gui::explorerMode::Open, (gcnew Engine::Editor::Gui::onFileSelected(this, &MaterialEditor::LoadMaterial)));
-							}
-							if (ImGui::MenuItem("From Memory"))
-							{
-
-							}
-							
-							ImGui::EndMenu();
+							((EditorWindow^)instance)->OpenFileExplorer("Load File", Engine::Editor::Gui::explorerMode::Open, (gcnew Engine::Editor::Gui::onFileSelected(this, &MaterialEditor::LoadMaterial)));
 						}
-
-						if (ImGui::BeginMenu("Save Material"))
+						if (ImGui::MenuItem("From Memory"))
 						{
-							if (ImGui::MenuItem("To File"))
-							{
-								((EditorWindow^)instance)->OpenFileExplorer("Save File", Engine::Editor::Gui::explorerMode::Save, (gcnew Engine::Editor::Gui::onFileSelected(this, &MaterialEditor::SaveMaterial)));
-							}
-							if (ImGui::MenuItem("To Memory"))
-							{
-								saveToMem = true;
-							}
-
-							ImGui::EndMenu();
-						}
-
-						ImGui::Separator();
-
-						if (ImGui::MenuItem("Discard Material"))
-						{
-							this->selectedMaterial = nullptr;
-							return;
-						}
-
-						ImGui::Separator();
-
-						if (ImGui::MenuItem("Close"))
-						{
-							_materialEditorOpen = false;
+							loadFromMem = true;
 						}
 
 						ImGui::EndMenu();
 					}
 
+					if (ImGui::BeginMenu("Save Material"))
+					{
+						if (ImGui::MenuItem("To File"))
+						{
+							((EditorWindow^)instance)->OpenFileExplorer("Save File", Engine::Editor::Gui::explorerMode::Save, (gcnew Engine::Editor::Gui::onFileSelected(this, &MaterialEditor::SaveMaterial)));
+						}
+						if (ImGui::MenuItem("To Memory"))
+						{
+							saveToMem = true;
+						}
 
-					ImGui::EndMenuBar();
+						ImGui::EndMenu();
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Discard Material"))
+					{
+						this->selectedMaterial = nullptr;
+						return;
+					}
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("Close"))
+					{
+						_materialEditorOpen = false;
+					}
+
+					ImGui::EndMenu();
 				}
 
+
+				ImGui::EndMenuBar();
+			}
+
+			if (selectedMaterial == nullptr)
+			{
+				ImGui::Text("No Material Selected");
+				if (ImGui::Button("Create One Now"))
+				{
+					SetMaterial(gcnew Engine::Components::Material(0));
+				}
+			}
+			else
+			{
 				if (memEditing)
 					ImGui::Text("You're editing a material that is stored in memory, therefore, changes will be applied immediatly!");
 
@@ -329,6 +355,9 @@ void MaterialEditor::GUI()
 
 			if(saveToMem)
 				ImGui::OpenPopup("Save Material in Memory");
+
+			if(loadFromMem)
+				ImGui::OpenPopup("Load Material from Memory");
 		}
 		ImGui::End();
 	}

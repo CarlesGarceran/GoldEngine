@@ -37,6 +37,13 @@ namespace Engine::Assets::Management
 				AddModel(modelId, filePath);
 			}
 
+			for each(unsigned int materialId in materials->Keys)
+			{
+				System::String^ filePath = materials[materialId];
+
+				AddMaterial(materialId, filePath);
+			}
+
 			for each (unsigned int textureId in textures2d->Keys)
 			{
 				System::String^ filePath = textures2d[textureId];
@@ -175,7 +182,7 @@ namespace Engine::Assets::Management
 				materials->Add(id, path);
 				
 				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
-
+				material->DeserializeProperties();
 
 				print("[Resource Manager]:", "Loading Material");
 
@@ -191,6 +198,7 @@ namespace Engine::Assets::Management
 			else
 			{
 				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+				material->DeserializeProperties();
 
 				print("[Resource Manager]:", "Loading Material");
 
