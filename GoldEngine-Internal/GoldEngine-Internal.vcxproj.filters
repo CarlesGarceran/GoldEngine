@@ -379,6 +379,12 @@
     <Filter Include="Data\Engine\Shaders\Illumina">
       <UniqueIdentifier>{82d8c09c-1387-41df-9d0f-853e992ce80e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Deps\GUI\ImNodes">
+      <UniqueIdentifier>{78adba91-a7c2-43a6-b366-50a66a3e5d84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Deps\GUI\cimnodes">
+      <UniqueIdentifier>{98e9d364-3cbe-4a40-945e-8051037e3f6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -1050,6 +1056,18 @@
     <ClInclude Include="Threads\EngineThread.h">
       <Filter>Source\Engine\Processors\Threads</Filter>
     </ClInclude>
+    <ClInclude Include="imnodes\ImNodes.h">
+      <Filter>Deps\GUI\ImNodes</Filter>
+    </ClInclude>
+    <ClInclude Include="imnodes\imnodes_internal.h">
+      <Filter>Deps\GUI\ImNodes</Filter>
+    </ClInclude>
+    <ClInclude Include="cimnodes\cimnodes.h">
+      <Filter>Deps\GUI\cimnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\FloatLoc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1231,6 +1249,18 @@
     </ClCompile>
     <ClCompile Include="Threads\EngineThread.cpp">
       <Filter>Source\Engine\Processors\Threads</Filter>
+    </ClCompile>
+    <ClCompile Include="imnodes\ImNodes.cpp">
+      <Filter>Deps\GUI\ImNodes</Filter>
+    </ClCompile>
+    <ClCompile Include="cimnodes\cimnodes.cpp">
+      <Filter>Deps\GUI\cimnodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Skybox.cpp">
+      <Filter>Source\Engine\EngineObjects\Skybox</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\FloatLoc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

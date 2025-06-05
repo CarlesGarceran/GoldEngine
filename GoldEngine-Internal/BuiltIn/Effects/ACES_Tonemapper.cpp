@@ -5,7 +5,7 @@
 
 using namespace Engine::Render::BuiltIn;
 
-const char* vertexShader = R"(
+inline const char* vertexShader = R"(
 #version 430
 
 // Input vertex attributes
@@ -35,7 +35,7 @@ void main()
 )";
 
 
-const char* fragmentShader = R"(
+inline const char* fragmentShader = R"(
 #version 430
 
 in vec2 fragTexCoord;

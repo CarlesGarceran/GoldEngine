@@ -167,8 +167,6 @@ namespace Engine::Editor::Gui
 			bool isFile = !isDirectory(selectedFile);
 			if (ImGui::BeginPopupModal(name, (bool*)false, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize))
 			{
-				ImGui::SetWindowSize({ 899,462 });
-
 				char* route = new char[currentRoute->Length + (8*32)];
 				strcpy(route, CastStringToNative(currentRoute).c_str());
 

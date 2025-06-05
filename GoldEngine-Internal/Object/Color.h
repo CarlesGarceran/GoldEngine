@@ -22,13 +22,14 @@ namespace Engine::Components
 
 	public:
 		[Newtonsoft::Json::JsonConstructorAttribute]
+		Color();
 		Color(unsigned int colorHex);
 		Color(__int8 r, __int8 g, __int8 b, __int8 a);
 		Color(int r, int g, int b, int a);
 		RAYLIB::Color toNativeAlt();
 		RAYLIB::Color toNative();
 		RAYLIB::Vector3 toNativeVector3();
-		float* toFloat();
+		std::array<float, 4> toFloat();
 		unsigned int% toHex();
 
 		void setHex(unsigned int value);

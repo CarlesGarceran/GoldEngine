@@ -1,6 +1,7 @@
 #include "Includes.h"
 #include "CastToNative.h"
 #include "GlIncludes.h"
+#include "../SDK.h"
 #include "LoggingAPI.h"
 #include "Object/Vector2.h"
 #include "Object/Color.h"

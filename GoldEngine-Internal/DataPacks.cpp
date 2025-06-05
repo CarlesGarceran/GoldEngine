@@ -1,4 +1,5 @@
 #include <utility>
+#include "../SDK.h"
 #include "DataPacks.h"
 
 using namespace Engine::Assets::Storage;

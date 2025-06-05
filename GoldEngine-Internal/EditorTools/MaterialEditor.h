@@ -14,6 +14,8 @@ public:
 	void SetMaterial(unsigned int);
 	void SaveMaterial(String^ path);
 	void LoadMaterial(String^ path);
+	void SaveMaterial(unsigned int id);
+	void LoadMaterial(unsigned int id);
 	void GUI();
 	void ShowGUI();
 

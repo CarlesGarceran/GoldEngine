@@ -8,30 +8,42 @@ Reflectable<T>::Reflectable(T inst)
 {
 	Instance = inst;
 	type = gcnew Engine::Reflectable::ReflectableType(Instance->GetType());
+	serializedObject = Newtonsoft::Json::JsonConvert::SerializeObject(Instance);
+}
+
+generic <class T>
+T Engine::Reflectable::Generic::Reflectable<T>::getInstance()
+{
+	return this->Instance;
+}
+
+generic <class T>
+void Engine::Reflectable::Generic::Reflectable<T>::setInstance(T instance)
+{
+	this->Instance = instance;
 }
 
 generic <class T>
 void Reflectable<T>::deserialize()
 {
 	type->DeserializeType();
-	Instance = (T)System::Convert::ChangeType(Instance, type->getTypeReference());
+	Instance = (T)Newtonsoft::Json::JsonConvert::DeserializeObject(serializedObject, type->getTypeReference());
 }
 
 generic <class T>
-T Reflectable<T>::operator->()
+void Engine::Reflectable::Generic::Reflectable<T>::serialize()
+{
+	serializedObject = Newtonsoft::Json::JsonConvert::SerializeObject(Instance);
+}
+
+generic <class T>
+T Engine::Reflectable::Generic::Reflectable<T>::operator()()
 {
 	return Instance;
 }
 
 generic <class T>
-T Reflectable<T>::operator=(T value)
-{
-	Instance = value;
-	return Instance;
-}
-
-generic <class T>
-void Reflectable<T>::operator[](T value)
+void Reflectable<T>::operator=(T value)
 {
 	Instance = value;
 }

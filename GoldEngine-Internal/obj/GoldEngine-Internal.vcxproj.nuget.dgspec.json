@@ -83,7 +83,7 @@
     "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj": {
       "restore": {
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj",
-        "projectName": "glfw_x64",
+        "projectName": "glfw",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj",
         "UsingMicrosoftNETSdk": false,
         "frameworks": {
@@ -99,7 +99,7 @@
     "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj": {
       "restore": {
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj",
-        "projectName": "glfw_x86",
+        "projectName": "glfw",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj",
         "UsingMicrosoftNETSdk": false,
         "frameworks": {
@@ -115,7 +115,7 @@
     "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj": {
       "restore": {
         "projectUniqueName": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj",
-        "projectName": "raylib_x86",
+        "projectName": "raylib",
         "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj",
         "UsingMicrosoftNETSdk": false,
         "frameworks": {

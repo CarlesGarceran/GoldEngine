@@ -36,6 +36,7 @@ extern unsigned int passwd;
 #define RUNTIME_VERSION "GoldEngine Runtime Prev-Ver: 0.3a"
 
 #define USE_BULLET_PHYS
+#define USE_ASSIMP
 
 // PHYSICS SYSTEM
 
@@ -43,10 +44,16 @@ extern unsigned int passwd;
 
 #pragma comment(lib, "../Libs/x64/GFXLib.dll")
 #pragma comment(lib, "../Libs/x64/GFXLib.lib")
+
+#ifdef USE_ASSIMP
+
 #pragma comment(lib, "../Libs/x64/assimp.lib")
 #pragma comment(lib, "../Libs/x64/zlibstatic.lib")
 
+#endif
+
 #ifdef USE_BULLET_PHYS
+
 #pragma comment(lib, "../Libs/x64/LinearMath.lib")
 #pragma comment(lib, "../Libs/x64/BulletCollision.lib")
 #pragma comment(lib, "../Libs/x64/BulletDynamics.lib")
@@ -60,13 +67,21 @@ extern unsigned int passwd;
 #pragma comment(lib, "../Libs/x64/Bullet2FileLoader.lib")
 
 #endif
+
 #else
+
 #pragma comment(lib, "../Libs/x86/GFXLib.dll")
 #pragma comment(lib, "../Libs/x86/GFXLib.lib")
+
+#ifdef USE_ASSIMP
+
 #pragma comment(lib, "../Libs/x86/assimp.lib")
 #pragma comment(lib, "../Libs/x86/zlibstatic.lib")
 
+#endif
+
 #ifdef USE_BULLET_PHYS
+
 #pragma comment(lib, "../Libs/x86/LinearMath.lib")
 #pragma comment(lib, "../Libs/x86/BulletCollision.lib")
 #pragma comment(lib, "../Libs/x86/BulletDynamics.lib")
@@ -80,4 +95,5 @@ extern unsigned int passwd;
 #pragma comment(lib, "../Libs/x86/Bullet2FileLoader.lib")
 
 #endif
+
 #endif

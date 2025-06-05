@@ -8,6 +8,8 @@ using namespace Engine::Attributes;
 
 // DEPENDENCIES \\
 
+#include "Reflection/ReflectedType.h"
+#include "Reflection/ReflectableType.h"
 #include "Includes.h"
 #include "ManagedIncludes.h"
 #include "Window.h"
@@ -1444,6 +1446,19 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 1,1,1 }),
 							scene->GetDatamodelMember("workspace")->getTransform()
 						), 0xFFFFFFFF);
+
+					scene->AddObjectToScene(cubeRenderer);
+				}
+
+				if (ImGui::MenuItem("Skybox"))
+				{
+					Engine::EngineObjects::Skybox^ cubeRenderer = gcnew Engine::EngineObjects::Skybox("Skybox",
+						gcnew Engine::Internal::Components::Transform(
+							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Vector3::create({ 1,1,1 }),
+							scene->GetDatamodelMember("workspace")->getTransform()
+						), 1, 0, 0);
 
 					scene->AddObjectToScene(cubeRenderer);
 				}

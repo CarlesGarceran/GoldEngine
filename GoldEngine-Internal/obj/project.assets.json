@@ -2,47 +2,33 @@
   "version": 3,
   "targets": {
     "net8.0-windows7.0": {
-      "glfw_x64/1.0.0": {
+      "glfw/1.0.0": {
         "type": "project",
         "compile": {
-          "bin/placeholder/glfw_x64.dll": {}
+          "bin/placeholder/glfw.dll": {}
         },
         "runtime": {
-          "bin/placeholder/glfw_x64.dll": {}
+          "bin/placeholder/glfw.dll": {}
         }
       },
-      "glfw_x86/1.0.0": {
+      "raylib/1.0.0": {
         "type": "project",
         "compile": {
-          "bin/placeholder/glfw_x86.dll": {}
+          "bin/placeholder/raylib.dll": {}
         },
         "runtime": {
-          "bin/placeholder/glfw_x86.dll": {}
-        }
-      },
-      "raylib_x86/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/raylib_x86.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/raylib_x86.dll": {}
+          "bin/placeholder/raylib.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "glfw_x64/1.0.0": {
+    "glfw/1.0.0": {
       "type": "project",
       "path": "../Solutions/API/raylib/build/x64/raylib/external/glfw/src/glfw.vcxproj",
       "msbuildProject": "../Solutions/API/raylib/build/x64/raylib/external/glfw/src/glfw.vcxproj"
     },
-    "glfw_x86/1.0.0": {
-      "type": "project",
-      "path": "../Solutions/API/raylib/build/x86/raylib/external/glfw/src/glfw.vcxproj",
-      "msbuildProject": "../Solutions/API/raylib/build/x86/raylib/external/glfw/src/glfw.vcxproj"
-    },
-    "raylib_x86/1.0.0": {
+    "raylib/1.0.0": {
       "type": "project",
       "path": "../Solutions/API/raylib/build/x86/raylib/raylib.vcxproj",
       "msbuildProject": "../Solutions/API/raylib/build/x86/raylib/raylib.vcxproj"
@@ -50,9 +36,8 @@
   },
   "projectFileDependencyGroups": {
     "net8.0-windows7.0": [
-      "glfw_x64 >= 1.0.0",
-      "glfw_x86 >= 1.0.0",
-      "raylib_x86 >= 1.0.0"
+      "glfw >= 1.0.0",
+      "raylib >= 1.0.0"
     ]
   },
   "packageFolders": {

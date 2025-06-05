@@ -91,6 +91,7 @@ namespace Engine::Assets::IO
 				{
 					for each(String^ file in wildcards)
 					{
+						file = file->Substring(0, 5);
 						stream->Write(file); // write model name
 						auto contents = File::ReadAllBytes(file);
 						stream->Write(contents->Length);

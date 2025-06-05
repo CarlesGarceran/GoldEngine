@@ -25,6 +25,7 @@
 #include "Object/GameObject.h"
 #include "Object/Locs/ColorLoc.h"
 #include "Object/Locs/TextureLoc.h"
+#include "Object/Locs/FloatLoc.h"
 #include "Attribute.h"
 #include "PropertyAttribute.h"
 #include "AttributeManager.h"

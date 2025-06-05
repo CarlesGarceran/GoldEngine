@@ -1,18 +1,16 @@
 #pragma once
 
-
-namespace Engine::Components
+namespace Engine::Components::Locs
 {
-	namespace Locs
+	public ref class ColorLoc : Generic::MaterialLoc
 	{
-		public ref class ColorLoc : Generic::MaterialLoc
-		{
-		public:
-			Engine::Reflectable::Generic::Reflectable<Engine::Components::Color^>^ color;
+	public:
+		Engine::Components::Color^ color;
 
-			ColorLoc(Engine::Components::Color^ color);
-			void SetColor(Engine::Components::Color^ color);
-			unsigned int GetLocType() override;
-		};
-	}
+		ColorLoc(Engine::Components::Color^ color);
+		ColorLoc();
+
+		void SetColor(Engine::Components::Color^ color);
+		unsigned int GetLocType() override;
+	};
 }

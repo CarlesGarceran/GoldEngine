@@ -1,6 +1,7 @@
 #include "Macros.h"
 #include "Includes.h"
 #include "GlIncludes.h"
+#include "../SDK.h"
 #include "Window.h"
 #include <Windows.h>
 

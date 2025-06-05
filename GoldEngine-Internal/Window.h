@@ -58,6 +58,7 @@ namespace Engine
 			InitializeExtensions();
 
 			rlImGuiSetup(true);
+			ImNodes::CreateContext();
 		}
 
 		void InitializeExtensions();
@@ -93,6 +94,7 @@ namespace Engine
 			}
 
 			rlImGuiShutdown();
+			ImNodes::DestroyContext();
 			Exit();
 			CloseAudioDevice();
 			CloseWindow();

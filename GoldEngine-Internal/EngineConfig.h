@@ -81,7 +81,8 @@ namespace Engine::Config
 
 				String^ password = CypherLib::DecryptFileContents(decodedData, convertToInt(File::ReadAllText("./Data/Keys/map.iv")));
 
-				return gcnew EngineSecrets(password);
+				self = gcnew EngineSecrets(password);
+				return self;
 			}
 
 			return EngineSecrets::default;

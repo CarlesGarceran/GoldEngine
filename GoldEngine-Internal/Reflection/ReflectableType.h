@@ -6,24 +6,22 @@ namespace Engine::Reflectable::Generic
 	public ref class Reflectable
 	{
 	public:
-		T Instance;
 		Engine::Reflectable::ReflectableType^ type;
+		String^ serializedObject;
 
+	private:
+		T Instance;
 
 	public:
 		Reflectable(T Instance);
 
-		[Newtonsoft::Json::JsonConstructorAttribute]
-		Reflectable()
-		{
-			deserialize();
-		}
+		T operator()();
+		void operator=(T value);
 
-		T operator->();
-		T operator=(T value);
-		void operator[](T value);
+		T getInstance();
+		void setInstance(T instance);
 
-	private:
 		void deserialize();
+		void serialize();
 	};
 }

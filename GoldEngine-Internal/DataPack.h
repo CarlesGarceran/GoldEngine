@@ -175,15 +175,30 @@ namespace Engine::Assets::Management
 				materials->Add(id, path);
 				
 				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+
+
+				print("[Resource Manager]:", "Loading Material");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
 				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
 
 				return material;
 			}
 			else
 			{
-				materials->Add(id, path);
-
 				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+
+				print("[Resource Manager]:", "Loading Material");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
 				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
 
 				return material;
@@ -201,6 +216,13 @@ namespace Engine::Assets::Management
 
 				Model m = LoadModel(text.c_str());
 
+				print("[Resource Manager]:", "Loading Model");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
 				Engine::Assets::Storage::DataPacks::singleton().AddModel(id, m);
 
 				return m;
@@ -212,6 +234,13 @@ namespace Engine::Assets::Management
 				text = CastStringToNative(path);
 
 				Model m = LoadModel(text.c_str());
+
+				print("[Resource Manager]:", "Loading Model");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
 
 				Engine::Assets::Storage::DataPacks::singleton().AddModel(id, m);
 

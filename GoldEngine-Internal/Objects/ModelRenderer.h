@@ -6,6 +6,7 @@ using namespace Engine::Assets::Storage;
 
 namespace Engine::EngineObjects
 {
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	public ref class ModelRenderer : public Engine::Internal::Components::GameObject
 	{
 	private:

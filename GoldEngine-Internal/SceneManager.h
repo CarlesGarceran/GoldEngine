@@ -30,6 +30,14 @@ namespace Engine::Managers
 			return System::IO::File::Exists("Data/" + fN + ".scn");
 		}
 
+		static void LoadSceneFromFile(System::String^ sceneName)
+		{
+			Engine::Management::Scene^ loadedScene = Engine::Management::Scene::getLoadedScene();
+			unsigned int passwd = CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->encryptionPassword);
+
+			LoadSceneFromFile(sceneName, passwd, loadedScene);
+		}
+
 		static void LoadSceneFromFile(System::String^ fN, unsigned int passwd, Engine::Management::Scene^% loadedScene)
 		{
 			if (AssetExists(fN))

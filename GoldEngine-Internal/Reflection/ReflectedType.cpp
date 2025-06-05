@@ -114,6 +114,9 @@ void ReflectableType::SetType(Type^ type)
 
 Type^ ReflectableType::getTypeReference()
 {
+	if (this == nullptr)
+		return nullptr;
+
 	if (typeReference == nullptr)
 		DeserializeType(); // deserialize the serialized data lol....
 
@@ -139,7 +142,7 @@ void ReflectableType::DeserializeType(String^ serializedData)
 
 void ReflectableType::DeserializeType()
 {
-	if (this->typeReference != nullptr || this->type != nullptr || (reflectedData == nullptr || reflectedData->IsNullOrEmpty(reflectedData)))
+	if (this == nullptr || this->typeReference != nullptr || this->type != nullptr || (reflectedData == nullptr || reflectedData->IsNullOrEmpty(reflectedData)))
 		return;
 
 	try

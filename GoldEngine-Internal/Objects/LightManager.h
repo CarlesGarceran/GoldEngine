@@ -300,21 +300,15 @@ namespace Engine::EngineObjects
 
 
 			float b = ambientIntensity;
-			RAYLIB::Color color = {
-				((ambientColor >> 0) & 0xFF),
-				((ambientColor >> 8) & 0xFF),
-				((ambientColor >> 16) & 0xFF),
-				((ambientColor >> 24) & 0xFF)
-			};
-
-			RAYLIB::Vector3 ambientColorNormalized = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f };
+			auto colorPtr = gcnew Engine::Components::Color(ambientColor);
+			RAYLIB::Color color = colorPtr->toNative();
 
 			if (cameraPosition != nullptr)
 				SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPosition, SHADER_UNIFORM_VEC3);
 			else
 				SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], new float[3] {0, 0, 0}, SHADER_UNIFORM_VEC3);
 
-			SetShaderValue(shader, GetShaderLocation(shader, "ambientColor"), &ambientColorNormalized, SHADER_UNIFORM_VEC3);
+			SetShaderValue(shader, GetShaderLocation(shader, "ambientColor"), &color, SHADER_UNIFORM_VEC3);
 			SetShaderValue(shader, GetShaderLocation(shader, "ambient"), &b, SHADER_UNIFORM_FLOAT);
 
 			int emissiveIntensityLoc = GetShaderLocation(shader, "emissivePower");

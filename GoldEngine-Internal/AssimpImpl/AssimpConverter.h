@@ -1,13 +1,9 @@
 #pragma managed(push, off)
 #pragma once
 
-#include <assimp/scene.h>
+#ifdef USE_ASSIMP
 
-#define SETTER(T, ARG) void set##ARG(const T&);
-#define SETTER_FUNC(T, ARG) void FBX2GLTF::set##ARG(const T& value) \
-	{ \
-		this->##ARG = value; \
-	}
+#include <assimp/scene.h>
 
 extern std::string utilTool;
 
@@ -26,9 +22,14 @@ private:
 
 public:
 	AssimpConverter(std::string, std::string, std::string);
+	AssimpConverter(std::string, std::string);
+	AssimpConverter(std::string, unsigned int, std::string);
 	AssimpConverter(std::string, unsigned int, std::string, std::string);
 
 	void CreateMesh(unsigned int, std::string, std::string);
+	void CreateMesh(unsigned int, std::string);
+
+	void ConvertToRaylibMesh();
 
 	RAYLIB::Mesh* GetMeshes();
 	unsigned int GetMeshCount();
@@ -37,3 +38,29 @@ public:
 };
 
 #pragma managed(pop)
+
+// MANAGED
+
+namespace Engine::Native
+{
+	public ref class ManagedAssimpConverter
+	{
+	private:
+		AssimpConverter* assimpConverter;
+
+	public:
+		ManagedAssimpConverter(String^, String^);
+		ManagedAssimpConverter(String^, String^, String^);
+		ManagedAssimpConverter(String^, unsigned int, String^);
+		ManagedAssimpConverter(String^, unsigned int, String^, String^);
+
+		void ConvertToRaylibMesh();
+
+		RAYLIB::Mesh* GetMeshes();
+		unsigned int GetMeshCount();
+
+		void dealloc();
+	};
+}
+
+#endif

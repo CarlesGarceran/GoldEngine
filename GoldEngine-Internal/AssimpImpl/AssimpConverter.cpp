@@ -15,14 +15,27 @@
 #include <assimp/cexport.h>
 #include "AssimpConverter.h"
 
+
+#ifdef USE_ASSIMP
+
 #pragma managed(push, off)
 
-AssimpConverter::AssimpConverter(std::string fileName, std::string outputFile, std::string format)
+AssimpConverter::AssimpConverter(std::string fileName, std::string outputFile, std::string format) : AssimpConverter(fileName, aiProcess_Triangulate, outputFile, format)
+{
+
+}
+
+AssimpConverter::AssimpConverter(std::string fileName, std::string format) : AssimpConverter(fileName, aiProcess_Triangulate, format)
+{
+
+}
+
+AssimpConverter::AssimpConverter(std::string fileName, unsigned int flags, std::string format)
 {
     this->FileName = fileName;
     this->scene = nullptr;
 
-    this->CreateMesh(aiProcess_Triangulate, outputFile, format);
+    this->CreateMesh(flags, format);
 }
 
 AssimpConverter::AssimpConverter(std::string fileName, unsigned int flags, std::string outputFile, std::string format)
@@ -103,6 +116,24 @@ void SetMeshData(RAYLIB::Mesh& rlMesh, aiMesh* ai_mesh)
     rlMesh.vboId = (unsigned int*)calloc(7, sizeof(unsigned int));
 }
 
+void AssimpConverter::CreateMesh(unsigned int flags, std::string format)
+{
+    Assimp::Importer impl;
+    Assimp::Exporter exporter;
+    this->scene = impl.ReadFile(this->FileName, flags);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        printf("Error loading model: %s\n", impl.GetErrorString());
+
+    if (!scene->HasMeshes())
+        printf("The loaded scene has no meshes");
+
+    for (int x = 0; x < scene->mNumMaterials; x++)
+    {
+        scene->mMaterials[x]->Clear();
+    }
+}
+
 void AssimpConverter::CreateMesh(unsigned int flags, std::string outputPath, std::string format)
 {
     Assimp::Importer impl;
@@ -127,6 +158,17 @@ void AssimpConverter::CreateMesh(unsigned int flags, std::string outputPath, std
     else
     {
         printf("Model Exported!");
+    }
+}
+
+void AssimpConverter::ConvertToRaylibMesh()
+{
+    const unsigned int meshCount = this->scene->mNumMeshes;
+    this->temporalMesh = new RAYLIB::Mesh[meshCount];
+
+    for (int x = 0; x < meshCount; x++)
+    {
+        SetMeshData(this->temporalMesh[x], this->scene->mMeshes[x]);
     }
 }
 
@@ -162,3 +204,49 @@ const char* getAssimpExporterId(int a1)
 }
 
 #pragma managed(pop)
+
+// MANAGED
+
+Engine::Native::ManagedAssimpConverter::ManagedAssimpConverter(String^ fileName, String^ format) : ManagedAssimpConverter(fileName, aiProcess_Triangulate, format)
+{
+
+}
+
+Engine::Native::ManagedAssimpConverter::ManagedAssimpConverter(String^ fileName, String^ output, String^ format) : ManagedAssimpConverter(fileName, aiProcess_Triangulate, output, format)
+{
+
+}
+
+Engine::Native::ManagedAssimpConverter::ManagedAssimpConverter(String^ fileName, unsigned int flags, String^ format)
+{
+    assimpConverter = new AssimpConverter(CastStringToNative(fileName), flags, CastStringToNative(format));
+}
+
+Engine::Native::ManagedAssimpConverter::ManagedAssimpConverter(String^ fileName, unsigned int flags, String^ output, String^ format)
+{
+    assimpConverter = new AssimpConverter(CastStringToNative(fileName), flags, CastStringToNative(output), CastStringToNative(format));
+}
+
+RAYLIB::Mesh* Engine::Native::ManagedAssimpConverter::GetMeshes()
+{
+    return assimpConverter->GetMeshes();
+}
+
+unsigned int Engine::Native::ManagedAssimpConverter::GetMeshCount()
+{
+    return assimpConverter->GetMeshCount();
+}
+
+void Engine::Native::ManagedAssimpConverter::ConvertToRaylibMesh()
+{
+    assimpConverter->ConvertToRaylibMesh();
+}
+
+void Engine::Native::ManagedAssimpConverter::dealloc()
+{
+    assimpConverter->dealloc();
+
+    delete assimpConverter;
+}
+
+#endif

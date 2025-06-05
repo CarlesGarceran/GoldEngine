@@ -334,6 +334,7 @@
     <ClInclude Include="CastToNative.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="cimgui\cimgui.h" />
+    <ClInclude Include="cimnodes\cimnodes.h" />
     <ClInclude Include="CypherLib.h" />
     <ClInclude Include="DataPack.h" />
     <ClInclude Include="DataPacks.h" />
@@ -367,6 +368,8 @@
     <ClInclude Include="imgui\misc\single_file\imgui_single_file.h" />
     <ClInclude Include="imgui\Style\ScopedStyle.h" />
     <ClInclude Include="imgui\TextEditor\TextEditor.h" />
+    <ClInclude Include="imnodes\ImNodes.h" />
+    <ClInclude Include="imnodes\imnodes_internal.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Instantiable.h" />
     <ClInclude Include="LogFileReporter.h" />
@@ -413,6 +416,7 @@
     <ClInclude Include="Object\Layer.h" />
     <ClInclude Include="Object\LayerManager.h" />
     <ClInclude Include="Object\Locs\ColorLoc.h" />
+    <ClInclude Include="Object\Locs\FloatLoc.h" />
     <ClInclude Include="Object\Locs\TextureLoc.h" />
     <ClInclude Include="Object\Material.h" />
     <ClInclude Include="Object\ObjectType.h" />
@@ -471,6 +475,7 @@
     <ClCompile Include="BuiltIn\Effects\ACES_Tonemapper.cpp" />
     <ClCompile Include="CastToNative.cpp" />
     <ClCompile Include="cimgui\cimgui.cpp" />
+    <ClCompile Include="cimnodes\cimnodes.cpp" />
     <ClCompile Include="DataPacks.cpp" />
     <ClCompile Include="EditorTools\CodeEditor.cpp" />
     <ClCompile Include="EditorTools\MaterialEditor.cpp" />
@@ -492,6 +497,7 @@
     <ClCompile Include="imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="imgui\Style\ScopedStyle.cpp" />
     <ClCompile Include="imgui\TextEditor\TextEditor.cpp" />
+    <ClCompile Include="imnodes\ImNodes.cpp" />
     <ClCompile Include="Instantiable.cpp" />
     <ClCompile Include="LuaVM.cpp" />
     <ClCompile Include="native\CollisionShape.cpp" />
@@ -504,10 +510,12 @@
     <ClCompile Include="Objects\Physics\Triggers\Trigger.cpp" />
     <ClCompile Include="Objects\Pipeline\ScriptableRenderPipeline.cpp" />
     <ClCompile Include="Objects\Private\Scene.cpp" />
+    <ClCompile Include="Objects\Skybox.cpp" />
     <ClCompile Include="Object\Color.cpp" />
     <ClCompile Include="Object\GameObject.cpp" />
     <ClCompile Include="Object\Layer.cpp" />
     <ClCompile Include="Object\Locs\ColorLoc.cpp" />
+    <ClCompile Include="Object\Locs\FloatLoc.cpp" />
     <ClCompile Include="Object\Locs\TextureLoc.cpp" />
     <ClCompile Include="Object\Material.cpp" />
     <ClCompile Include="Object\Prefab.cpp" />
@@ -678,6 +686,9 @@
     </Reference>
     <Reference Include="ImGui.NET">
       <HintPath>..\netasm\ImGui.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="ImNodes.NET">
+      <HintPath>..\netasm\ImNodes.NET.dll</HintPath>
     </Reference>
     <Reference Include="MoonSharp.Interpreter">
       <HintPath>..\netasm\MoonSharp.Interpreter.dll</HintPath>

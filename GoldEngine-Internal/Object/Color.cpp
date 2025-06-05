@@ -6,6 +6,11 @@
 using namespace System;
 using namespace Engine::Components;
 
+Engine::Components::Color::Color()
+{
+	// FOR NEWTONSOFT REFLECTION
+}
+
 Engine::Components::Color::Color(unsigned int colorHex)
 {
 	this->hexColor = colorHex;
@@ -24,10 +29,11 @@ Engine::Components::Color::Color(__int8 red, __int8 green, __int8 blue, __int8 a
 	a = alpha;
 
 	hexColor = 0;
-	hexColor << r & 0xFF;
-	hexColor << g & 0xFF;
-	hexColor << b & 0xFF;
-	hexColor << a & 0xFF;
+	hexColor =
+		((unsigned int)(a & 0xFF) << 24) |
+		((unsigned int)(b & 0xFF) << 16) |
+		((unsigned int)(g & 0xFF) << 8) |
+		((unsigned int)(r & 0xFF) << 0);
 }
 
 Engine::Components::Color::Color(int red, int green, int blue, int alpha)
@@ -38,10 +44,11 @@ Engine::Components::Color::Color(int red, int green, int blue, int alpha)
 	a = alpha;
 
 	hexColor = 0;
-	hexColor << r & 0xFF;
-	hexColor << g & 0xFF;
-	hexColor << b & 0xFF;
-	hexColor << a & 0xFF;
+	hexColor =
+		((unsigned int)(a & 0xFF) << 24) |
+		((unsigned int)(b & 0xFF) << 16) |
+		((unsigned int)(g & 0xFF) << 8) |
+		((unsigned int)(r & 0xFF) << 0);
 }
 
 unsigned int% Engine::Components::Color::toHex()
@@ -81,23 +88,26 @@ RAYLIB::Vector3 Engine::Components::Color::toNativeVector3()
 	RAYLIB::Color c = toNative();
 	RAYLIB::Vector3 vector = { 0 };
 
-	vector.x = (c.r / 255.0f);
-	vector.y = (c.g / 255.0f);
-	vector.z = (c.b / 255.0f);
+	vector.x = (c.r);
+	vector.y = (c.g);
+	vector.z = (c.b);
 
 	return vector;
 }
 
-float* Engine::Components::Color::toFloat()
+std::array<float, 4> Engine::Components::Color::toFloat()
 {
-	float *args = new float[4];
-	RAYLIB::Color c = GetColor(hexColor);
-	args[0] = c.r;
-	args[1] = c.g;
-	args[2] = c.b;
-	args[3] = c.a;
+	auto native = this->toNative();
+	auto normalized = RAYLIB::ColorNormalize(native);
 
-	return args;
+	std::array<float, 4> out = {
+		   normalized.x,
+		   normalized.y,
+		   normalized.z,
+		   normalized.w
+	};
+
+	return out;
 }
 
 void Engine::Components::Color::setHex(unsigned int value)
