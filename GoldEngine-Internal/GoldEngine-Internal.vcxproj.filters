@@ -92,15 +92,6 @@
     <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\RTBR">
       <UniqueIdentifier>{2fdfb2aa-f8d5-466e-bdb5-6ad801abfad6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\VXBR">
-      <UniqueIdentifier>{495424b5-1e59-4996-b963-1dd85699c192}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Voxel">
-      <UniqueIdentifier>{fbe6c539-35ab-4a90-abb1-37cdc22137b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Typedefs">
-      <UniqueIdentifier>{fa234a6f-8b88-4072-80f6-22a397997e23}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\Scriptable">
       <UniqueIdentifier>{c4a424bb-123e-4a72-8b70-7944e4de2766}</UniqueIdentifier>
     </Filter>
@@ -147,9 +138,6 @@
     <Filter Include="Source\Resources">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Hooks">
-      <UniqueIdentifier>{55cef652-b892-42af-9675-5bf4599b5aeb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\ScriptingAPI\Managers">
       <UniqueIdentifier>{3d99b295-e380-45fe-a44a-3bde6f6f4c9a}</UniqueIdentifier>
@@ -361,9 +349,6 @@
     <Filter Include="Source\Engine\EngineObjects\Private">
       <UniqueIdentifier>{e4e083a7-d383-42b1-9c1c-6a3d219d1a38}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Physics\Triggers">
-      <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Physics\Rigidbody">
       <UniqueIdentifier>{a65309c7-5f19-494c-aed7-b238054578d8}</UniqueIdentifier>
     </Filter>
@@ -384,6 +369,57 @@
     </Filter>
     <Filter Include="Deps\GUI\cimnodes">
       <UniqueIdentifier>{98e9d364-3cbe-4a40-945e-8051037e3f6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects">
+      <UniqueIdentifier>{566652fa-329c-484b-97d4-4aedff0086dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\UI">
+      <UniqueIdentifier>{4112a999-2e4e-442f-bf47-a47ee547603d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics">
+      <UniqueIdentifier>{30f886c6-7c83-4622-9974-0536376d7686}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Triggers">
+      <UniqueIdentifier>{816d79d0-80ec-4ce8-a696-56cdb7441798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Rigidbody">
+      <UniqueIdentifier>{7415358c-8dd9-4d33-a6ff-612d86063b3e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Native">
+      <UniqueIdentifier>{a405c1d8-c617-475a-86f5-ad5974bb120b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Audio">
+      <UniqueIdentifier>{f55d612c-db0e-407c-aaf3-fd6bdbf48288}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Service">
+      <UniqueIdentifier>{6ba555a8-9e71-47dc-9357-370a87f4482f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Private">
+      <UniqueIdentifier>{f27cd3d5-0dff-493d-a792-4d6fd823820a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Skybox">
+      <UniqueIdentifier>{0deda414-d60e-434e-a96b-501333ca1dbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Renderer Pipelines">
+      <UniqueIdentifier>{6837f77a-7d0d-4196-8092-38879a32fb27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Renderer Pipelines\Scriptable">
+      <UniqueIdentifier>{b30bb5ae-dfc6-42d1-ac96-51be1ccb69f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Surfaces">
+      <UniqueIdentifier>{122bd44d-9ef3-4655-baf3-13559c22dbcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Surfaces">
+      <UniqueIdentifier>{81b5e249-40d5-406a-aabd-b74876fb3a3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\MeshRenderer">
+      <UniqueIdentifier>{b99703a4-63a0-4e37-8e54-60ec1faed1ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\MeshRenderer">
+      <UniqueIdentifier>{a5e13549-0055-48d7-b97c-9695ed2f3be5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Colliders">
+      <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -423,21 +459,6 @@
     <ClInclude Include="SceneObject.h">
       <Filter>Source\Engine\Management\MiddleLevel</Filter>
     </ClInclude>
-    <ClInclude Include="Voxel.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Voxel</Filter>
-    </ClInclude>
-    <ClInclude Include="VoxelRenderer.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\VXBR</Filter>
-    </ClInclude>
-    <ClInclude Include="VoxelTypedefs.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Typedefs</Filter>
-    </ClInclude>
-    <ClInclude Include="Chunk.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Voxel</Filter>
-    </ClInclude>
-    <ClInclude Include="VoxelMatrix.h">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\VXBR\Typedefs</Filter>
-    </ClInclude>
     <ClInclude Include="PreloadScript.h">
       <Filter>Source\Engine\Preload</Filter>
     </ClInclude>
@@ -461,9 +482,6 @@
     </ClInclude>
     <ClInclude Include="Objects\ScriptBehaviour.h">
       <Filter>Source\Engine\EngineObjects\Script</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Skybox.h">
-      <Filter>Source\Engine\EngineObjects\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Daemon.h">
       <Filter>Source\Engine\EngineObjects</Filter>
@@ -543,9 +561,6 @@
     <ClInclude Include="ManagedSignal.h">
       <Filter>Headers\Engine\Signals</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Pipeline\ScriptableRenderPipeline.hpp">
-      <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Scriptable</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPipelines\LightweightSRP.h">
       <Filter>Source\Engine\EngineObjects\Renderer Pipelines\Pipelines</Filter>
     </ClInclude>
@@ -563,9 +578,6 @@
     </ClInclude>
     <ClInclude Include="GraphicsWrapper.h">
       <Filter>Source\Engine\ScriptingAPI\Wrappers\GraphicsWrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiHook.h">
-      <Filter>Source\Engine\ScriptingAPI\Hooks</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
       <Filter>Source\Engine\ScriptingAPI\Managers</Filter>
@@ -954,12 +966,6 @@
     <ClInclude Include="Object\GameObject.h">
       <Filter>Headers\Engine\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Physics\RigidBody.h">
-      <Filter>Source\Engine\EngineObjects\Physics\Rigidbody</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Physics\CollisionType.h">
-      <Filter>Source\Engine\EngineObjects\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="native\json.hpp">
       <Filter>Headers\Engine\Native</Filter>
     </ClInclude>
@@ -977,9 +983,6 @@
     </ClInclude>
     <ClInclude Include="Instantiable.h">
       <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Audio\AudioSource.h">
-      <Filter>Source\Engine\EngineObjects\Audio</Filter>
     </ClInclude>
     <ClInclude Include="EditorTools\CodeEditor.h">
       <Filter>Headers\EngineTools\Editor</Filter>
@@ -1029,9 +1032,6 @@
     <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h">
       <Filter>Headers\BuiltIn\Effects</Filter>
     </ClInclude>
-    <ClInclude Include="Objects\Private\Scene.h">
-      <Filter>Source\Engine\EngineObjects\Private</Filter>
-    </ClInclude>
     <ClInclude Include="Native\miniaudio.h">
       <Filter>Headers\Engine\Native</Filter>
     </ClInclude>
@@ -1043,12 +1043,6 @@
     </ClInclude>
     <ClInclude Include="EditorTools\MaterialEditor.h">
       <Filter>Headers\EngineTools\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Physics\PhysicsService.h">
-      <Filter>Source\Engine\EngineObjects\Physics\Service</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Physics\Triggers\Trigger.h">
-      <Filter>Source\Engine\EngineObjects\Physics\Triggers</Filter>
     </ClInclude>
     <ClInclude Include="LuaAPI.h">
       <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
@@ -1067,6 +1061,48 @@
     </ClInclude>
     <ClInclude Include="Object\Locs\FloatLoc.h">
       <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\CollisionType.h">
+      <Filter>Headers\Engine\EngineObjects\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\Triggers\Collider.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Triggers</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\RigidBody.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Rigidbody</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Audio\AudioSource.h">
+      <Filter>Headers\Engine\EngineObjects\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\PhysicsService.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Private\Scene.h">
+      <Filter>Headers\Engine\EngineObjects\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Skybox.h">
+      <Filter>Headers\Engine\EngineObjects\Skybox</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Pipeline\ScriptableRenderPipeline.hpp">
+      <Filter>Headers\Engine\EngineObjects\Renderer Pipelines\Scriptable</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\UI\RenderSurface3D.h">
+      <Filter>Headers\Engine\EngineObjects\Surfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\StructLoc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\Vector3Loc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Locs\Vector2Loc.h">
+      <Filter>Headers\Engine\Object\Locs</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h">
+      <Filter>Headers\Engine\EngineObjects\MeshRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationStruct.h">
+      <Filter>Headers\Engine\ObjectManagement</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1244,8 +1280,8 @@
     <ClCompile Include="Objects\Physics\PhysicsService.cpp">
       <Filter>Source\Engine\EngineObjects\Physics\Service</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Physics\Triggers\Trigger.cpp">
-      <Filter>Source\Engine\EngineObjects\Physics\Triggers</Filter>
+    <ClCompile Include="Objects\Physics\Triggers\Collider.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClCompile>
     <ClCompile Include="Threads\EngineThread.cpp">
       <Filter>Source\Engine\Processors\Threads</Filter>
@@ -1261,6 +1297,21 @@
     </ClCompile>
     <ClCompile Include="Object\Locs\FloatLoc.cpp">
       <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\UI\RenderSurface3D.cpp">
+      <Filter>Source\Engine\EngineObjects\Surfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\StructLoc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\Vector3Loc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Locs\Vector2Loc.cpp">
+      <Filter>Source\Engine\Object\Locs</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp">
+      <Filter>Source\Engine\EngineObjects\MeshRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1391,7 +1442,7 @@
       <Filter>Deps\Assimp</Filter>
     </None>
     <None Include="Objects\Physics\Native\NativePhysicsService.h">
-      <Filter>Source\Engine\EngineObjects\Physics\Native</Filter>
+      <Filter>Headers\Engine\EngineObjects\Physics\Native</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

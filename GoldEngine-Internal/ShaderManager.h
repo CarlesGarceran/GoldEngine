@@ -21,14 +21,16 @@ public:
 	// mainly used for pushing modified shader code into the datapacks
 	static void LoadShaderFromMemory(unsigned int shaderId, String^ vertexShader, String^ fragmentShader)
 	{
-		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, ::LoadShaderFromMemory(CastStringToNative(vertexShader).c_str(), CastStringToNative(fragmentShader).c_str()));
+		RAYLIB::Shader& shader = RAYLIB::LoadShaderFromMemory(CastStringToNative(vertexShader).c_str(), CastStringToNative(fragmentShader).c_str());
+		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, shader);
 	}
 
 	// update a shader into datapacks \\
 
 	static void UpdateShaderFromFile(unsigned int shaderId, String^ vsFp, String^ fsFp)
 	{
-		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, LoadShader(CastStringToNative(vsFp).c_str(), CastStringToNative(fsFp).c_str()));
+		RAYLIB::Shader& shader = RAYLIB::LoadShader(CastStringToNative(vsFp).c_str(), CastStringToNative(fsFp).c_str());
+		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, shader);
 	}
 
 	static void UpdateShaderFromMemory(unsigned int shaderId, String^ vertexShader, String^ fragmentShader)

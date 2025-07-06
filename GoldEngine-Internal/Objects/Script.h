@@ -24,7 +24,7 @@ namespace Engine::EngineObjects
 			}
 		}
 
-		virtual void Init() override
+		void Init() override
 		{
 			Engine::EngineObjects::ScriptBehaviour::Setup();
 
@@ -37,7 +37,7 @@ namespace Engine::EngineObjects
 			System::GC::Collect();
 		}
 
-		virtual void Setup() override
+		void Setup() override
 		{
 			Engine::EngineObjects::ScriptBehaviour::Setup();
 

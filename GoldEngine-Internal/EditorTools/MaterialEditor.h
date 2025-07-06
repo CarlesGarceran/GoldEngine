@@ -3,6 +3,8 @@
 public ref class MaterialEditor
 {
 private:
+	Engine::Components::Material^ savedMaterial;
+
 	Engine::Components::Material^ selectedMaterial;
 	bool materialEditorOpen = false;
 	Engine::Window^ instance;

@@ -26,7 +26,7 @@ void AudioSource::onSoundChanged(unsigned int newId, unsigned int oldId)
 		DataPacks::singleton().GetMusic(soundId)
 	);
 
-	soundPtr->setInstance(
+	soundPtr->setInstanceRef(
 		data
 	);
 }

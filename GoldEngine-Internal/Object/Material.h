@@ -66,8 +66,27 @@ namespace Engine::Components::Locs::Generic
 
 namespace Engine::Components
 {
+	typedef enum MaterialLocations
+	{
+		ColorLoc = 0,
+		TextureLoc = 1,
+		FloatLoc = 2,
+		StructLoc = 3,
+		Vector2Loc = 4,
+		Vector3Loc = 5,
+		Vector4Loc = 6
+	};
+
+	public value struct TextureId
+	{
+	public:
+		unsigned int textureId;
+
+		TextureId(unsigned int id) { this->textureId = id; }
+	};
+
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-		public ref class Material
+	public ref class Material
 	{
 	public:
 		Engine::Reflectable::Generic::Reflectable<unsigned int>^ shaderId;
@@ -100,5 +119,8 @@ namespace Engine::Components
 
 		static Material^ Create();
 		static Material^ New();
+
+
+		void ApplyToShader(RAYLIB::Shader& ref);
 	};
 }

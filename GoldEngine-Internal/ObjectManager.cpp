@@ -80,6 +80,67 @@ List<GameObject^>^ ObjectManager::GetObjectsFromDatamodel(String^ datamodel)
 	return objects;
 }
 
+List<Engine::Internal::Components::GameObject^>^ Engine::Scripting::ObjectManager::GetObjectsByLayer(Engine::Components::Layer^ layer)
+{
+	auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
+
+	for each (GameObject ^ t in loadedScene->GetRenderQueue())
+	{
+		if (t->layerMask->IsLayer(layer))
+		{
+			objects->Add(t);
+		}
+	}
+
+	return objects;
+}
+
+List<Engine::Internal::Components::GameObject^>^ Engine::Scripting::ObjectManager::GetObjectsByTag(System::String^ tag)
+{
+	auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
+
+	for each (GameObject ^ t in loadedScene->GetRenderQueue())
+	{
+		if (t->GetTag() == tag)
+		{
+			objects->Add(t);
+		}
+	}
+
+	return objects;
+}
+
+List<Engine::Internal::Components::GameObject^>^ Engine::Scripting::ObjectManager::GetObjectsByName(System::String^ name)
+{
+	auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
+
+	if (loadedScene->GetRenderQueue() == nullptr)
+		return nullptr;
+
+	for each (GameObject ^ t in loadedScene->GetRenderQueue())
+	{
+		if (t->name == name)
+		{
+			objects->Add(t);
+		}
+	}
+
+	return objects;
+}
+
+List<Engine::Internal::Components::GameObject^>^ Engine::Scripting::ObjectManager::GetObjects()
+{
+	auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
+
+	for each (GameObject ^ t in loadedScene->GetRenderQueue())
+	{
+		if (t != nullptr)
+			objects->Add(t);
+	}
+
+	return objects;
+}
+
 GameObject^ ObjectManager::GetDatamodel(String^ dataModelName)
 {
 	return GetDatamodel(dataModelName, false);
@@ -110,7 +171,7 @@ Engine::EngineObjects::Camera^ ObjectManager::GetMainCamera(bool ignoreEditorCam
 			}
 #endif
 
-			if (((Engine::EngineObjects::Camera^)t)->attributes->getAttribute("IsMainCamera")->getValue<bool>() == true)
+			if (((Engine::EngineObjects::Camera^)t)->IsMainCamera)
 			{
 				return (Engine::EngineObjects::Camera^)t;
 			}
@@ -118,6 +179,11 @@ Engine::EngineObjects::Camera^ ObjectManager::GetMainCamera(bool ignoreEditorCam
 	}
 
 	return nullptr;
+}
+
+void Engine::Scripting::ObjectManager::Instantiate(Engine::Internal::Components::GameObject^ newObject)
+{
+	loadedScene->AddObjectToScene(newObject);
 }
 
 void ObjectManager::Destroy(Engine::Internal::Components::GameObject^ object)

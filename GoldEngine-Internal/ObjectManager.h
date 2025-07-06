@@ -73,56 +73,12 @@ namespace Engine::Scripting
 		}
 
 		GameObject^ GetDatamodel(String^ dataModelName);
-
 		GameObject^ GetDatamodel(String^ dataModelName, bool createDataModel);
-
 		List<Engine::Internal::Components::GameObject^>^ GetObjectsFromDatamodel(System::String^ datamodel);
-
-		List<Engine::Internal::Components::GameObject^>^ GetObjectsByTag(System::String^ tag)
-		{
-			auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
-
-			for each (GameObject^ t in loadedScene->GetRenderQueue())
-			{
-				if (t->GetTag() == tag)
-				{
-					objects->Add(t);
-				}
-			}
-
-			return objects;
-		}
-
-		List<Engine::Internal::Components::GameObject^>^ GetObjectsByName(System::String^ name)
-		{
-			auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
-
-			if (loadedScene->GetRenderQueue() == nullptr)
-				return nullptr;
-
-			for each (GameObject ^ t in loadedScene->GetRenderQueue())
-			{
-				if (t->name == name)
-				{
-					objects->Add(t);
-				}
-			}
-
-			return objects;
-		}
-
-		List<Engine::Internal::Components::GameObject^>^ GetObjects()
-		{
-			auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
-
-			for each (GameObject ^ t in loadedScene->GetRenderQueue())
-			{
-				if(t != nullptr && t != nullptr)
-					objects->Add(t);
-			}
-
-			return objects;
-		}
+		List<Engine::Internal::Components::GameObject^>^ GetObjectsByLayer(Engine::Components::Layer^ layer);
+		List<Engine::Internal::Components::GameObject^>^ GetObjectsByTag(System::String^ tag);
+		List<Engine::Internal::Components::GameObject^>^ GetObjectsByName(System::String^ name);
+		List<Engine::Internal::Components::GameObject^>^ GetObjects();
 
 		List<Engine::Internal::Components::GameObject^>^ GetObjectsOfType(Engine::Internal::Components::ObjectType type)
 		{
@@ -281,11 +237,7 @@ namespace Engine::Scripting
 
 		Engine::EngineObjects::Camera^ GetMainCamera();
 		Engine::EngineObjects::Camera^ GetMainCamera(bool ignoreEditorCameras);
-
-		void Instantiate(Engine::Internal::Components::GameObject^ newObject)
-		{
-			loadedScene->AddObjectToScene(newObject);
-		}
+		void Instantiate(Engine::Internal::Components::GameObject^ newObject);
 
 		void Destroy(Engine::Internal::Components::GameObject^ object);
 		
@@ -315,6 +267,5 @@ namespace Engine::Scripting
 				attribute->setValueForce(nullptr, false);
 			}
 		}
-
 	};
 }

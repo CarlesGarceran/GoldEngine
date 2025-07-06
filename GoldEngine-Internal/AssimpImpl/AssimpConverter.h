@@ -23,6 +23,7 @@ private:
 public:
 	AssimpConverter(std::string, std::string, std::string);
 	AssimpConverter(std::string, std::string);
+	AssimpConverter(std::string);
 	AssimpConverter(std::string, unsigned int, std::string);
 	AssimpConverter(std::string, unsigned int, std::string, std::string);
 
@@ -33,6 +34,9 @@ public:
 
 	RAYLIB::Mesh* GetMeshes();
 	unsigned int GetMeshCount();
+
+
+	RAYLIB::Model& CreateModel();
 
 	void dealloc();
 };

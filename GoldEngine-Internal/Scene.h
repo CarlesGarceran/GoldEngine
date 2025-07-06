@@ -302,9 +302,17 @@ namespace Engine::Management
 				}
 				else
 				{
-					object->Setup();
-					object->Init();
-					object->Start();
+					try
+					{
+						object->Setup();
+						object->Init();
+						object->Start();
+					}
+					catch (Exception^ ex)
+					{
+						printError(ex->Message);
+						printError(ex->StackTrace);
+					}
 				}
 			}
 			l->release();
@@ -350,7 +358,15 @@ namespace Engine::Management
 	public:
 		void HookSceneInit()
 		{
-			onLoadedScene();
+			try
+			{
+				onLoadedScene();
+			}
+			catch (Exception^ ex)
+			{
+				printError(ex->Message);
+				printError(ex->StackTrace);
+			}
 		}
 
 		// VMethods

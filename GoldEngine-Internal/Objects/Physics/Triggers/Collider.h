@@ -11,7 +11,13 @@ namespace Engine::EngineObjects::Physics
 		Mesh
 	};
 
-	public ref class Trigger : Engine::EngineObjects::Script
+	public enum class ColliderType
+	{
+		Collider,
+		Trigger
+	};
+
+	public ref class Collider : Engine::EngineObjects::Script
 	{
 	public:
 		[Engine::Scripting::PropertyAttribute]
@@ -23,11 +29,17 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Scripting::PropertyAttribute]
 		bool renderWires = false;
 
+		[Engine::Scripting::PropertyAttribute]
+		ColliderType collisionType;
+
+	private:
+		bool registered = false;
+
 	private:
 		void onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape);
 
 	public:
-		Trigger(String^ name, Engine::Internal::Components::Transform^ transform);
+		Collider(String^ name, Engine::Internal::Components::Transform^ transform);
 
 		void Start() override;
 		void DrawGizmo() override;

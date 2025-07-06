@@ -2,6 +2,8 @@
 #include <list>
 #include "LightManager.h"
 
+#ifdef USE_ILLUMINA
+
 namespace Engine::EngineObjects
 {
 	namespace Native
@@ -531,3 +533,5 @@ namespace Engine::EngineObjects
 		}
 	};
 }
+
+#endif

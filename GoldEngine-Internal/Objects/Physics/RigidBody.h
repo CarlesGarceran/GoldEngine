@@ -41,7 +41,7 @@ namespace Engine::EngineObjects::Physics
 
 		void Update() override;
 
-		void OnUnactive() override;
+		void OnInactive() override;
 		void OnActive() override;
 
 		void AddForce(Engine::Components::Vector3^ position, ForceMode mode);

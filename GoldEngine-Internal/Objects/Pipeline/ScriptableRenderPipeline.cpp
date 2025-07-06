@@ -1,6 +1,7 @@
 #include "../../SDK.h"
 #include "../../Screen.h"
 #include "ScriptableRenderPipeline.hpp"
+#include "../UI/RenderSurface3D.h"
 
 using namespace Engine::Scripting;
 using namespace Engine::Components;
@@ -45,7 +46,22 @@ Engine::Render::ScriptableRenderPipeline::ScriptableRenderPipeline()
 	effects = gcnew Collections::Generic::List<ScriptableEffect^>();
 }
 
+bool Engine::Render::ScriptableRenderPipeline::isInRenderSurface(GameObject^ gameObject)
+{
+	if (gameObject == nullptr)
+		return false;
+
+	if (gameObject->GetType()->IsSubclassOf(Engine::EngineObjects::Surface::RenderSurface::typeid))
+		return true;
+	else
+		if (gameObject->transform->parent == nullptr)
+			return false;
+		else
+			return isInRenderSurface(gameObject->Parent);
+}
+
 RAYLIB::RenderTexture* Engine::Render::ScriptableRenderPipeline::getFrameBuffer()
 {
 	return &framebufferTexturePtr->getInstance();
 }
+

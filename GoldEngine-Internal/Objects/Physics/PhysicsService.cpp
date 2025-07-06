@@ -92,7 +92,10 @@ void testCollision(btDiscreteDynamicsWorld* world)
 
 #pragma managed(pop)
 
-PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
+PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform) 
+	: Engine::EngineObjects::Script(name, transform),
+	frameRate(60),
+	maxSubSteps(10)
 {
 }
 
@@ -112,13 +115,7 @@ void PhysicsService::Start()
 
 	setGravity(world, this->Gravity->x, this->Gravity->y, this->Gravity->z);
 
-	frameRate = 60;
-	maxSubSteps = 10;
-
 	Singleton<PhysicsService^>::Create(this);
-
-	if (!attributes->hasAttribute("Gravity"))
-		attributes->addAttribute(Engine::Scripting::Attribute::New(Engine::Scripting::AccessLevel::Public, "Gravity", gcnew Engine::Components::Vector3(0, 9.81f, 0), Engine::Components::Vector3::typeid));
 }
 
 void PhysicsService::Update()

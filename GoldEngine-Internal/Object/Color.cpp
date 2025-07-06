@@ -167,3 +167,23 @@ void Engine::Components::Color::setA(__int8 value)
 	hexColor << (b) & 0xFF;
 	hexColor << (a) & 0xFF;
 }
+
+int Engine::Components::Color::GetR()
+{
+	return this->r;
+}
+
+int Engine::Components::Color::GetG()
+{
+	return this->g;
+}
+
+int Engine::Components::Color::GetB()
+{
+	return this->b;
+}
+
+int Engine::Components::Color::GetA()
+{
+	return this->a;
+}

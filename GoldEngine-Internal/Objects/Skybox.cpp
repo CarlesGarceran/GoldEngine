@@ -1,13 +1,6 @@
 #include "../SDK.h"
 #include "Skybox.h"
 
-typedef enum MaterialLocations
-{
-	ColorLoc = 0,
-	TextureLoc = 1,
-	FloatLoc = 2
-};
-
 void Engine::EngineObjects::Skybox::Init(unsigned int modelId, unsigned int matId, unsigned int texturePath)
 {
 	material = matId;

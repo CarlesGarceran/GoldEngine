@@ -10,7 +10,7 @@ using namespace System::IO;
 
 namespace Engine::Assets::Management
 {
-	typedef enum assetType { _Model, _Shader, _Texture2D, _Material, _Sound, _Musics };
+	typedef enum assetType { _Model, _Shader, _Texture2D, _Material, _Sound, _Musics, _Fonts };
 
 	public ref class DataPack
 	{
@@ -65,6 +65,19 @@ namespace Engine::Assets::Management
 				AddMusic(musicId, filePath);
 			}
 
+			for each(unsigned int fontId in fonts->Keys)
+			{
+				System::String^ filePath = fonts[fontId];
+
+				AddFont(fontId, filePath);
+			}
+
+			for each (unsigned int animationId in fonts->Keys)
+			{
+				System::String^ filePath = fonts[animationId];
+
+				AddModelAnimation(animationId, filePath);
+			}
 		}
 
 		bool AssetExists(System::String^ fN)
@@ -80,6 +93,8 @@ namespace Engine::Assets::Management
 			materials = gcnew Dictionary<unsigned int, String^>(newPack->materials);
 			sounds = gcnew Dictionary<unsigned int, String^>(newPack->sounds);
 			musics = gcnew Dictionary<unsigned int, String^>(newPack->musics);
+			fonts = gcnew Dictionary<unsigned int, String^>(newPack->fonts);
+			modelAnimations = gcnew Dictionary<unsigned int, String^>(newPack->modelAnimations);
 
 			ParseContentData();
 		}
@@ -92,6 +107,8 @@ namespace Engine::Assets::Management
 			textures2d = gcnew Dictionary<unsigned int, String^>();
 			sounds = gcnew Dictionary<unsigned int, String^>();
 			musics = gcnew Dictionary<unsigned int, String^>();
+			fonts = gcnew Dictionary<unsigned int, String^>();
+			modelAnimations = gcnew Dictionary<unsigned int, String^>();
 		}
 
 	public:
@@ -101,6 +118,8 @@ namespace Engine::Assets::Management
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ textures2d;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ sounds;
 		System::Collections::Generic::Dictionary<unsigned int, String^>^ musics;
+		System::Collections::Generic::Dictionary<unsigned int, String^>^ fonts;
+		System::Collections::Generic::Dictionary<unsigned int, String^>^ modelAnimations;
 
 	public:
 		DataPack(String^ fileName)
@@ -113,6 +132,8 @@ namespace Engine::Assets::Management
 			textures2d = gcnew Dictionary<unsigned int, String^>();
 			sounds = gcnew Dictionary<unsigned int, String^>();
 			musics = gcnew Dictionary<unsigned int, String^>();
+			fonts = gcnew Dictionary<unsigned int, String^>();
+			modelAnimations = gcnew Dictionary<unsigned int, String^>();
 			singletonRef = this;
 			fileTarget = fileName;
 		}
@@ -341,6 +362,98 @@ namespace Engine::Assets::Management
 				Engine::Assets::Storage::DataPacks::singleton().AddMusic(id, _sound);
 
 				return _sound;
+			}
+		}
+
+		Font AddFont(unsigned int id, String^ font)
+		{
+			if (!musics->ContainsKey(id))
+			{
+				musics->Add(id, font);
+
+				std::string text = "";
+
+				text = CastStringToNative(font);
+
+				print("[Resource Manager]:", "Loading Font");
+
+				print("[Resource Manager]:", "Path -> " + font);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
+				Font _font = LoadFont(text.c_str());
+
+				Engine::Assets::Storage::DataPacks::singleton().AddFont(id, _font);
+
+				return _font;
+			}
+			else
+			{
+				std::string text = "";
+
+				text = CastStringToNative(font);
+
+				Font _font = LoadFont(text.c_str());
+
+				print("[Resource Manager]:", "Loading Font");
+
+				print("[Resource Manager]:", "Path -> " + font);
+				print("[Resource Manager]:", "Id -> " + id);
+
+
+				print("[Resource Manager]", "------------------------------------------");
+
+				Engine::Assets::Storage::DataPacks::singleton().AddFont(id, _font);
+
+				return _font;
+			}
+		}
+
+		AnimationStruct AddModelAnimation(unsigned int id, String^ path)
+		{
+			if (!modelAnimations->ContainsKey(id))
+			{
+				modelAnimations->Add(id, path);
+				std::string text = "";
+
+				text = CastStringToNative(path);
+
+				AnimationStruct animStruct = { 0 };
+
+				animStruct.animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct.animationCount);
+
+				print("[Resource Manager]:", "Loading Animation");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
+				Engine::Assets::Storage::DataPacks::singleton().AddAnimations(id, animStruct);
+
+				return animStruct;
+			}
+			else
+			{
+				std::string text = "";
+
+				text = CastStringToNative(path);
+
+				AnimationStruct animStruct = { 0 };
+
+				animStruct.animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct.animationCount);
+
+				print("[Resource Manager]:", "Loading Animation");
+
+				print("[Resource Manager]:", "Path -> " + path);
+				print("[Resource Manager]:", "Id -> " + id);
+
+				print("[Resource Manager]", "------------------------------------------");
+
+				Engine::Assets::Storage::DataPacks::singleton().AddAnimations(id, animStruct);
+
+				return animStruct;
 			}
 		}
 

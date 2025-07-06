@@ -96,6 +96,21 @@ namespace Engine::Internal
 			return Engine::Assets::Storage::DataPacks::singleton().GetSoundPtr(soundId);
 		}
 
+		inline static RAYLIB::Font* GetFont(unsigned int fontId)
+		{
+			return &Engine::Assets::Storage::DataPacks::singleton().GetFont(fontId);
+		}
+
+		inline static RAYLIB::ModelAnimation* GetAnimations(unsigned int animationId)
+		{
+			return Engine::Assets::Storage::DataPacks::singleton().GetAnimations(animationId);
+		}
+
+		inline static RAYLIB::ModelAnimation* GetAnimation(unsigned int animationId, unsigned int animationIndex)
+		{
+			return &Engine::Assets::Storage::DataPacks::singleton().GetAnimation(animationId, animationIndex);
+		}
+
 		inline static RAYLIB::Music* GetMusic(unsigned int musicId)
 		{
 			return Engine::Assets::Storage::DataPacks::singleton().GetMusicPtr(musicId);

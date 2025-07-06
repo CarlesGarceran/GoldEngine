@@ -86,11 +86,23 @@ void GameObject::descendantAdded(GameObject^ descendant)
 
 GameObject::GameObject()
 {
+	this->coroutines = gcnew List<System::Collections::IEnumerator^>();
 
+#ifdef USE_BULLET_PHYS
+	this->collisionShape = new Engine::Native::CollisionShape(this);
+#endif
+
+	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
+	this->onChildAdded = gcnew Engine::Scripting::Events::Event();
+	this->onChildRemoved = gcnew Engine::Scripting::Events::Event();
+	this->onDescendantAdded = gcnew Engine::Scripting::Events::Event();
+
+	this->onDescendantAdded->connect(gcnew Action<GameObject^>(this, &GameObject::descendantAdded));
 }
 
 GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transform^ transform, Engine::Internal::Components::ObjectType t, String^ tag, Engine::Components::Layer^ layer)
 {
+	this->coroutines = gcnew List<System::Collections::IEnumerator^>();
 	this->childs = gcnew List<GameObject^>();
 	this->active = true;
 	this->memberIsProtected = false;
@@ -221,50 +233,71 @@ void GameObject::Start()
 
 void GameObject::GameUpdate()
 {
-#ifdef USE_BULLET_PHYS
-	if (!collisionObjectInitialized && getCollider(this)->getCollisonObject() == nullptr)
+	try
 	{
-		getCollider(this)->createCollisionShape(NativeSingleton<Engine::EngineObjects::Physics::Native::NativePhysicsService*>::Get()->getCollisionShapeForBox(1, 1, 1));
-		getCollider(this)->createBulletObject();
+#ifdef USE_BULLET_PHYS
+		if (!collisionObjectInitialized && getCollider(this)->getCollisonObject() == nullptr)
+		{
+			getCollider(this)->createCollisionShape(NativeSingleton<Engine::EngineObjects::Physics::Native::NativePhysicsService*>::Get()->getCollisionShapeForBox(1, 1, 1));
+			getCollider(this)->createBulletObject();
 
-		collisionObjectInitialized = true;
-	}
+			collisionObjectInitialized = true;
+		}
 #endif
 
-	OnPropChanged();
-	this->childs = GetChildren();
+		OnPropChanged();
+		this->childs = GetChildren();
 
-	if (!active)
-	{
-		if (activeToggle)
+		if (!active)
 		{
-			activeToggle = false;
-			OnUnactive();
-		}
-		return;
-	}
-	else
-	{
-		if (!activeToggle)
-		{
-			activeToggle = true;
-			OnActive();
-		}
-	}
-
-	HookUpdate();
-
-	if (EngineState::PlayMode == false)
-	{
-		auto method = GetType()->GetMethod("Update");
-
-		if (!method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
-		{
+			if (activeToggle)
+			{
+				activeToggle = false;
+				OnInactive();
+			}
 			return;
 		}
-	}
+		else
+		{
+			if (!activeToggle)
+			{
+				activeToggle = true;
+				OnActive();
+			}
+		}
 
-	Update();
+		auto coroutinesCpy = coroutines->ToArray();
+
+		if (coroutinesCpy->Length > 0)
+		{
+			for (int x = coroutinesCpy->Length; x >= 0; x--)
+			{
+				auto coroutine = coroutinesCpy[x];
+
+				if (!coroutine->MoveNext())
+					coroutines->RemoveAt(x);
+			}
+		}
+
+		HookUpdate();
+
+		if (EngineState::PlayMode == false)
+		{
+			auto method = GetType()->GetMethod("Update");
+
+			if (!method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
+			{
+				return;
+			}
+		}
+
+		Update();
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
 }
 
 void GameObject::GameDraw()
@@ -345,6 +378,17 @@ System::Object^ GameObject::CastToType(Type^ T, bool useConvert)
 	return nullptr;
 }
 
+void Engine::Internal::Components::GameObject::Destroy()
+{
+#ifdef USE_BULLET_PHYS
+	if(collisionShape != nullptr)
+		delete collisionShape;
+#endif
+
+	Dispose(true);
+	System::GC::SuppressFinalize(this);
+}
+
 
 System::Collections::Generic::List<GameObject^>^ GameObject::GetChildren()
 {
@@ -382,6 +426,21 @@ GameObject^ GameObject::InstantiateChild(GameObject^ instance)
 	instance->setParent(this);
 	Singleton<Engine::Scripting::ObjectManager^>::Instance->Instantiate(instance);
 	return instance;
+}
+
+void Engine::Internal::Components::GameObject::LaunchCoroutine(System::Collections::IEnumerator^ coroutine)
+{
+	this->coroutines->Add(coroutine);
+}
+
+void Engine::Internal::Components::GameObject::RemoveCoroutine(System::Collections::IEnumerator^ coroutine)
+{
+	this->coroutines->Remove(coroutine);
+}
+
+void Engine::Internal::Components::GameObject::CleanCoroutines()
+{
+	this->coroutines->Clear();
 }
 
 GameObject^ GameObject::Instantiate(GameObject^ instance)

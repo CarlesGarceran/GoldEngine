@@ -47,7 +47,7 @@ namespace Engine::Native
 			return ptrInstance;
 		}
 
-		void setInstanceInstance(T instance)
+		void setInstance(T instance)
 		{
 			if (onObjectChanged != nullptr)
 				onObjectChanged(this->ptrInstance);
@@ -60,20 +60,17 @@ namespace Engine::Native
 			this->ptrInstance = instance;
 		}
 
-		void setInstance(T& instance)
+		void setInstanceRef(T& instance)
 		{
 			if(onObjectChanged != nullptr)
 				onObjectChanged(this->ptrInstance);
 
-			if ((&instance) != NULL)
-				this->loaded = true;
-			else 
-				this->loaded = false;
+			this->loaded = true;
 
 			this->ptrInstance = instance;
 		}
 
-		void release() 
+		void destroy() 
 		{
 			delete this;
 		}

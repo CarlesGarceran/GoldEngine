@@ -155,7 +155,7 @@ void RigidBody::Update()
 	hookedObject->transform->position->copy(transform->position);
 }
 
-void RigidBody::OnUnactive()
+void RigidBody::OnInactive()
 {
 	if (rigidBody == nullptr)
 		return;

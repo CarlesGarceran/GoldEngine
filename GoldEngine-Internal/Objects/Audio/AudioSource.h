@@ -53,12 +53,11 @@ namespace Engine::EngineObjects
 		ResourceType resourceType = ResourceType::Sound;
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		bool isLooped = true;
-
-	private:
-		Engine::Native::EnginePtr<AudioData>* soundPtr;
-
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		bool isPlaying = false;
+	
+	private:
+		Engine::Native::EnginePtr<AudioData>* soundPtr;
 		bool wasPlaying = false;
 
 	public:

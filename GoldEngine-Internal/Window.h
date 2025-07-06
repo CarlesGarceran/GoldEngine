@@ -4,6 +4,7 @@
 #include "CastToNative.h"
 #include "DataPacks.h"
 #include "CypherLib.h"
+#include "Raylib/include/imgui_impl_raylib.h"
 
 using namespace System;
 using namespace System::Collections;
@@ -21,19 +22,8 @@ namespace Engine
 		ArrayList drawList;
 
 	public:
-		bool FirstTimeBoot()
-		{
-			Singleton<Window^>::Create(this);
-			HarmonyLib::Harmony^ harmony = gcnew HarmonyLib::Harmony("HarmonyInstance");
-			Singleton<HarmonyLib::Harmony^>::Create(harmony);
-
-			return !System::IO::File::Exists("./Data/UserData/firstInit.asset");
-		}
-
-		void Boot()
-		{
-			System::IO::File::Create("./Data/UserData/firstInit.asset")->Close();
-		}
+		bool FirstTimeBoot();
+		void Boot();
 
 		void SetWindowFlags(unsigned int flags)
 		{
@@ -52,7 +42,6 @@ namespace Engine
 			InitWindow(width, height, name);
 			InitAudioDevice();
 			RLGL::rlglInit(width, height);
-
 			RLGL::rlEnableDepthTest();
 
 			InitializeExtensions();

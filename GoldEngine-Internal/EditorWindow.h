@@ -9,7 +9,9 @@ private:
 	Layer^ selectedLayer;
 	DataPack^ packedData;
 	Engine::Management::Scene^ scene;
+#if USE_ILLUMINA
 	Engine::EngineObjects::LightManager^ lightManager;
+#endif
 	Engine::Components::Vector3^ cameraPosition;
 	Engine::Internal::Components::GameObject^ selectedObject;
 	int selectedObjectIndex;

@@ -1,6 +1,8 @@
 #pragma once
 #include "EngineIncludes.h"
 
+#ifdef USE_ILLUMINA
+
 using namespace System;
 
 namespace Engine::EngineObjects::Daemons
@@ -77,3 +79,5 @@ namespace Engine::EngineObjects::Daemons
 		}
 	};
 }
+
+#endif

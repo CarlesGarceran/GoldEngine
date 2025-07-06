@@ -1,3 +1,4 @@
+
 /**********************************************************************************************
 *
 *   raylibExtras * Utilities and Shared Components for Raylib
@@ -34,10 +35,6 @@
 #include "../imguizmo/ImGuizmo.h"
 #include "../../Raylib/include/x64/raylib.h"
 #include "../../Raylib/include/x64/rlgl.h"
-
-#ifdef PLATFORM_DESKTOP
-#include <GLFW/glfw3.h>
-#endif
 
 #include <math.h>
 #include <map>
@@ -484,7 +481,7 @@ void rlImGuiReloadFonts(void)
 void rlImGuiBegin(void)
 {
     ImGui::SetCurrentContext(GlobalContext);
-    rlImGuiBeginDelta(GetFrameTime());
+    rlImGuiBeginDelta(RAYLIB::GetFrameTime());
 }
 
 void rlImGuiBeginDelta(float deltaTime)
@@ -537,7 +534,7 @@ bool rlImGuiImageButton(const char* name, const Texture* image)
     return ImGui::ImageButton(name, (ImTextureID)image, ImVec2(float(image->width), float(image->height)));
 }
 
-bool rlImGuiImageButtonSize(const char* name, const Texture* image, ImVec2 size)
+RLIMGUIAPI bool rlImGuiImageButtonSize(const char* name, const RAYLIB::Texture* image, RAYLIB::Vector2 size)
 {
     if (!image)
         return false;
@@ -545,7 +542,7 @@ bool rlImGuiImageButtonSize(const char* name, const Texture* image, ImVec2 size)
     if (GlobalContext)
         ImGui::SetCurrentContext(GlobalContext);
 
-    return ImGui::ImageButton(name, (ImTextureID)image, size);
+    return ImGui::ImageButton(name, (ImTextureID)image, { size.x, size.y });
 }
 
 void rlImGuiImageSize(const Texture* image, int width, int height)
@@ -570,19 +567,6 @@ void rlImGuiImageSizeV(const Texture* image, Vector2 size)
     ImGui::Image((ImTextureID)image, ImVec2(size.x, size.y));
 }
 
-void rlImGuiImageRenderTextureCustom(const RAYLIB::RenderTexture* image, int scale[2], float offset[2])
-{
-    if (!image)
-        return;
-
-    if (GlobalContext)
-        ImGui::SetCurrentContext(GlobalContext);
-
-    rlImGuiImageRect(&image->texture, scale[0] - offset[0], scale[1] - offset[1], { 0.0f, 0.0f, (float)image->texture.width, -(float)image->texture.height });
-
-    delete scale;
-    delete offset;
-}
 
 void rlImGuiImageRect(const Texture* image, int destWidth, int destHeight, Rectangle sourceRect)
 {
@@ -629,6 +613,20 @@ void rlImGuiImageRenderTexture(const RenderTexture* image)
         ImGui::SetCurrentContext(GlobalContext);
 
     rlImGuiImageRect(&image->texture, image->texture.width, image->texture.height, Rectangle{ 0,0, float(image->texture.width), -float(image->texture.height) });
+}
+
+RLIMGUIAPI void rlImGuiImageRenderTextureCustom(const RAYLIB::RenderTexture* image, int scale[2], float offset[2])
+{
+    if (!image)
+        return;
+
+    if (GlobalContext)
+        ImGui::SetCurrentContext(GlobalContext);
+
+    rlImGuiImageRect(&image->texture, scale[0] - offset[0], scale[1] - offset[1], { 0.0f, 0.0f, (float)image->texture.width, -(float)image->texture.height });
+
+    delete scale;
+    delete offset;
 }
 
 void rlImGuiImageRenderTextureFit(const RenderTexture* image, bool center)
@@ -697,7 +695,7 @@ void ImGui_ImplRaylib_Shutdown()
 
 void ImGui_ImplRaylib_NewFrame(void)
 {
-    ImGuiNewFrame(GetFrameTime());
+    ImGuiNewFrame(RAYLIB::GetFrameTime());
 }
 
 void ImGui_ImplRaylib_RenderDrawData(ImDrawData* draw_data)

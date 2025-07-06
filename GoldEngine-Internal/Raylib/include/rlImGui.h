@@ -6,7 +6,15 @@
 *
 *   LICENSE: ZLIB
 *
-*   Copyright (c) 2023 Jeffery Myers
+/**********************************************************************************************
+*
+*   raylibExtras * Utilities and Shared Components for Raylib
+*
+*   rlImGui * basic ImGui integration
+*
+*   LICENSE: ZLIB
+*
+*   Copyright (c) 2024 Jeffery Myers
 *
 *   Permission is hereby granted, free of charge, to any person obtaining a copy
 *   of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +59,7 @@
 #endif
 
 #ifndef RLIMGUIAPI
-#define RLIMGUIAPI       // Functions defined as 'extern' by default (implicit specifiers)
+#define RLIMGUIAPI	// Functions defined as 'extern' by default (implicit specifiers)
 #endif
 
 #ifndef NO_FONT_AWESOME
@@ -113,8 +121,7 @@ extern "C" {
 	/// <summary>
 	/// Forces the font texture atlas to be recomputed and re-cached
 	/// </summary>
-	RLIMGUIAPI void rlImGuiReloadFonts(void);
-
+	__declspec(dllexport) RLIMGUIAPI void rlImGuiReloadFonts(void);
 
 	// Advanced Update API
 
@@ -133,7 +140,7 @@ extern "C" {
 	/// Uses the current ImGui Cursor position and the full texture size.
 	/// </summary>
 	/// <param name="image">The raylib texture to draw</param>
-	RLIMGUIAPI void rlImGuiImage(const Texture* image);
+	RLIMGUIAPI void rlImGuiImage(const RAYLIB::Texture* image);
 
 	/// <summary>
 	/// Draw a texture as an image in an ImGui Context at a specific size
@@ -143,7 +150,7 @@ extern "C" {
 	/// <param name="image">The raylib texture to draw</param>
 	/// <param name="width">The width of the drawn image</param>
 	/// <param name="height">The height of the drawn image</param>
-	RLIMGUIAPI void rlImGuiImageSize(const Texture* image, int width, int height);
+	RLIMGUIAPI void rlImGuiImageSize(const RAYLIB::Texture* image, int width, int height);
 
 	/// <summary>
 	/// Draw a texture as an image in an ImGui Context at a specific size
@@ -152,7 +159,7 @@ extern "C" {
 	/// </summary>
 	/// <param name="image">The raylib texture to draw</param>
 	/// <param name="size">The size of drawn image</param>
-	RLIMGUIAPI void rlImGuiImageSizeV(const Texture* image, Vector2 size);
+	RLIMGUIAPI void rlImGuiImageSizeV(const RAYLIB::Texture* image, RAYLIB::Vector2 size);
 
 	/// <summary>
 	/// Draw a portion texture as an image in an ImGui Context at a defined size
@@ -163,13 +170,15 @@ extern "C" {
 	/// <param name="destWidth">The width of the drawn image</param>
 	/// <param name="destHeight">The height of the drawn image</param>
 	/// <param name="sourceRect">The portion of the texture to draw as an image. Negative values for the width and height will flip the image</param>
-	RLIMGUIAPI void rlImGuiImageRect(const Texture* image, int destWidth, int destHeight, Rectangle sourceRect);
+	RLIMGUIAPI void rlImGuiImageRect(const RAYLIB::Texture* image, int destWidth, int destHeight, RAYLIB::Rectangle sourceRect);
 
 	/// <summary>
 	/// Draws a render texture as an image an ImGui Context, automatically flipping the Y axis so it will show correctly on screen
 	/// </summary>
 	/// <param name="image">The render texture to draw</param>
-	RLIMGUIAPI void rlImGuiImageRenderTexture(const RenderTexture* image);
+	RLIMGUIAPI void rlImGuiImageRenderTexture(const RAYLIB::RenderTexture* image);
+
+	RLIMGUIAPI void rlImGuiImageRenderTextureCustom(const RAYLIB::RenderTexture* image, int scale[2], float offset[2]);
 
 	/// <summary>
 	/// Draws a render texture as an image an ImGui Context, automatically flipping the Y axis so it will show correctly on screen
@@ -178,8 +187,6 @@ extern "C" {
 	/// <param name="image">The render texture to draw</param>
 	/// <param name="center">When true the image will be centered in the content area</param>
 	RLIMGUIAPI void rlImGuiImageRenderTextureFit(const RenderTexture* image, bool center);
-
-	RLIMGUIAPI void rlImGuiImageRenderTextureCustom(const RAYLIB::RenderTexture* image, int scale[2], float offset[2]);
 
 	/// <summary>
 	/// Draws a texture as an image button in an ImGui context. Uses the current ImGui cursor position and the full size of the texture
@@ -196,7 +203,7 @@ extern "C" {
 	/// <param name="image">The texture to draw</param>
 	/// <param name="size">The size of the button</param>
 	/// <returns>True if the button was clicked</returns>
-	RLIMGUIAPI bool rlImGuiImageButtonSize(const char* name, const Texture* image, struct ImVec2 size);
+	RLIMGUIAPI bool rlImGuiImageButtonSize(const char* name, const RAYLIB::Texture* image, RAYLIB::Vector2 size);
 
 #ifdef __cplusplus
 }

@@ -28,6 +28,7 @@ namespace Engine::Components
 		}
 
 	public:
+		RAYLIB::Vector4 toNative();
 		Engine::Components::Vector3^ toEuler();
 	};
 }

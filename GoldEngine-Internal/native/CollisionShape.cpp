@@ -48,7 +48,7 @@ void CollisionShape::createCollisionShape(btCollisionShape* shape)
 		this->collisionShape = new Engine::Native::EnginePtr<btCollisionShape*>(shape, &onCollisionShapeDeleted);
 	else
 	{
-		this->collisionShape->setInstance(shape);
+		this->collisionShape->setInstanceRef(shape);
 	}
 }
 

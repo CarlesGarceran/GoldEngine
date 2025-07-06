@@ -10,10 +10,6 @@
 #include "PropertyAttribute.h"
 #include "AttributeManager.h"
 
-// CUSTOM RENDERERS \\
-
-#include "VoxelRenderer.h"
-
 // Structures \\
 
 #include "Object/Color.h"

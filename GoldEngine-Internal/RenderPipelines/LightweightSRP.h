@@ -13,6 +13,7 @@ namespace Engine::Render::Pipelines
     public:
         LightweightSRP() : Engine::Render::ScriptableRenderPipeline()
         {
+#if USE_ILLUMINA
             HarmonyLib::Harmony^ harmonyInst = Singleton<HarmonyLib::Harmony^>::Instance;
 
             System::Reflection::MethodInfo^ originalMethod = Engine::EngineObjects::LightManager::typeid->GetMethod("LightUpdate");
@@ -20,6 +21,7 @@ namespace Engine::Render::Pipelines
             System::Reflection::MethodInfo^ prefixMethod = LightweightSRP::typeid->GetMethod("LightPrefix");
 
             patch = harmonyInst->Patch(originalMethod, prefixMethod, nullptr, nullptr, nullptr);
+#endif
         }
 
     public:
@@ -81,10 +83,12 @@ namespace Engine::Render::Pipelines
 
         void OnUnloadPipeline() override
         {
+#if USE_ILLUMINA
             HarmonyLib::Harmony^ harmonyInst = Singleton<HarmonyLib::Harmony^>::Instance;
             System::Reflection::MethodInfo^ originalMethod = Engine::EngineObjects::LightManager::typeid->GetMethod("LightUpdate");
 
             harmonyInst->Unpatch(originalMethod, patch);
+#endif
         }
 
         void PreRenderStack() override

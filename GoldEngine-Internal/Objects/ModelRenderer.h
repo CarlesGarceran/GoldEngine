@@ -7,6 +7,7 @@ using namespace Engine::Assets::Storage;
 namespace Engine::EngineObjects
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[System::ObsoleteAttribute("This model renderer is obsolete, use MeshRenderer")]
 	public ref class ModelRenderer : public Engine::Internal::Components::GameObject
 	{
 	private:
@@ -30,7 +31,7 @@ namespace Engine::EngineObjects
 			model.materials[0].shader = shaderInstance->getInstance();
 
 			model.materials[0].maps[MATERIAL_MAP_ALBEDO].color = c;
-			model.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = (Texture2D)textureInstance->getInstance();
+			model.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = textureInstance->getInstance();
 
 			model.materials[0].maps[MATERIAL_MAP_METALNESS].value = 0.5f;
 			model.materials[0].maps[MATERIAL_MAP_ROUGHNESS].value = 0.0f;
@@ -129,13 +130,13 @@ namespace Engine::EngineObjects
 			this->textureInstance = new Engine::Native::EnginePtr<RAYLIB::Texture2D>(rl_texture);
 
 			if (!modelInstance->isLoaded())
-				modelInstance->setInstance(DataPacks::singleton().GetModel(model));
+				modelInstance->setInstanceRef(DataPacks::singleton().GetModel(model));
 
 			if (!shaderInstance->isLoaded())
-				shaderInstance->setInstance(DataPacks::singleton().GetShader(shader));
+				shaderInstance->setInstanceRef(DataPacks::singleton().GetShader(shader));
 
 			if (!textureInstance->isLoaded())
-				textureInstance->setInstance(DataPacks::singleton().GetTexture2D(texture));
+				textureInstance->setInstanceRef(DataPacks::singleton().GetTexture2D(texture));
 
 			auto t = getTransform();
 
@@ -160,8 +161,6 @@ namespace Engine::EngineObjects
 			RAYLIB::SetShaderValue(shaderInstance->getInstance(), emmisiveColorLocation, &EmissiveColor, SHADER_UNIFORM_VEC4);
 			RAYLIB::SetShaderValue(shaderInstance->getInstance(), emmisiveIntensityLocation, &emissiveIntensity, SHADER_UNIFORM_FLOAT);
 
-			RLGL::rlCheckErrors();
-
 			setup();
 
 			Model& m = modelInstance->getInstance();
@@ -180,20 +179,6 @@ namespace Engine::EngineObjects
 				t->scale->toNative(),
 				c
 			);
-		}
-
-		void SetModel(unsigned int m)
-		{
-			this->model = m;
-		}
-
-		void SetMaterial(unsigned int mat)
-		{
-			auto modelInst = Engine::Assets::Storage::DataPacks::singleton().GetModel(model);
-			auto materialInst = DataPacks::singleton().GetShader(shader);
-			auto texInst = DataPacks::singleton().GetTexture2D(texture);
-
-			modelInst.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = texInst;
 		}
 
 		void SetColorTint(unsigned int hexValue)

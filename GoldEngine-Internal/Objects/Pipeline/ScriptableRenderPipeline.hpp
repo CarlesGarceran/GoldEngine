@@ -61,6 +61,10 @@ namespace Engine::Render
 	public:
 		ScriptableRenderPipeline();
 
+
+	private:
+		bool isInRenderSurface(GameObject^ gameObject);
+
 	protected:
 		void CreateTexture()
 		{
@@ -169,7 +173,7 @@ namespace Engine::Render
 				RLGL::rlDisableDepthTest();
 				EndTextureMode();
 
-				for each (ScriptableEffect ^ effect in effects)
+				for each(ScriptableEffect ^ effect in effects)
 				{
 					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
 					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
@@ -185,7 +189,7 @@ namespace Engine::Render
 						{
 							effect->OnEffectBegin();
 
-							Rectangle target;
+							RAYLIB::Rectangle target;
 							target.x = 0;
 							target.y = 0;
 							target.width = Engine::Scripting::Screen::Width;
@@ -204,7 +208,7 @@ namespace Engine::Render
 					{
 						ClearBackground(clearColor);
 
-						Rectangle target;
+						RAYLIB::Rectangle target;
 						target.x = 0;
 						target.y = 0;
 						target.width = Engine::Scripting::Screen::Width;
@@ -219,7 +223,7 @@ namespace Engine::Render
 
 				ClearBackground(clearColor);
 
-				Rectangle target;
+				RAYLIB::Rectangle target;
 				target.x = 0;
 				target.y = 0;
 				target.width = Engine::Scripting::Screen::Width;
@@ -233,7 +237,7 @@ namespace Engine::Render
 
 				rlImGuiBegin();
 
-				for each (Engine::Internal::Components::GameObject ^ obj in scene->GetRenderQueue())
+				for each(Engine::Internal::Components::GameObject ^ obj in scene->GetRenderQueue())
 				{
 					if (obj != nullptr)
 					{
@@ -293,7 +297,7 @@ namespace Engine::Render
 
 				EndTextureMode();
 
-				for each (ScriptableEffect ^ effect in effects)
+				for each(ScriptableEffect ^ effect in effects)
 				{
 					effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
 					effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
@@ -309,7 +313,7 @@ namespace Engine::Render
 						{
 							effect->OnEffectBegin();
 
-							Rectangle target;
+							RAYLIB::Rectangle target;
 							target.x = 0;
 							target.y = 0;
 							target.width = Engine::Scripting::Screen::Width;
@@ -328,7 +332,7 @@ namespace Engine::Render
 					{
 						ClearBackground(clearColor);
 
-						Rectangle target;
+						RAYLIB::Rectangle target;
 						target.x = 0;
 						target.y = 0;
 						target.width = Engine::Scripting::Screen::Width;
@@ -351,7 +355,7 @@ namespace Engine::Render
 					ImGui::End();
 				}
 
-				for each (GameObject ^ obj in scene->GetRenderQueue())
+				for each(GameObject ^ obj in scene->GetRenderQueue())
 				{
 					if (obj != nullptr)
 					{
@@ -387,6 +391,9 @@ namespace Engine::Render
 						if (scene->sceneLoaded())
 						{
 							Engine::Internal::Components::GameObject^ reference = (Engine::Internal::Components::GameObject^)sceneObject;
+
+							if (isInRenderSurface(reference))
+								continue;
 
 							if (reference->layerMask->IsLayer(cL))
 							{

@@ -241,6 +241,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationStruct.h" />
     <ClInclude Include="AsmLoader.h" />
     <ClInclude Include="AssimpImpl\AssimpConverter.h" />
     <ClInclude Include="assimp\assimp\aabb.h" />
@@ -332,7 +333,6 @@
     <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h" />
     <ClInclude Include="Cast.h" />
     <ClInclude Include="CastToNative.h" />
-    <ClInclude Include="Chunk.h" />
     <ClInclude Include="cimgui\cimgui.h" />
     <ClInclude Include="cimnodes\cimnodes.h" />
     <ClInclude Include="CypherLib.h" />
@@ -353,7 +353,6 @@
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="GlIncludes.h" />
     <ClInclude Include="GraphicsWrapper.h" />
-    <ClInclude Include="ImGuiHook.h" />
     <ClInclude Include="imguistyleserializer.h" />
     <ClInclude Include="imguizmo\GraphEditor.h" />
     <ClInclude Include="imguizmo\ImCurveEdit.h" />
@@ -394,10 +393,11 @@
     <ClInclude Include="Objects\Daemon.h" />
     <ClInclude Include="Objects\EditorCamera.h" />
     <ClInclude Include="Objects\EditorPlugin.h" />
+    <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h" />
     <ClInclude Include="Objects\Physics\CollisionType.h" />
     <ClInclude Include="Objects\Physics\PhysicsService.h" />
     <ClInclude Include="Objects\Physics\RigidBody.h" />
-    <ClInclude Include="Objects\Physics\Triggers\Trigger.h" />
+    <ClInclude Include="Objects\Physics\Triggers\Collider.h" />
     <ClInclude Include="Objects\Private\Scene.h" />
     <ClInclude Include="Objects\Script.h" />
     <ClInclude Include="Objects\GridRenderer.h" />
@@ -411,13 +411,17 @@
     <ClInclude Include="Objects\Sprite.h" />
     <ClInclude Include="Objects\UI\Button.h" />
     <ClInclude Include="Objects\UI\Image.h" />
+    <ClInclude Include="Objects\UI\RenderSurface3D.h" />
     <ClInclude Include="Object\Color.h" />
     <ClInclude Include="Object\GameObject.h" />
     <ClInclude Include="Object\Layer.h" />
     <ClInclude Include="Object\LayerManager.h" />
     <ClInclude Include="Object\Locs\ColorLoc.h" />
     <ClInclude Include="Object\Locs\FloatLoc.h" />
+    <ClInclude Include="Object\Locs\StructLoc.h" />
     <ClInclude Include="Object\Locs\TextureLoc.h" />
+    <ClInclude Include="Object\Locs\Vector2Loc.h" />
+    <ClInclude Include="Object\Locs\Vector3Loc.h" />
     <ClInclude Include="Object\Material.h" />
     <ClInclude Include="Object\ObjectType.h" />
     <ClInclude Include="Object\Prefab.h" />
@@ -444,10 +448,6 @@
     <ClInclude Include="Threads\EngineThread.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="VMWrapper.h" />
-    <ClInclude Include="VoxelMatrix.h" />
-    <ClInclude Include="VoxelTypedefs.h" />
-    <ClInclude Include="Voxel.h" />
-    <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -504,19 +504,24 @@
     <ClCompile Include="Native\miniaudio.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="Objects\Audio\AudioSource.cpp" />
+    <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp" />
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\PhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\RigidBody.cpp" />
-    <ClCompile Include="Objects\Physics\Triggers\Trigger.cpp" />
+    <ClCompile Include="Objects\Physics\Triggers\Collider.cpp" />
     <ClCompile Include="Objects\Pipeline\ScriptableRenderPipeline.cpp" />
     <ClCompile Include="Objects\Private\Scene.cpp" />
     <ClCompile Include="Objects\Skybox.cpp" />
+    <ClCompile Include="Objects\UI\RenderSurface3D.cpp" />
     <ClCompile Include="Object\Color.cpp" />
     <ClCompile Include="Object\GameObject.cpp" />
     <ClCompile Include="Object\Layer.cpp" />
     <ClCompile Include="Object\Locs\ColorLoc.cpp" />
     <ClCompile Include="Object\Locs\FloatLoc.cpp" />
+    <ClCompile Include="Object\Locs\StructLoc.cpp" />
     <ClCompile Include="Object\Locs\TextureLoc.cpp" />
+    <ClCompile Include="Object\Locs\Vector2Loc.cpp" />
+    <ClCompile Include="Object\Locs\Vector3Loc.cpp" />
     <ClCompile Include="Object\Material.cpp" />
     <ClCompile Include="Object\Prefab.cpp" />
     <ClCompile Include="Object\Quaternion.cpp" />

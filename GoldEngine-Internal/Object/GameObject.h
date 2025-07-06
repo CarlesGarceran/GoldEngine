@@ -19,6 +19,8 @@ namespace Engine::Internal::Components
 		[Newtonsoft::Json::JsonPropertyAttribute]
 		Engine::Internal::Components::ObjectType type;
 
+		System::Collections::Generic::List<System::Collections::IEnumerator^>^ coroutines;
+
 	public:
 		bool active;
 
@@ -105,7 +107,7 @@ namespace Engine::Internal::Components
 		virtual void DrawImGUI() {}
 
 		virtual void OnActive() {}
-		virtual void OnUnactive() {}
+		virtual void OnInactive() {}
 
 		virtual void OnCollisionEnter(GameObject^ other) {}
 
@@ -163,10 +165,7 @@ namespace Engine::Internal::Components
 
 		System::Object^ CastToType(Type^ T, bool useConvert);
 
-		virtual void Destroy()
-		{
-			delete this;
-		}
+		virtual void Destroy();
 
 		auto ToDerivate()
 		{
@@ -193,6 +192,10 @@ namespace Engine::Internal::Components
 		GameObject^ GetChild(String^ name);
 
 		GameObject^ InstantiateChild(GameObject^ instance);
+
+		void LaunchCoroutine(System::Collections::IEnumerator^ coroutine);
+		void RemoveCoroutine(System::Collections::IEnumerator^ coroutine);
+		void CleanCoroutines();
 
 		static GameObject^ Instantiate(GameObject^ instance);
 		static GameObject^ Instantiate(GameObject^ instance, Transform^ parent);

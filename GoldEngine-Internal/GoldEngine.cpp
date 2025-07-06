@@ -33,9 +33,6 @@ using namespace Engine::Attributes;
 #include "EngineGC.h"
 #include "imgui/FileExplorer/filedialog.h"
 
-// CUSTOM RENDERERS \\
-
-#include "VoxelRenderer.h"
 
 // INCLUDE ENGINE CLASSES \\
 
@@ -52,7 +49,6 @@ using namespace Engine::Attributes;
 
 #include "Screen.h"
 #include "Time.h"
-#include "ImguiHook.h"
 #include "InputManager.h"
 #include "ObjectManager.h"
 #include "ShaderManager.h"
@@ -80,9 +76,17 @@ using namespace Engine::Attributes;
 
 #include "Objects/Private/Scene.h"
 
-// audio
+// MeshRenderer
+
+#include "Objects/MeshRenderer/MeshRenderer.h"
+
+// Audio
 
 #include "Objects/Audio/AudioSource.h"
+
+// Viepworts
+
+#include "Objects/UI/RenderSurface3D.h"
 
 // physics
 
@@ -91,7 +95,7 @@ using namespace Engine::Attributes;
 #include "Objects/Physics/CollisionType.h"
 #include "Objects/Physics/Native/NativePhysicsService.h"
 #include "Objects/Physics/RigidBody.h"
-#include "Objects/Physics/Triggers/Trigger.h"
+#include "Objects/Physics/Triggers/Collider.h"
 #include "Objects/Physics/PhysicsService.h"
 
 #endif
@@ -196,7 +200,7 @@ static void engine_bootstrap()
 		Directory::CreateDirectory("Data/UserData/");
 }
 
-char fileName[] = "Level0";
+std::string fileName = "Level0";
 
 #if !defined(PRODUCTION_BUILD)
 
@@ -234,7 +238,7 @@ Texture soundTexture;
 
 bool fileDialogOpen = false;
 int tmp1;
-char* password = new char[512];
+std::string password = "";
 std::string packDataFileName = "";
 int positionSelector = 0;
 
@@ -268,6 +272,13 @@ typedef enum assetDisplay
 	MATERIALS
 };
 
+const std::vector<std::string> convertableFiles = {
+	".fbx",
+	".vrm",
+	".mesh",
+	".stl",
+};
+
 assetDisplay displayingAssets;
 
 int displayingAsset = 0;
@@ -295,6 +306,9 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 	{
 		try
 		{
+			windowPtr->getLuaVM()->ClearGlobals();
+			windowPtr->getLuaVM()->RegisterGlobalFunctions();
+
 			windowPtr->getLuaVM()->RegisterScript(gcnew String(consoleCommand.c_str()));
 		}
 		catch (Exception^ ex)
@@ -358,7 +372,7 @@ EditorWindow::EditorWindow()
 	codeEditor = gcnew CodeEditor(this);
 	materialEditor = gcnew MaterialEditor(this);
 
-	strcpy(password, ENCRYPTION_PASSWORD);
+	password = ENCRYPTION_PASSWORD;
 
 	engine_bootstrap();
 
@@ -476,6 +490,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 
 		case ObjectType::LightSource:
 		{
+#if USE_ILLUMINA
 			Engine::EngineObjects::LightSource^ light = Cast::Dynamic<Engine::EngineObjects::LightSource^>(object);
 			bool lightEnabled = light->enabled;
 			ImGui::SeparatorText("Light Source");
@@ -577,7 +592,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 			{
 				light->lightColor = (ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
 			}
-
+#endif
 		}
 		break;
 
@@ -904,6 +919,8 @@ void EditorWindow::createAssetEntries(String^ path)
 		array<String^>^ tmp = f->Split('/');
 		auto t = tmp[tmp->Length - 1] + "\n";
 
+		bool rendered = false;
+
 		if (asset_filter_name != "")
 			if (CastStringToNative(t).find(asset_filter_name) == std::string::npos)
 				continue;
@@ -945,16 +962,21 @@ void EditorWindow::createAssetEntries(String^ path)
 			}
 			ImGui::SameLine();
 			ImGui::Text(CastStringToNative(t).c_str());
+
+			rendered = true;
 		}
 
-		if ((f->Contains(".fbx")) && (displayingAssets == ALL || displayingAssets == MODELS))
+		for (std::string meshExt : convertableFiles)
 		{
-			if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &modelTexture))
+			if ((f->Contains(gcnew String(meshExt.c_str()))) && (displayingAssets == ALL || displayingAssets == MODELS))
 			{
-				EnableFBXConverter(CastStringToNative(f));
+				if (rlImGuiImageButton(CastStringToNative("###" + t).c_str(), &modelTexture))
+				{
+					EnableFBXConverter(CastStringToNative(f));
+				}
+				ImGui::SameLine();
+				ImGui::Text(CastStringToNative(t).c_str());
 			}
-			ImGui::SameLine();
-			ImGui::Text(CastStringToNative(t).c_str());
 		}
 
 		if ((f->Contains(".ogg") || f->Contains(".mp3") || f->Contains(".wav")) && (displayingAssets == ALL || displayingAssets == SOUND))
@@ -1167,7 +1189,7 @@ void EditorWindow::PackData(String^ convertedData)
 
 	print("[Asset Packer]: ", "------------------------");
 
-	FileManager::WriteToCustomFile(convertedData, gcnew String(password), loadedAssets->ToArray());
+	FileManager::WriteToCustomFile(convertedData, gcnew String(password.c_str()), loadedAssets->ToArray());
 }
 void EditorWindow::Start()
 {
@@ -1234,7 +1256,7 @@ void EditorWindow::DrawMainMenuBar()
 
 			if (ImGui::BeginMenu("Set encryption password"))
 			{
-				if (ImGui::InputText("###PASSWORD_SETTER", password, 512))
+				if (ImGui::InputText("###PASSWORD_SETTER", &password))
 				{
 					passwd = CypherLib::GetPasswordBytes(gcnew String(Engine::Config::EngineSecrets::singleton()->encryptionPassword));
 				}
@@ -1544,7 +1566,17 @@ void EditorWindow::DrawMainMenuBar()
 
 					if (ImGui::MenuItem("MeshRenderer"))
 					{
+						auto meshRenderer = gcnew Engine::EngineObjects::MeshRenderer(
+							"MeshRenderer",
+							gcnew Engine::Internal::Components::Transform(
+								Engine::Components::Vector3::create({ 0,0,0 }),
+								Engine::Components::Vector3::create({ 0,0,0 }),
+								Engine::Components::Vector3::create({ 1,1,1 }),
+								scene->GetDatamodelMember("workspace")->getTransform()
+							)
+						);
 
+						scene->AddObjectToScene(meshRenderer);
 					}
 
 					ImGui::EndMenu();
@@ -1573,10 +1605,10 @@ void EditorWindow::DrawMainMenuBar()
 					scene->AddObjectToScene(meshRenderer);
 				}
 
-				if (ImGui::MenuItem("Trigger"))
+				if (ImGui::MenuItem("Collider"))
 				{
-					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Trigger(
-						"Trigger",
+					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Collider(
+						"Collider",
 						gcnew Engine::Internal::Components::Transform(
 							gcnew Engine::Components::Vector3(0, 0, 0),
 							gcnew Engine::Components::Vector3(0, 0, 0),
@@ -1620,6 +1652,7 @@ void EditorWindow::DrawMainMenuBar()
 
 			if (ImGui::BeginMenu("Lighting"))
 			{
+#ifdef USE_ILLUMINA
 				if (ImGui::MenuItem("Point Light"))
 				{
 					auto meshRenderer = gcnew Engine::EngineObjects::LightSource(
@@ -1681,6 +1714,9 @@ void EditorWindow::DrawMainMenuBar()
 
 					scene->AddObjectToScene(meshRenderer);
 				}
+#else
+				ImGui::Text("Engine not compiled with illumina lighting module");
+#endif
 
 				ImGui::EndMenu();
 			}
@@ -1700,6 +1736,24 @@ void EditorWindow::DrawMainMenuBar()
 							gcnew Engine::Components::Vector3(),
 							gcnew Engine::Components::Vector3(1, 1, 1),
 							scene->GetDatamodelMember("gui")->getTransform()
+						));
+
+						scene->AddObjectToScene(image);
+					}
+
+					ImGui::EndMenu();
+				}
+
+				// Viewports, Renderers
+				if (ImGui::BeginMenu("Dynamic"))
+				{
+					if (ImGui::MenuItem("RenderSurface3D"))
+					{
+						auto image = gcnew Engine::EngineObjects::Surface::RenderSurface3D("RenderSurface3D", gcnew Engine::Internal::Components::Transform(
+							gcnew Engine::Components::Vector3(),
+							gcnew Engine::Components::Vector3(),
+							gcnew Engine::Components::Vector3(1, 1, 1),
+							scene->GetDatamodelMember("workspace")->getTransform()
 						));
 
 						scene->AddObjectToScene(image);
@@ -2117,15 +2171,11 @@ void EditorWindow::DrawProperties()
 
 					if (ImGui::BeginMenu("Tagging"))
 					{
-						const char* c = CastToNative(selectedObject->GetTag());
+						std::string objectName = CastStringToNative(selectedObject->GetTag());
 
-						char* objectName = new char[sizeof(c) + 8];
-
-						strcpy(objectName, c);
-
-						if (ImGui::InputText("Tag", objectName, selectedObject->GetTag()->Length + 8))
+						if (ImGui::InputText("Tag", &objectName))
 						{
-							selectedObject->SetTag(gcnew String(objectName));
+							selectedObject->SetTag(gcnew String(objectName.c_str()));
 						}
 
 						ImGui::EndMenu();
@@ -2185,13 +2235,13 @@ void EditorWindow::DrawProperties()
 
 
 			ImGui::SeparatorText("Object Properties");
-			char* objectName = new char[128];
 
-			strcpy(objectName, CastToNative(selectedObject->name));
+			std::string objectName = CastStringToNative(selectedObject->name);
 
-			if (ImGui::InputText("Name", objectName, 128, ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+
+			if (ImGui::InputText("Name", &objectName, ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 			{
-				selectedObject->name = gcnew String(objectName);
+				selectedObject->name = gcnew String(objectName.c_str());
 			}
 
 			ImGui::SeparatorText("Transform");
@@ -2236,7 +2286,7 @@ void EditorWindow::DrawProperties()
 					selectedObject->getTransform()->rotation->z
 				};
 
-				if (ImGui::DragFloat3("Rotation", rot, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+				if (ImGui::DragFloat3("Rotation", rot, 5.0f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 				{
 					selectedObject->getTransform()->rotation = gcnew Engine::Components::Vector3(rot[0], rot[1], rot[2]);
 				}
@@ -2485,19 +2535,14 @@ void EditorWindow::DrawImGui()
 
 	if (ImGui::BeginPopupModal("Pack Setup", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
 	{
-		char* buffer = new char[512];
-
 		for (int x = 0; x < loadedAssets->Count; x++)
 		{
-			if (buffer != "")
-				delete[] buffer;
+			std::string buffer = CastStringToNative(loadedAssets[x]);
 
-			buffer = new char[512];
-			strcpy(buffer, CastToNative(loadedAssets[x]));
 			std::string name = "###" + std::string(CastToNative(loadedAssets[x])) + "###_index" + std::to_string(x);
-			if (ImGui::InputText(name.c_str(), buffer, 512))
+			if (ImGui::InputText(name.c_str(), &buffer))
 			{
-				loadedAssets[x] = gcnew String(buffer);
+				loadedAssets[x] = gcnew String(buffer.c_str());
 			}
 		}
 
@@ -2523,8 +2568,6 @@ void EditorWindow::DrawImGui()
 		{
 			OpenFileExplorer("Select output file", Engine::Editor::Gui::explorerMode::Save, gcnew Engine::Editor::Gui::onFileSelected(this, &EditorWindow::PackData));
 
-			delete[] buffer;
-
 			b5 = false;
 
 			ImGui::CloseCurrentPopup();
@@ -2544,14 +2587,13 @@ void EditorWindow::DrawImGui()
 		auto config = Engine::Config::EngineConfiguration::singleton();
 
 		{
-			char* buff = new char[8 * 512];
-			strcpy(buff, CastStringToNative(config->windowName).c_str());
+			std::string buff = CastStringToNative(config->windowName);
 
 			ImGui::Text("Window Name: ");
 			ImGui::SameLine();
-			if (ImGui::InputText("##WINDOW_NAME", buff, config->windowName->Length + 512))
+			if (ImGui::InputText("##WINDOW_NAME", &buff))
 			{
-				Engine::Config::EngineConfiguration::singleton()->windowName = gcnew String(buff);
+				Engine::Config::EngineConfiguration::singleton()->windowName = gcnew String(buff.c_str());
 			}
 		}
 
@@ -2664,13 +2706,11 @@ void EditorWindow::DrawImGui()
 
 	if (ImGui::BeginPopupModal("Save/Load Style", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
 	{
-		char* tmp = new char[styleFN.size() + 32] {};
-
-		strcpy(tmp, styleFN.c_str());
+		std::string tmp = styleFN;
 
 		ImGui::Text("File Name:");
 		ImGui::SameLine();
-		if (ImGui::InputText("###FILE_NAME", tmp, styleFN.size() + 32, ImGuiInputTextFlags_CallbackCompletion))
+		if (ImGui::InputText("###FILE_NAME", &tmp, ImGuiInputTextFlags_CallbackCompletion))
 		{
 			styleFN = tmp;
 		}
@@ -2690,8 +2730,6 @@ void EditorWindow::DrawImGui()
 			b7 = false;
 			ImGui::CloseCurrentPopup();
 		}
-
-		delete[] tmp;
 
 		ImGui::EndPopup();
 	}
@@ -2747,11 +2785,11 @@ void EditorWindow::DrawImGui()
 	{
 		ImGui::Text("Input Scene Name: ");
 		ImGui::SameLine();
-		ImGui::InputText("", fileName, 1024);
+		ImGui::InputText("", &fileName);
 
 		if (ImGui::Button("Create Scene"))
 		{
-			scene = SceneManager::CreateScene(gcnew System::String(fileName));
+			scene = SceneManager::CreateScene(gcnew System::String(fileName.c_str()));
 			scene->LoadScene();
 			create();
 			ImGui::CloseCurrentPopup();
@@ -2770,13 +2808,16 @@ void EditorWindow::DrawImGui()
 	{
 		ImGui::Text("Input Scene Name: ");
 		ImGui::SameLine();
-		ImGui::InputText("", fileName, 1024);
+		ImGui::InputText("", &fileName);
 
 		if (ImGui::Button("Open Scene"))
 		{
 			SceneManager::UnloadScene(scene);
-			SceneManager::LoadSceneFromFile(gcnew System::String(fileName), passwd, scene);
+			SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
 			//scene->LoadScene();
+
+			packedData = scene->getSceneDataPack();
+
 			create();
 			ImGui::CloseCurrentPopup();
 			b3 = false;
@@ -2792,18 +2833,13 @@ void EditorWindow::DrawImGui()
 
 	if (ImGui::BeginPopupModal("AssetPack Editor", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		char* data = new char[512];
 		for (int x = 0; x < scene->assetPacks->Count; x++)
 		{
-			if (data != "")
-				delete[] data;
-
-			data = new char[512];
-			strcpy(data, CastToNative(scene->assetPacks[x]));
+			std::string data = CastStringToNative(scene->assetPacks[x]);
 			std::string name = "###" + std::string(CastToNative(scene->assetPacks[x]));
-			if (ImGui::InputText(name.c_str(), data, 512, ImGuiInputTextFlags_EnterReturnsTrue))
+			if (ImGui::InputText(name.c_str(), &data, ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				scene->assetPacks[x] = gcnew String(data);
+				scene->assetPacks[x] = gcnew String(data.c_str());
 			}
 		}
 
@@ -2889,8 +2925,6 @@ void EditorWindow::Draw()
 	if (EngineState::PlayMode)
 	{
 		renderPipeline->ExecuteRenderWorkflow(this, scene);
-
-		// TODO: draw imgui over main renderer
 	}
 	else
 	{
@@ -2962,6 +2996,7 @@ void EditorWindow::create()
 
 #endif
 
+#ifdef USE_ILLUMINA
 	if (!scene->ExistsMember("lighting"))
 	{
 		lightManager = gcnew LightManager("lighting",
@@ -3016,6 +3051,7 @@ void EditorWindow::create()
 		lightdm->SetParent(daemonParent);
 		scene->PushToRenderQueue(lightdm);
 	}
+#endif
 
 	auto editorCamera = ObjectManager::singleton()->GetFirstObjectOfType(Engine::EngineObjects::Editor::EditorCamera::typeid);
 
@@ -3057,9 +3093,6 @@ void EditorWindow::Init()
 	ImGui::GetIO().ConfigErrorRecoveryEnableAssert = true;
 	ImGui::GetIO().ConfigErrorRecoveryEnableDebugLog = false;
 	ImGui::GetIO().ConfigErrorRecoveryEnableTooltip = true;
-
-	this->luaVM->ClearGlobals();
-	this->luaVM->RegisterGlobalFunctions();
 }
 void EditorWindow::Preload()
 {
@@ -3075,7 +3108,7 @@ void EditorWindow::Preload()
 
 	renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
 
-	SceneManager::LoadSceneFromFile(gcnew System::String(fileName), passwd, scene);
+	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
 
 	while (!scene->sceneLoaded())
 	{
@@ -3223,7 +3256,10 @@ public:
 private:
 	void create()
 	{
+#ifdef USE_ILLUMINA
 		LightManager^ lightManager = nullptr;
+#endif
+
 		Engine::EngineObjects::Private::Scene^ gameRoot = nullptr;
 
 		if (!scene->ExistsMember("game"))
@@ -3286,6 +3322,7 @@ private:
 
 #endif
 
+#ifdef USE_ILLUMINA
 		if (!scene->ExistsMember("lighting"))
 		{
 			lightManager = gcnew LightManager("lighting",
@@ -3340,6 +3377,8 @@ private:
 			lightdm->SetParent(daemonParent);
 			scene->PushToRenderQueue(lightdm);
 		}
+#endif
+
 	}
 
 public:

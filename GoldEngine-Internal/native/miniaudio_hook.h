@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include "miniaudio.h"
+
 #define BUFFER_SIZE 1024
 
 float noise_threshold = 1000.0f;

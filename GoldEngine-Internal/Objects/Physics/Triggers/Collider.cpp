@@ -1,5 +1,5 @@
 #include "../SDK.h"
-#include "Trigger.h"
+#include "Collider.h"
 #include "../Native/CollisionShape.h"
 #include "../Native/NativePhysicsService.h"
 #include "../CollisionType.h"
@@ -20,7 +20,6 @@ btBoxShape* createBoxShape(float x, float y, float z)
 	return boxShape;
 }
 
-
 void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 {
 	boxShape->setLocalScaling(btVector3(size[0], size[1], size[2]));
@@ -30,7 +29,7 @@ void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 
 using namespace Engine::EngineObjects::Physics;
 
-void Trigger::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape)
+void Collider::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape)
 {
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 
@@ -53,23 +52,35 @@ void Trigger::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldSh
 	collisionShape->createBulletObject();
 }
 
-Trigger::Trigger(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
+Collider::Collider(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
 {
 	this->colliderShape = ColliderShape::Box;
 	this->wireColor = gcnew Engine::Components::Color(0xFFFFFFFF);
 	this->renderWires = true;
 }
 
-
-void Trigger::Start()
+void Collider::Start()
 {
 	onColliderShapeChanged(colliderShape, colliderShape);
-	this->attributes->getAttribute("colliderShape")->onPropertyChanged->connect(gcnew Action<ColliderShape, ColliderShape>(this, &Trigger::onColliderShapeChanged));
+	this->attributes->getAttribute("colliderShape")->onPropertyChanged->connect(gcnew Action<ColliderShape, ColliderShape>(this, &Collider::onColliderShapeChanged));
+
+	if (Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	{
+		Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+		Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->AddCollisionObject(collisionShape->getCollisonObject());
+		registered = true;
+	}
 }
 
-void Trigger::Update()
+void Collider::Update()
 {
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+	
+	if (!registered && Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	{
+		Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->AddCollisionObject(collisionShape->getCollisonObject());
+		registered = true;
+	}
 
 	if (colliderShape == ColliderShape::Box)
 	{
@@ -78,7 +89,7 @@ void Trigger::Update()
 	}
 }
 
-void Trigger::DrawGizmo()
+void Collider::DrawGizmo()
 {
 	if (!renderWires)
 		return;

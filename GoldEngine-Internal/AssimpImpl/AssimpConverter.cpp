@@ -20,12 +20,36 @@
 
 #pragma managed(push, off)
 
+Matrix ConvertAIMatrix4x4(aiMatrix4x4 mat)
+{
+    Matrix out;
+    out.m0 = mat.a1; out.m4 = mat.a2; out.m8 = mat.a3; out.m12 = mat.a4;
+    out.m1 = mat.b1; out.m5 = mat.b2; out.m9 = mat.b3; out.m13 = mat.b4;
+    out.m2 = mat.c1; out.m6 = mat.c2; out.m10 = mat.c3; out.m14 = mat.c4;
+    out.m3 = mat.d1; out.m7 = mat.d2; out.m11 = mat.d3; out.m15 = mat.d4;
+    return out;
+};
+
+Vector3 ConvertAIVector3D(aiVector3D vert)
+{
+    Vector3 v = { 0 };
+    v.x = vert.x;
+    v.y = vert.y;
+    v.z = vert.z;
+    return v;
+}
+
 AssimpConverter::AssimpConverter(std::string fileName, std::string outputFile, std::string format) : AssimpConverter(fileName, aiProcess_Triangulate, outputFile, format)
 {
 
 }
 
 AssimpConverter::AssimpConverter(std::string fileName, std::string format) : AssimpConverter(fileName, aiProcess_Triangulate, format)
+{
+
+}
+
+AssimpConverter::AssimpConverter(std::string fileName) : AssimpConverter(fileName, "gltf")
 {
 
 }
@@ -113,7 +137,7 @@ void SetMeshData(RAYLIB::Mesh& rlMesh, aiMesh* ai_mesh)
         }
     }
 
-    rlMesh.vboId = (unsigned int*)calloc(7, sizeof(unsigned int));
+    //rlMesh.vboId = (unsigned int*)calloc(7, sizeof(unsigned int));
 }
 
 void AssimpConverter::CreateMesh(unsigned int flags, std::string format)
@@ -180,6 +204,82 @@ RAYLIB::Mesh* AssimpConverter::GetMeshes()
 unsigned int AssimpConverter::GetMeshCount()
 {
     return (sizeof(this->temporalMesh) / sizeof(RAYLIB::Mesh));
+}
+
+RAYLIB::Model& AssimpConverter::CreateModel()
+{
+    RAYLIB::Model model = {};
+
+    if (scene == nullptr)
+        return model;
+
+    model.transform = RAYMATH::MatrixIdentity();
+    
+    // Load Textures
+    aiTexture** textures = scene->mTextures;
+    RAYLIB::Texture* rlTextures = new RAYLIB::Texture[scene->mNumTextures];
+
+    for (int x = 0; x < scene->mNumTextures; x++)
+    {
+        aiTexture* texture = textures[x];
+
+        if (texture->mHeight == 0) 
+        {
+            int size = texture->mWidth;
+            unsigned char* data = (unsigned char*)texture->pcData;
+            char ext[5] = ".png";
+            if (texture->achFormatHint[0])
+            {
+                snprintf(ext, sizeof(ext), ".%s", texture->achFormatHint);
+            }
+
+            Image image = RAYLIB::LoadImageFromMemory(ext, data, size);
+            Texture2D tex = LoadTextureFromImage(image);
+            UnloadImage(image);
+
+            rlTextures[x] = tex;
+        }
+        else
+        {
+            int width = texture->mWidth;
+            int height = texture->mHeight;
+            aiTexel* texels = texture->pcData;
+
+            unsigned char* imageData = (unsigned char*)malloc(width * height * 4);
+            for (int i = 0; i < width * height; i++) 
+            {
+                imageData[i * 4 + 0] = texels[i].r;
+                imageData[i * 4 + 1] = texels[i].g;
+                imageData[i * 4 + 2] = texels[i].b;
+                imageData[i * 4 + 3] = texels[i].a;
+            }
+
+            Image image = {};
+            image.data = imageData;
+            image.width = width;
+            image.height = height;
+            image.mipmaps = 1;
+            image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+
+            Texture2D tex = LoadTextureFromImage(image);
+            UnloadImage(image);
+
+            rlTextures[x] = tex;
+        }
+    }
+
+    aiMaterial** materials = scene->mMaterials;
+    RAYLIB::Material* rlMaterials = new RAYLIB::Material[scene->mNumMaterials];
+
+    for (int x = 0; x < scene->mNumMaterials; x++)
+    {
+        aiMaterial* material = materials[x];
+
+    }
+
+    model.materials = rlMaterials;
+
+    return model;
 }
 
 void AssimpConverter::dealloc()

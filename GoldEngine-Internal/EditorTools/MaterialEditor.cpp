@@ -25,24 +25,20 @@ bool memEditing = false;
 bool saveToMem = false;
 bool loadFromMem = false;
 
-unsigned int materialId;
+unsigned int materialId = 0;
 int shaderId = 0;
 
 const char* shaderLocType = "";
-
-typedef enum MaterialLocations
-{
-	ColorLoc = 0,
-	TextureLoc = 1,
-	FloatLoc = 2
-};
-
 
 const char* materialLocations[] =
 {
 	"Color",
 	"Texture",
-	"Float"
+	"Float",
+	"Struct",
+	"Vector 2",
+	"Vector 3",
+	"Vector 4",
 };
 
 void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Components::Locs::Generic::MaterialLoc^ locref)
@@ -69,7 +65,7 @@ void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Com
 
 		ImGui::Text("Color: ");
 		ImGui::SameLine();
-		if (ImGui::ColorPicker4("###TINT_SETTER", rawData))
+		if (ImGui::ColorPicker4(CastStringToNative("###TINT_EDITOR_" + location->locName).c_str(), rawData))
 		{
 			colorLoc->color->setHex(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
 		}
@@ -96,6 +92,50 @@ void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Com
 		if (ImGui::DragFloat(CastStringToNative("###FLOAT_LOC_" + location->locName).c_str(), &ptr))
 		{
 			texLoc->value = (float)ptr;
+		}
+		break;
+	}
+	case MaterialLocations::StructLoc:
+	{
+		ImGui::Text("Structure Pointer");
+		ImGui::SameLine();
+		ImGui::Text("Its a managed pointer!");
+		break;
+	}
+	case MaterialLocations::Vector2Loc:
+	{
+		Engine::Components::Locs::Vector2Loc^ texLoc = (Engine::Components::Locs::Vector2Loc^)locref;
+		Engine::Components::Vector2^ ptr = texLoc->value;
+		ImGui::Text("Value:");
+		ImGui::SameLine();
+
+		float data[2] = {
+			ptr->x,
+			ptr->y
+		};
+
+		if (ImGui::DragFloat2(CastStringToNative("###VEC3_LOC_" + location->locName).c_str(), data))
+		{
+			texLoc->value = gcnew Engine::Components::Vector2(data[0], data[1]);
+		}
+		break;
+	}
+	case MaterialLocations::Vector3Loc:
+	{
+		Engine::Components::Locs::Vector3Loc^ texLoc = (Engine::Components::Locs::Vector3Loc^)locref;
+		Engine::Components::Vector3^ ptr = texLoc->value;
+		ImGui::Text("Value:");
+		ImGui::SameLine();
+
+		float data[3] = {
+			ptr->x,
+			ptr->y,
+			ptr->z
+		};
+
+		if (ImGui::DragFloat3(CastStringToNative("###VEC3_LOC_" + location->locName).c_str(), data))
+		{
+			texLoc->value = gcnew Engine::Components::Vector3(data[0], data[1], data[2]);
 		}
 		break;
 	}
@@ -131,7 +171,21 @@ void MaterialEditor::LoadMaterial(String^ path)
 void MaterialEditor::SaveMaterial(unsigned int id)
 {
 	selectedMaterial->SerializeProperties();
-	DataPacks::singleton().AddMaterial(id, selectedMaterial);
+
+	savedMaterial = gcnew Engine::Components::Material(selectedMaterial->shaderId->getInstance());
+	savedMaterial->MaterialProperties->Clear();
+
+	for each (auto loc in selectedMaterial->MaterialProperties)
+	{
+		loc->serialize();
+		savedMaterial->AddProperty(loc->locName, loc->GetMaterialLocation());
+	}
+
+	savedMaterial->DeserializeProperties();
+
+	DataPacks::singleton().AddMaterial(id, savedMaterial);
+
+	this->LoadMaterial(id);
 }
 
 void MaterialEditor::LoadMaterial(unsigned int id)
@@ -347,6 +401,18 @@ void MaterialEditor::GUI()
 							break;
 						case MaterialLocations::FloatLoc:
 							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::FloatLoc(0));
+							break;
+						case MaterialLocations::StructLoc:
+							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::StructLoc(nullptr));
+							break;
+						case MaterialLocations::Vector2Loc:
+							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector2Loc(gcnew Engine::Components::Vector2()));
+							break;
+						case MaterialLocations::Vector3Loc:
+							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector3Loc(gcnew Engine::Components::Vector3()));
+							break;
+						case MaterialLocations::Vector4Loc:
+
 							break;
 						}
 					}

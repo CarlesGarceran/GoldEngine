@@ -80,29 +80,13 @@ namespace Engine::EngineObjects
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		float farPlane = 10.0f;
 
-		bool isMainCamera;
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		bool IsMainCamera;
 
 	public:
 		Camera(String^ name, Engine::Internal::Components::Transform^ trans, int projection) : Engine::EngineObjects::ScriptBehaviour(name, trans)
 		{
 			cameraProjection = (CamProjection)projection;
-
-			if (!attributes->getAttribute("IsMainCamera"))
-			{
-				if (!SharedInstance::ExistsInstance("CameraExists"))
-				{
-					attributes->addAttribute(Engine::Scripting::Attribute::create("IsMainCamera", true, bool::typeid));
-					SharedInstance::Create("CameraExists", true);
-				}
-				else
-				{
-					attributes->addAttribute(Engine::Scripting::Attribute::create("IsMainCamera", false, bool::typeid));
-				}
-			}
-			else
-			{
-				isMainCamera = attributes->getAttribute("IsMainCamera")->getValue<bool>();
-			}
 		}
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]

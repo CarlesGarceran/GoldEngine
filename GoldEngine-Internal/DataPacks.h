@@ -8,6 +8,7 @@
 #include "Object/Material.h"
 #include "Object/Transform.h"
 #include "LoggingAPI.h"
+#include "AnimationStruct.h"
 
 /*
 	DATAPACKS
@@ -25,12 +26,15 @@ namespace Engine::Assets::Storage
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Sound>*> sounds;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Music>*> musics;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Mesh>*> meshes;
-		//std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::ModelAnimation>*> animations;
+		std::map<unsigned int, Engine::Native::EnginePtr<AnimationStruct>*> animations;
+		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Font>*> fonts;
+		
 		std::map<unsigned int, void*> materials;
 
 		Engine::Native::EnginePtr<RAYLIB::Shader>* fallbackShader = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Model>* fallbackModel = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Texture2D>* fallbackTexture = nullptr;
+		Engine::Native::EnginePtr<RAYLIB::Font>* fallbackFont = nullptr;
 		msclr::gcroot<Engine::Components::Material^>* fallbackMaterial = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Mesh>* fallbackMesh = nullptr;
 
@@ -58,6 +62,8 @@ namespace Engine::Assets::Storage
 			//assetCount += nativePacks->meshes.size();
 			assetCount += nativePacks->sounds.size();
 			assetCount += nativePacks->musics.size();
+			assetCount += nativePacks->fonts.size();
+			assetCount += nativePacks->animations.size();
 
 			return (assetCount > 0);
 		}
@@ -68,7 +74,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->shaders[x];
 
-				sP->release();
+				sP->destroy();
 			}
 
 			nativePacks->shaders.clear();
@@ -80,7 +86,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->musics[x];
 
-				sP->release();
+				sP->destroy();
 			}
 
 			nativePacks->musics.clear();
@@ -93,7 +99,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->sounds[x];
 
-				sP->release();
+				sP->destroy();
 			}
 
 			nativePacks->sounds.clear();
@@ -105,7 +111,7 @@ namespace Engine::Assets::Storage
 			try
 			{
 				auto sP = nativePacks->shaders.at(shaderId);
-				sP->release();
+				sP->destroy();
 			}
 			catch (std::exception ex)
 			{
@@ -134,7 +140,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->models[x];
 
-				sP->release();
+				sP->destroy();
 			}
 
 			nativePacks->models.clear();
@@ -146,10 +152,22 @@ namespace Engine::Assets::Storage
 			{
 				auto tP = nativePacks->textures2d[x];
 
-				tP->release();
+				tP->destroy();
 			}
 
 			nativePacks->textures2d.clear();
+		}
+
+		void FreeAnimations()
+		{
+			for (int x = 0; x < nativePacks->animations.size(); x++)
+			{
+				auto sP = nativePacks->animations[x];
+
+				sP->destroy();
+			}
+
+			nativePacks->models.clear();
 		}
 
 		void FreeAll()
@@ -165,6 +183,7 @@ namespace Engine::Assets::Storage
 			FreeShaders();
 			FreeSounds();
 			FreeMusics();
+			FreeAnimations();
 		}
 
 		RAYLIB::Mesh& GetMesh(unsigned int meshId);
@@ -190,6 +209,13 @@ namespace Engine::Assets::Storage
 
 		Engine::Components::Material^ GetMaterial(unsigned int materialId);
 		void AddMaterial(unsigned int materialId, Engine::Components::Material^ material);
+
+		RAYLIB::Font& GetFont(unsigned int fontId);
+		void AddFont(unsigned int fontId, RAYLIB::Font& font);
+
+		RAYLIB::ModelAnimation* GetAnimations(unsigned int animationId);
+		RAYLIB::ModelAnimation GetAnimation(unsigned int animationId, unsigned int animationIndex);
+		void AddAnimations(unsigned int animationId, AnimationStruct& animations);
 
 		bool HasTexture2D(unsigned int textureId)
 		{

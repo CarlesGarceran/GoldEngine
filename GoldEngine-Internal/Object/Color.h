@@ -59,5 +59,15 @@ namespace Engine::Components
 		{
 			return gcnew Color(hexColor);
 		}
+
+		int GetR();
+		int GetG();
+		int GetB();
+		int GetA();
+
+		int getR() { return GetR(); }
+		int getG() { return GetG(); }
+		int getB() { return GetB(); }
+		int getA() { return GetA(); }
 	};
 }
