@@ -66,7 +66,7 @@ namespace Engine::Config
 			File::WriteAllText(fN, Convert::ToBase64String(
 				Encoding::UTF8->GetBytes
 				(
-					CypherLib::EncryptFileContents(encryptionPassword, convertToInt(File::ReadAllText("./Data/Keys/map.iv")))
+					Engine::Encryption::CypherLib::EncryptString(encryptionPassword, convertToInt(File::ReadAllText("./Data/Keys/map.iv")))
 				)
 			)
 			);
@@ -79,7 +79,7 @@ namespace Engine::Config
 				String^ encodedData = File::ReadAllText(fN);
 				String^ decodedData = Encoding::UTF8->GetString(Convert::FromBase64String(encodedData));
 
-				String^ password = CypherLib::DecryptFileContents(decodedData, convertToInt(File::ReadAllText("./Data/Keys/map.iv")));
+				String^ password = Engine::Encryption::CypherLib::DecryptString(decodedData, convertToInt(File::ReadAllText("./Data/Keys/map.iv")));
 
 				self = gcnew EngineSecrets(password);
 				return self;
@@ -206,7 +206,7 @@ namespace Engine::Config
 		{
 			File::WriteAllText(fN, Convert::ToBase64String(
 				Encoding::UTF8->GetBytes(
-					CypherLib::EncryptFileContents(
+					Engine::Encryption::CypherLib::EncryptString(
 						JsonConvert::SerializeObject(this), passwd
 					)
 				)
@@ -232,12 +232,11 @@ namespace Engine::Config
 			{
 				String^ encodedData = File::ReadAllText(fN);
 
-				EngineConfiguration^ configuration = JsonConvert::DeserializeObject<EngineConfiguration^>(
-					CypherLib::DecryptFileContents(
-						Encoding::UTF8->GetString(
-							Convert::FromBase64String(encodedData)
-						),
-						passwd)
+				EngineConfiguration^ configuration = JsonConvert::DeserializeObject<EngineConfiguration^>(Engine::Encryption::CypherLib::DecryptString(
+					Encoding::UTF8->GetString(
+						Convert::FromBase64String(encodedData)
+					),
+					passwd)
 				);
 
 				setSingleton(configuration);

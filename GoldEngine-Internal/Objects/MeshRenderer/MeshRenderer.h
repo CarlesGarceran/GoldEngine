@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Engine::EngineObjects
+namespace Engine::EngineObjects::Geometry
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]

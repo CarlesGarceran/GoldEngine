@@ -4,7 +4,7 @@
 using namespace Engine::Scripting;
 using namespace Engine::Assets::Storage;
 
-using namespace Engine::EngineObjects;
+using namespace Engine::EngineObjects::Geometry;
 
 MeshRenderer::MeshRenderer(String^ name, Engine::Internal::Components::Transform^ transform)
 	: Engine::EngineObjects::Script(name, transform)
@@ -88,9 +88,10 @@ void MeshRenderer::Draw()
 	);
 }
 
-void Engine::EngineObjects::MeshRenderer::Destroy()
+void MeshRenderer::Destroy()
 {
 	delete modelInstance;
 	delete meshInstance;
-	delete materialInstance;
+	tint = nullptr;
+	materialInstance = nullptr;
 }

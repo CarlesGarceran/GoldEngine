@@ -1,8 +1,8 @@
 #include "../SDK.h"
+#include "../CollisionType.h"
 #include "Collider.h"
 #include "../Native/CollisionShape.h"
 #include "../Native/NativePhysicsService.h"
-#include "../CollisionType.h"
 #include "../RigidBody.h"
 #include "../PhysicsService.h"
 
@@ -13,13 +13,6 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 
-btBoxShape* createBoxShape(float x, float y, float z)
-{
-	btBoxShape* boxShape = new btBoxShape({ 0,0,0 });
-	boxShape->setLocalScaling(btVector3(x, y, z));
-	return boxShape;
-}
-
 void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 {
 	boxShape->setLocalScaling(btVector3(size[0], size[1], size[2]));
@@ -28,6 +21,7 @@ void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 #pragma managed(pop)
 
 using namespace Engine::EngineObjects::Physics;
+using namespace Engine::EngineObjects::Physics::Enums;
 
 void Collider::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape)
 {
@@ -45,8 +39,11 @@ void Collider::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldS
 	switch (newShape)
 	{
 	case ColliderShape::Box:
-		collisionShape->createCollisionShape(createBoxShape(sX, sY, sZ));
-		break;
+		{
+			btCollisionShape* cs = Singleton<PhysicsService^>::Instance->getNativePhysicsService()->getCollisionShapeForBox(sX, sY, sZ);
+			collisionShape->createCollisionShape(cs);
+			break;
+		}
 	}
 
 	collisionShape->createBulletObject();
@@ -54,7 +51,6 @@ void Collider::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldS
 
 Collider::Collider(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
 {
-	this->colliderShape = ColliderShape::Box;
 	this->wireColor = gcnew Engine::Components::Color(0xFFFFFFFF);
 	this->renderWires = true;
 }
@@ -75,7 +71,7 @@ void Collider::Start()
 void Collider::Update()
 {
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-	
+
 	if (!registered && Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
 	{
 		Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->AddCollisionObject(collisionShape->getCollisonObject());
@@ -91,17 +87,6 @@ void Collider::Update()
 
 void Collider::DrawGizmo()
 {
-	if (!renderWires)
-		return;
-
-	if (colliderShape == ColliderShape::Box)
-	{
-		RAYLIB::DrawCubeWires(transform->position->toNative(), transform->scale->x, transform->scale->y, transform->scale->z, wireColor->toNative());
-	}
-	else if (colliderShape == ColliderShape::Sphere)
-	{
-		RAYLIB::DrawSphereWires(transform->position->toNative(), transform->scale->x, transform->scale->x, transform->scale->x, wireColor->toNative());
-	}
 }
 
 #endif

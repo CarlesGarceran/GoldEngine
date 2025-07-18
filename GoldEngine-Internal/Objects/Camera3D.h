@@ -20,6 +20,8 @@ namespace Engine::EngineObjects
 		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override
 		{
+			nativeCamera->get().fovy = fov;
+
  			if (!attributes->getAttribute("camera direction"))
 			{
 				attributes->addAttribute("camera direction", gcnew Engine::Components::Vector3(0, 0, 1));

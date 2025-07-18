@@ -27,13 +27,7 @@ Engine::Components::Color::Color(__int8 red, __int8 green, __int8 blue, __int8 a
 	g = green;
 	b = blue;
 	a = alpha;
-
-	hexColor = 0;
-	hexColor =
-		((unsigned int)(a & 0xFF) << 24) |
-		((unsigned int)(b & 0xFF) << 16) |
-		((unsigned int)(g & 0xFF) << 8) |
-		((unsigned int)(r & 0xFF) << 0);
+	updateHexColor();
 }
 
 Engine::Components::Color::Color(int red, int green, int blue, int alpha)
@@ -42,13 +36,7 @@ Engine::Components::Color::Color(int red, int green, int blue, int alpha)
 	g = green;
 	b = blue;
 	a = alpha;
-
-	hexColor = 0;
-	hexColor =
-		((unsigned int)(a & 0xFF) << 24) |
-		((unsigned int)(b & 0xFF) << 16) |
-		((unsigned int)(g & 0xFF) << 8) |
-		((unsigned int)(r & 0xFF) << 0);
+	updateHexColor();
 }
 
 unsigned int% Engine::Components::Color::toHex()
@@ -110,6 +98,15 @@ std::array<float, 4> Engine::Components::Color::toFloat()
 	return out;
 }
 
+void Engine::Components::Color::updateHexColor()
+{
+	hexColor =
+		((unsigned int)(a & 0xFF) << 24) |
+		((unsigned int)(b & 0xFF) << 16) |
+		((unsigned int)(g & 0xFF) << 8) |
+		((unsigned int)(r & 0xFF) << 0);
+}
+
 void Engine::Components::Color::setHex(unsigned int value)
 {
 	this->hexColor = value;
@@ -124,24 +121,14 @@ void Engine::Components::Color::setHex(unsigned int value)
 void Engine::Components::Color::setR(__int8 value)
 {
 	r = value;
-
-	hexColor = 0;
-	hexColor << (r) & 0xFF;
-	hexColor << (g) & 0xFF;
-	hexColor << (b) & 0xFF;
-	hexColor << (a) & 0xFF;
+	updateHexColor();
 }
 
 
 void Engine::Components::Color::setG(__int8 value)
 {
 	g = value;
-
-	hexColor = 0;
-	hexColor << (r) & 0xFF;
-	hexColor << (g) & 0xFF;
-	hexColor << (b) & 0xFF;
-	hexColor << (a) & 0xFF;
+	updateHexColor();
 }
 
 
@@ -149,23 +136,14 @@ void Engine::Components::Color::setB(__int8 value)
 {
 	b = value;
 
-	hexColor = 0;
-	hexColor << (r) & 0xFF;
-	hexColor << (g) & 0xFF;
-	hexColor << (b) & 0xFF;
-	hexColor << (a) & 0xFF;
+	updateHexColor();
 }
 
 
 void Engine::Components::Color::setA(__int8 value)
 {
 	a = value;
-
-	hexColor = 0;
-	hexColor << (r) & 0xFF;
-	hexColor << (g) & 0xFF;
-	hexColor << (b) & 0xFF;
-	hexColor << (a) & 0xFF;
+	updateHexColor();
 }
 
 int Engine::Components::Color::GetR()

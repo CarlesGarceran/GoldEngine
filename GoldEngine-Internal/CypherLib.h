@@ -5,103 +5,128 @@ using namespace System;
 using namespace System::Text;
 using namespace System::Security::Cryptography;
 
-ref class CypherLib
+namespace Engine::Encryption
 {
-private:
-	static RSACryptoServiceProvider^ serviceProvider;
-
-public:
-	static unsigned int GetPasswordBytes(System::String^ passwd)
+	public ref class CypherLib
 	{
-		unsigned int retn = 0;
+	private:
+		static RSACryptoServiceProvider^ serviceProvider;
 
-		for each (char c in passwd->ToCharArray())
+	public:
+		static String^ Encrypt(System::String^ content, String^ password, int rounds)
 		{
-			retn += (unsigned int)c;
+			unsigned int passwordBytes = GetPasswordBytes(password);
+
+			for (int x = 0; x < rounds; x++)
+			{
+				content = EncryptString(content, passwordBytes);
+			}
+
+			return content;
 		}
 
-		return retn;
-	}
-
-	static unsigned int GetPasswordBytes(const char* passwd)
-	{
-		unsigned int retn = 0;
-
-		char dest[sizeof(passwd)+1];
-
-		strcpy(dest, passwd);
-
-		for (char c : dest)
+		static String^ Decrypt(System::String^ content, String^ password, int rounds)
 		{
-			retn += (unsigned int)c;
+			unsigned int passwordBytes = GetPasswordBytes(password);
+
+			for (int x = 0; x < rounds; x++)
+			{
+				content = DecryptString(content, passwordBytes);
+			}
+
+			return content;
 		}
 
-		return retn;
-	}
-
-	static System::String^ EncryptFileContents(System::String^ fileContents, unsigned int password)
-	{
-		String^ encryptedContents = "";
-
-		for each (char s in fileContents->ToCharArray())
+		static unsigned int GetPasswordBytes(System::String^ passwd)
 		{
-			int cId = (int)s;
-			int byteResult = cId ^ password;
-			encryptedContents += "/" + byteResult.ToString();
+			unsigned int retn = 0;
+
+			for each(char c in passwd->ToCharArray())
+			{
+				retn += (unsigned int)c;
+			}
+
+			return retn;
 		}
 
-		return encryptedContents->Substring(1, encryptedContents->Length-1);
-	}
-
-	static System::String^ DecryptFileContents(System::String^ fileContents, unsigned int password)
-	{
-		System::String^ decryptedContents = "";
-
-		auto decStr = fileContents->Split('/');
-
-		for each (String ^ s in decStr)
+		static unsigned int GetPasswordBytes(const char* passwd)
 		{
-			decryptedContents += (Char)(System::Int32::Parse(s) ^ password);
+			unsigned int retn = 0;
+
+			char dest[sizeof(passwd) + 1];
+
+			strcpy(dest, passwd);
+
+			for (char c : dest)
+			{
+				retn += (unsigned int)c;
+			}
+
+			return retn;
 		}
 
-		return decryptedContents;
-	}
+		static System::String^ EncryptString(System::String^ fileContents, unsigned int password)
+		{
+			String^ encryptedContents = "";
 
-	static String^ EncryptString(String^ message, String^ passwd)
-	{
+			for each(char s in fileContents->ToCharArray())
+			{
+				int cId = (int)s;
+				int byteResult = cId ^ password;
+				encryptedContents += "/" + byteResult.ToString();
+			}
+
+			return encryptedContents->Substring(1, encryptedContents->Length - 1);
+		}
+
+		static System::String^ DecryptString(System::String^ fileContents, unsigned int password)
+		{
+			System::String^ decryptedContents = "";
+
+			auto decStr = fileContents->Split('/');
+
+			for each(String ^ s in decStr)
+			{
+				decryptedContents += (Char)(System::Int32::Parse(s) ^ password);
+			}
+
+			return decryptedContents;
+		}
+
 		/*
-		RijndaelManaged^ cryptMethod = gcnew RijndaelManaged();
-		cryptMethod->BlockSize = 256;
-		cryptMethod->KeySize = 128;
-		cryptMethod->Mode = CipherMode::ECB;
-		cryptMethod->Padding = PaddingMode::ISO10126;
-		cryptMethod->Key = Encoding::UTF8->GetBytes(passwd);
-		ICryptoTransform^ cryptoBro = cryptMethod->CreateEncryptor();
-		
-		auto plainText = Encoding::UTF8->GetBytes(message);
+		static String^ EncryptString(String^ message, String^ passwd)
+		{
+			RijndaelManaged^ cryptMethod = gcnew RijndaelManaged();
+			cryptMethod->BlockSize = 256;
+			cryptMethod->KeySize = 128;
+			cryptMethod->Mode = CipherMode::ECB;
+			cryptMethod->Padding = PaddingMode::ISO10126;
+			cryptMethod->Key = Encoding::UTF8->GetBytes(passwd);
+			ICryptoTransform^ cryptoBro = cryptMethod->CreateEncryptor();
 
-		return Convert::ToBase64String(cryptoBro->TransformFinalBlock(plainText, 0, plainText->Length));
+			auto plainText = Encoding::UTF8->GetBytes(message);
+
+			return Convert::ToBase64String(cryptoBro->TransformFinalBlock(plainText, 0, plainText->Length));
+
+			return "";
+		}
+
+		static String^ DecryptString(String^ message, String^ passwd)
+		{
+			RijndaelManaged^ cryptMethod = gcnew RijndaelManaged();
+			cryptMethod->BlockSize = 256;
+			cryptMethod->KeySize = 128;
+			cryptMethod->Mode = CipherMode::ECB;
+			cryptMethod->Padding = PaddingMode::ISO10126;
+			cryptMethod->Key = Encoding::UTF8->GetBytes(passwd);
+			ICryptoTransform^ cryptoBro = cryptMethod->CreateDecryptor();
+
+			auto plainText = Convert::FromBase64CharArray(message->ToCharArray(), 0, message->Length);
+
+			return Encoding::UTF8->GetString(cryptoBro->TransformFinalBlock(plainText, 0, plainText->Length));
+
+			return "";
+		}
 		*/
-
-		return "";
-	}
-
-	static String^ DecryptString(String^ message, String^ passwd)
-	{
-		/*
-		RijndaelManaged^ cryptMethod = gcnew RijndaelManaged();
-		cryptMethod->BlockSize = 256;
-		cryptMethod->KeySize = 128;
-		cryptMethod->Mode = CipherMode::ECB;
-		cryptMethod->Padding = PaddingMode::ISO10126;
-		cryptMethod->Key = Encoding::UTF8->GetBytes(passwd);
-		ICryptoTransform^ cryptoBro = cryptMethod->CreateDecryptor();
-
-		auto plainText = Convert::FromBase64CharArray(message->ToCharArray(), 0, message->Length);
-
-		return Encoding::UTF8->GetString(cryptoBro->TransformFinalBlock(plainText, 0, plainText->Length));
-		*/
-
-		return "";
-	}
-};
+	};
+}

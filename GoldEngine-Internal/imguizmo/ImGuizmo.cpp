@@ -997,6 +997,25 @@ namespace IMGUIZMO_NAMESPACE
       ImGui::PopStyleColor(2);
    }
 
+   void BeginFrameViewport(ImVec2 viewportPos, ImVec2 viewportSize)
+   {
+       const ImU32 flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+       ImGui::SetNextWindowSize(viewportSize);
+       ImGui::SetNextWindowPos(viewportPos);
+
+       ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+       ImGui::PushStyleColor(ImGuiCol_Border, 0);
+       ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+       ImGui::Begin("gizmo", NULL, flags);
+       gContext.mDrawList = ImGui::GetWindowDrawList();
+       gContext.mbOverGizmoHotspot = false;
+       ImGui::End();
+       ImGui::PopStyleVar();
+       ImGui::PopStyleColor(2);
+   }
+
    bool IsUsing()
    {
       return (gContext.mbUsing && (gContext.GetCurrentID() == gContext.mEditingID)) || gContext.mbUsingBounds;

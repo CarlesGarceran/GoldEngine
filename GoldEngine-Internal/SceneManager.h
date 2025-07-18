@@ -33,7 +33,7 @@ namespace Engine::Managers
 		static void LoadSceneFromFile(System::String^ sceneName)
 		{
 			Engine::Management::Scene^ loadedScene = Engine::Management::Scene::getLoadedScene();
-			unsigned int passwd = CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->encryptionPassword);
+			unsigned int passwd = Engine::Encryption::CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->encryptionPassword);
 
 			LoadSceneFromFile(sceneName, passwd, loadedScene);
 		}

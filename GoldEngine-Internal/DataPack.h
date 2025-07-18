@@ -702,7 +702,7 @@ namespace Engine::Assets::Management
 			if (AssetExists(fileName))
 			{
 				String^ serializedData = Newtonsoft::Json::JsonConvert::SerializeObject(this, Newtonsoft::Json::Formatting::Indented);
-				String^ cipheredContents = CypherLib::EncryptFileContents(serializedData, password);
+				String^ cipheredContents = Engine::Encryption::CypherLib::EncryptString(serializedData, password);
 
 				//System::IO::File::WriteAllText("Data/" + scene->sceneName + ".scn", System::Convert::ToBase64String(Encoding::UTF8->GetBytes(cipheredContents)));
 				System::IO::File::WriteAllText("Data/" + fileName + ".asset", serializedData);
@@ -721,7 +721,7 @@ namespace Engine::Assets::Management
 			{
 				DataPack^ pack = Newtonsoft::Json::JsonConvert::DeserializeObject<DataPack^>(File::ReadAllText("Data/" + fileName + ".asset"));
 				String^ serializedData = Newtonsoft::Json::JsonConvert::SerializeObject(this, Newtonsoft::Json::Formatting::Indented);
-				String^ cipheredContents = CypherLib::EncryptFileContents(serializedData, password);
+				String^ cipheredContents = Engine::Encryption::CypherLib::EncryptString(serializedData, password);
 
 				CloneDataPack(pack);
 				//System::IO::File::WriteAllText("Data/" + scene->sceneName + ".scn", System::Convert::ToBase64String(Encoding::UTF8->GetBytes(cipheredContents)));

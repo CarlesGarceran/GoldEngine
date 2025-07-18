@@ -501,7 +501,7 @@ void LuaVM::ReadLuaCodeFromFile(String^ src)
 
 				String^ base64 = System::Text::Encoding::UTF32->GetString(decompressedData);
 
-				tempBuffer = CypherLib::DecryptFileContents(base64, ::passwd);
+				tempBuffer = Engine::Encryption::CypherLib::DecryptString(base64, ::passwd);
 			}
 			catch (Exception^ ex)
 			{
@@ -532,7 +532,7 @@ void LuaVM::WriteLuaCodeToFile(String^ src)
 
 	bwriter->Write(BINARY_HEADER);
 	bwriter->Write(BYTECODE_VERSION);
-	auto bytes = System::Text::Encoding::UTF32->GetBytes(CypherLib::EncryptFileContents(source, ::passwd));
+	auto bytes = System::Text::Encoding::UTF32->GetBytes(Engine::Encryption::CypherLib::EncryptString(source, ::passwd));
 
 	zlibStream->Write(bytes, 0, bytes->Length);
 	zlibStream->Flush();
@@ -575,7 +575,7 @@ String^ LuaVM::ReadFromFile(String^ src)
 
 				String^ base64 = System::Text::Encoding::UTF32->GetString(decompressedData);
 
-				return CypherLib::DecryptFileContents(base64, ::passwd);
+				return Engine::Encryption::CypherLib::DecryptString(base64, ::passwd);
 			}
 			catch (Exception^ ex)
 			{

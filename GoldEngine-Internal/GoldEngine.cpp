@@ -76,9 +76,10 @@ using namespace Engine::Attributes;
 
 #include "Objects/Private/Scene.h"
 
-// MeshRenderer
+// Geometry
 
 #include "Objects/MeshRenderer/MeshRenderer.h"
+#include "Objects/ModelRenderer/ModelRenderer.hpp"
 
 // Audio
 
@@ -213,7 +214,10 @@ std::string fileName = "Level0";
 #include "AssimpImpl/AssimpConverter.h"
 #include "EditorGUI.h"
 
-Model mod;
+static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+
+RAYLIB::Model mod;
 float cameraSpeed = 1.25f;
 bool controlCamera = true;
 bool isOpen = true;
@@ -230,11 +234,11 @@ bool reparentLock = false;
 std::string consoleBufferData = "";
 std::string asset_filter_name = "";
 std::string styleFN;
-Texture modelTexture;
-Texture textureTexture;
-Texture materialTexture;
-Texture scriptTexture;
-Texture soundTexture;
+RAYLIB::Texture modelTexture;
+RAYLIB::Texture textureTexture;
+RAYLIB::Texture materialTexture;
+RAYLIB::Texture scriptTexture;
+RAYLIB::Texture soundTexture;
 
 bool fileDialogOpen = false;
 int tmp1;
@@ -259,6 +263,14 @@ msclr::gcroot<String^> jsonData = "";
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
 #include "EditorWindow.h"
+
+void CopyRaylibMatrixToFloat16(const RAYLIB::Matrix& mat, float out[16])
+{
+	out[0] = mat.m0;	out[1] = mat.m1;	out[2] = mat.m2;	out[3] = mat.m3;
+	out[4] = mat.m4;	out[5] = mat.m5;	out[6] = mat.m6;	out[7] = mat.m7;
+	out[8] = mat.m8;	out[9] = mat.m9;	out[10] = mat.m10;	out[11] = mat.m11;
+	out[12] = mat.m12;	out[13] = mat.m13;	out[14] = mat.m14;	out[15] = mat.m15;
+}
 
 typedef enum assetDisplay
 {
@@ -384,7 +396,7 @@ EditorWindow::EditorWindow()
 
 	for each (String ^ fileName in Directory::GetFiles("Bin\\Asm\\"))
 	{
-		if (fileName->Contains(".goldasm") || fileName->Contains(".dll"))
+		if (fileName->Contains(".dll"))
 		{
 			String^ path = Directory::GetCurrentDirectory() + "\\" + fileName;
 
@@ -431,58 +443,6 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 			if (ImGui::ColorPicker4("###TINT_SETTER", rawData))
 			{
 				renderer->SetColor(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
-			}
-
-		}
-		break;
-
-		case ObjectType::ModelRenderer: // MODEL RENDERER
-		{
-			Engine::EngineObjects::ModelRenderer^ renderer = Cast::Dynamic<Engine::EngineObjects::ModelRenderer^>(object);
-			unsigned int modelId = renderer->model;
-			unsigned int materialId = renderer->shader;
-			unsigned int textureId = renderer->texture;
-			unsigned long tint = renderer->tint;
-
-			int mId = (int)modelId;
-			int matId = (int)materialId;
-			int texId = (int)textureId;
-
-			ImGui::SeparatorText("Model Renderer");
-			ImGui::Text("Model ID: ");
-			ImGui::SameLine();
-			if (ImGui::InputInt("###MODELID_SETTER", &mId, 1, 1))
-			{
-				renderer->model = (unsigned int)mId;
-			}
-			ImGui::Text("Shader ID: ");
-			ImGui::SameLine();
-			if (ImGui::InputInt("###SHADERID_SETTER", &matId, 1, 1))
-			{
-				renderer->shader = (unsigned int)matId;
-			}
-			ImGui::Text("Texture ID: ");
-			ImGui::SameLine();
-			if (ImGui::InputInt("###TEXTUREID_SETTER", &texId, 1, 1))
-			{
-				renderer->texture = (unsigned int)texId;
-			}
-
-			auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(tint));
-
-			float rawData[4] =
-			{
-				float4.x,
-				float4.y,
-				float4.z,
-				float4.w
-			};
-
-			ImGui::Text("Tint Editor: ");
-			ImGui::SameLine();
-			if (ImGui::ColorPicker4("###TINT_SETTER", rawData))
-			{
-				renderer->SetColorTint(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
 			}
 
 		}
@@ -628,6 +588,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 			ImGui::SeparatorText("Attributes");
 			if (ImGui::BeginListBox("###ATTRIBUTE_LISTBOX", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() - 240 }))
 			{
+				int idx = 0;
 				for each (Engine::Scripting::Attribute ^ attrib in script->attributes->attributes)
 				{
 					if (attrib != nullptr)
@@ -721,13 +682,13 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 							std::string temp = std::string("");
 							if (attrib->getValue() == nullptr)
 							{
-								temp = CastStringToNative("NOT ASSIGNED - (NULL)");
+								temp = CastStringToNative("NOT ASSIGNED - (NULL)###" + idx);
 							}
 							else
 							{
 								Engine::Internal::Components::GameObject^ value = attrib->getValueAs<Engine::Internal::Components::GameObject^>();
 
-								temp = CastStringToNative(value->name + " - (" + GetAccessRoute(value) + ")");
+								temp = CastStringToNative(value->name + " - (" + GetAccessRoute(value) + ")###" + idx);
 							}
 
 							if (ImGui::Button(temp.c_str()))
@@ -769,6 +730,8 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						{
 							ColorEditor(attrib);
 						}
+
+						idx++;
 
 						ImGui::Separator();
 					}
@@ -944,7 +907,7 @@ void EditorWindow::createAssetEntries(String^ path)
 					assetId = std::get<1>(res);
 				}
 
-				auto meshRenderer = gcnew Engine::EngineObjects::ModelRenderer(
+				auto meshRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer(
 					"ModelRenderer",
 					gcnew Engine::Internal::Components::Transform(
 						gcnew Engine::Components::Vector3(0, 0, 0),
@@ -953,9 +916,7 @@ void EditorWindow::createAssetEntries(String^ path)
 						nullptr
 					),
 					assetId,
-					0,
-					0,
-					0xFFFFFFFF
+					0
 				);
 				meshRenderer->SetParent(scene->GetDatamodelMember("workspace"));
 				scene->AddObjectToScene(meshRenderer);
@@ -1203,7 +1164,7 @@ void EditorWindow::Start()
 	{
 		auto secrets = Engine::Config::EngineSecrets::ImportSecrets("./Data/Keys/secrets.dat");
 
-		passwd = CypherLib::GetPasswordBytes(secrets->encryptionPassword);
+		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(secrets->encryptionPassword);
 
 		auto config = Engine::Config::EngineConfiguration::ImportConfig("./Data/appinfo.dat");
 
@@ -1258,7 +1219,7 @@ void EditorWindow::DrawMainMenuBar()
 			{
 				if (ImGui::InputText("###PASSWORD_SETTER", &password))
 				{
-					passwd = CypherLib::GetPasswordBytes(gcnew String(Engine::Config::EngineSecrets::singleton()->encryptionPassword));
+					Engine::Config::EngineSecrets::singleton()->encryptionPassword = gcnew String(password.c_str());
 				}
 
 				ImGui::EndMenu();
@@ -1471,19 +1432,6 @@ void EditorWindow::DrawMainMenuBar()
 					scene->AddObjectToScene(cubeRenderer);
 				}
 
-				if (ImGui::MenuItem("Skybox"))
-				{
-					Engine::EngineObjects::Skybox^ cubeRenderer = gcnew Engine::EngineObjects::Skybox("Skybox",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 1,1,1 }),
-							scene->GetDatamodelMember("workspace")->getTransform()
-						), 1, 0, 0);
-
-					scene->AddObjectToScene(cubeRenderer);
-				}
-
 				ImGui::EndMenu();
 			}
 
@@ -1547,18 +1495,14 @@ void EditorWindow::DrawMainMenuBar()
 				{
 					if (ImGui::MenuItem("ModelRenderer"))
 					{
-						auto modelRenderer = gcnew Engine::EngineObjects::ModelRenderer(
+						auto modelRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer(
 							"ModelRenderer",
 							gcnew Engine::Internal::Components::Transform(
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								scene->GetDatamodelMember("workspace")->getTransform()
-							),
-							0,
-							0,
-							0,
-							0xFFFFFFFF
+							)
 						);
 
 						scene->AddObjectToScene(modelRenderer);
@@ -1566,7 +1510,7 @@ void EditorWindow::DrawMainMenuBar()
 
 					if (ImGui::MenuItem("MeshRenderer"))
 					{
-						auto meshRenderer = gcnew Engine::EngineObjects::MeshRenderer(
+						auto meshRenderer = gcnew Engine::EngineObjects::Geometry::MeshRenderer(
 							"MeshRenderer",
 							gcnew Engine::Internal::Components::Transform(
 								Engine::Components::Vector3::create({ 0,0,0 }),
@@ -1604,7 +1548,7 @@ void EditorWindow::DrawMainMenuBar()
 
 					scene->AddObjectToScene(meshRenderer);
 				}
-
+				/*
 				if (ImGui::MenuItem("Collider"))
 				{
 					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Collider(
@@ -1619,6 +1563,7 @@ void EditorWindow::DrawMainMenuBar()
 
 					scene->AddObjectToScene(meshRenderer);
 				}
+				*/
 #else
 				ImGui::Text("Engine not compiled with physics engine module");
 #endif
@@ -2389,6 +2334,87 @@ void EditorWindow::DrawAssets()
 	if (assetsVisible)
 		ImGui::End();
 }
+
+void EditorWindow::DrawImGuizmo()
+{
+	if (selectedObject == nullptr)
+		return;
+
+	Engine::EngineObjects::Camera^ camera = ObjectManager::singleton()->GetMainCamera(false);
+
+	if (camera == nullptr)
+		return;
+
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 windowSize = ImGui::GetWindowSize();
+
+	ImGuizmo::BeginFrameViewport(windowPos, windowSize);
+
+	ImGuizmo::SetOrthographic(!camera->is3DCamera());
+	ImGuizmo::SetDrawlist();
+
+	float matrix[16];
+	float pos[3] = { selectedObject->transform->position->x, selectedObject->transform->position->y, selectedObject->transform->position->z };
+	float rot[3] = { selectedObject->transform->rotation->x, selectedObject->transform->rotation->y, selectedObject->transform->rotation->z };
+	float sca[3] = { selectedObject->transform->scale->x, selectedObject->transform->scale->y, selectedObject->transform->scale->z };
+
+	float view[16];
+	float projection[16];
+
+	float aspect = Engine::Scripting::Screen::Width / Engine::Scripting::Screen::Height;
+	float nearPlane = camera->nearPlane;
+	float farPlane = camera->farPlane;
+
+	RAYLIB::Matrix projMtx;
+	RAYLIB::Matrix viewMtx = RAYLIB::GetCameraMatrix(*(RAYLIB::Camera*)camera->get());
+
+	if (camera->is3DCamera())
+	{
+		float fovY = camera->fov * DEG2RAD;
+		float top = tanf(fovY / 2.0f) * nearPlane;
+		float right = top * aspect;
+
+		projMtx = RAYMATH::MatrixPerspective(fovY, aspect, nearPlane, farPlane);
+	}
+	else
+	{
+		float width = camera->fov;
+		float height = width / aspect;
+
+		float left = -width / 2;
+		float right = width / 2;
+		float bottom = -height / 2;
+		float top = height / 2;
+
+		projMtx = RAYMATH::MatrixOrtho(left, right, bottom, top, nearPlane, farPlane);
+	}
+
+	ImGuizmo::RecomposeMatrixFromComponents(pos, rot, sca, matrix);
+	ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
+
+	CopyRaylibMatrixToFloat16(viewMtx, view);
+	CopyRaylibMatrixToFloat16(projMtx, projection);
+
+	ImGuizmo::Manipulate(view, projection, mCurrentGizmoOperation, mCurrentGizmoMode, matrix);
+
+	if (ImGuizmo::IsUsing())
+	{
+		ImGuizmo::DecomposeMatrixToComponents(matrix, pos, rot, sca);
+
+		selectedObject->transform->position->x = pos[0];
+		selectedObject->transform->position->y = pos[1];
+		selectedObject->transform->position->z = pos[2];
+
+		selectedObject->transform->rotation->x = rot[0];
+		selectedObject->transform->rotation->y = rot[1];
+		selectedObject->transform->rotation->z = rot[2];
+
+		selectedObject->transform->scale->x = sca[0];
+		selectedObject->transform->scale->y = sca[1];
+		selectedObject->transform->scale->z = sca[2];
+	}
+}
+
 void EditorWindow::DrawImGui()
 {
 	if (!initSettings)
@@ -2424,25 +2450,6 @@ void EditorWindow::DrawImGui()
 
 	if (scenevpVisible && ImGui::Begin("Scene Viewport", &scenevpVisible))
 	{
-		bool showing = showCursor;
-
-		if (IsKeyPressed(KEY_ESCAPE))
-		{
-			showCursor = !showCursor;
-		}
-
-		if (!showCursor)
-		{
-			if (showCursor != showing)
-			{
-				EnableCursor();
-			}
-		}
-		else
-		{
-			DisableCursor();
-		}
-
 		ImGuiStyle style = ImGui::GetStyle();
 
 		ImVec2 oldPadding = style.WindowPadding;
@@ -2463,9 +2470,31 @@ void EditorWindow::DrawImGui()
 		Screen::setHeight(windowSize.y);
 
 		rlImGuiImageRenderTextureCustom(&renderPipeline->framebufferTexturePtr->getInstance(), new int[2] { (int)ImGui::GetWindowSize().x, (int)ImGui::GetWindowSize().y }, new float[2] {17.5f, 35.0f});
+		DrawImGuizmo();
+
+
+		if (ImGui::IsWindowFocused())
+		{
+			if (InputManager::IsKeyPressed(KeyCodes::KEY_ONE))
+			{
+				mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+			}
+
+			if (InputManager::IsKeyPressed(KeyCodes::KEY_TWO))
+			{
+				mCurrentGizmoOperation = ImGuizmo::ROTATE;
+			}
+
+			if (InputManager::IsKeyPressed(KeyCodes::KEY_THREE))
+			{
+				mCurrentGizmoOperation = ImGuizmo::SCALE;
+			}
+		}
 
 		scopedStyle.Reset();
 	}
+	
+	
 	if (scenevpVisible)
 		ImGui::End();
 
@@ -2913,6 +2942,25 @@ void EditorWindow::RegisterKeybinds()
 		{
 			print("[GoldEngine]:", "Saving Scene");
 			SceneManager::SaveSceneToFile(scene, passwd);
+		}
+
+		if (InputManager::IsKeyPressed(KeyCodes::KEY_LEFT_ALT))
+		{
+			showCursor = !showCursor;
+
+			if (!showCursor)
+			{
+				EnableCursor();
+			}
+			else
+			{
+				DisableCursor();
+			}
+		}
+
+		if (InputManager::IsKeyPressed(KeyCodes::KEY_ESCAPE))
+		{
+			selectedObject = nullptr;
 		}
 	}
 
@@ -3479,7 +3527,7 @@ extern "C"
 {
 	DllExport void InitializeGoldEngine()
 	{
-		passwd = CypherLib::GetPasswordBytes(gcnew String(ENCRYPTION_PASSWORD));
+		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(gcnew String(ENCRYPTION_PASSWORD));
 
 #if PRODUCTION_BUILD
 		gcnew GameWindow();
@@ -3494,7 +3542,7 @@ public ref class Bootstrap
 public:
 	static void InitializeGoldEngine()
 	{
-		passwd = CypherLib::GetPasswordBytes(gcnew String(ENCRYPTION_PASSWORD));
+		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(gcnew String(ENCRYPTION_PASSWORD));
 
 #if PRODUCTION_BUILD
 		gcnew GameWindow();

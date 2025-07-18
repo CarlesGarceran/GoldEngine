@@ -20,8 +20,6 @@
 #include "Objects/BoundingBoxRenderer.h"
 #include "Objects/CubeRenderer.h"
 #include "Objects/GridRenderer.h"
-#include "Objects/ModelRenderer.h"
-#include "Objects/Skybox.h"
 
 // last class to be imported, it must access to all the components included \\
 

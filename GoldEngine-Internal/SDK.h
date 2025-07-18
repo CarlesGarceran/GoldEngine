@@ -20,7 +20,6 @@
 #include "Object/Vector3.h"
 #include "Object/Quaternion.h"
 #include "Object/Material.h"
-#include "Object/Color.h"
 #include "Object/Transform.h"
 #include "Object/GameObject.h"
 #include "Object/Locs/ColorLoc.h"

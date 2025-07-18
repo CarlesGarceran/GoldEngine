@@ -1,4 +1,5 @@
 #pragma once
+
 #include "EditorTools/MaterialEditor.h"
 
 public ref class EditorWindow : Engine::Window 
@@ -52,6 +53,8 @@ private:
 	void SpecializedPropertyEditor(Engine::Internal::Components::GameObject^ object);
 
 public:
+	void DrawImGuizmo();
+
 	void Start() override;
 	void DrawImGui() override;
 	void Exit() override;

@@ -18,6 +18,16 @@ typedef enum NativeCollisionType
 	BoundingBox
 };
 
+btCollisionShape* createCollisionBox(float x, float y, float z)
+{
+	return new btBoxShape(btVector3(x, y, z));
+}
+
+btCollisionShape* createCollisionSphere(float radius)
+{
+	return new btSphereShape(radius);
+}
+
 btCollisionShape* createCollisionMesh(RAYLIB::Mesh mesh, int collisionType)
 {
 	btCollisionShape* collisionShape = nullptr;
@@ -37,19 +47,44 @@ btCollisionShape* createCollisionMesh(RAYLIB::Mesh mesh, int collisionType)
 
 		((btConvexHullShape*)collisionShape)->recalcLocalAabb();
 	}
+	else if (collisionType == (int)NativeCollisionType::Concave)
+	{
+		btTriangleMesh* triangleMesh = new btTriangleMesh();
+
+		for (int i = 0; i < mesh.triangleCount; i++)
+		{
+			int index0 = mesh.indices[i * 3];
+			int index1 = mesh.indices[i * 3 + 1];
+			int index2 = mesh.indices[i * 3 + 2];
+
+			btVector3 v0(
+				mesh.vertices[index0 * 3],
+				mesh.vertices[index0 * 3 + 1],
+				mesh.vertices[index0 * 3 + 2]);
+
+			btVector3 v1(
+				mesh.vertices[index1 * 3],
+				mesh.vertices[index1 * 3 + 1],
+				mesh.vertices[index1 * 3 + 2]);
+
+			btVector3 v2(
+				mesh.vertices[index2 * 3],
+				mesh.vertices[index2 * 3 + 1],
+				mesh.vertices[index2 * 3 + 2]);
+
+			triangleMesh->addTriangle(v0, v1, v2);
+		}
+
+		collisionShape = new btBvhTriangleMeshShape(triangleMesh, true);
+	}
+	else if (collisionType == (int)NativeCollisionType::BoundingBox)
+	{
+		RAYLIB::BoundingBox boundingBox = RAYLIB::GetMeshBoundingBox(mesh);
+
+		collisionShape = createCollisionBox(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z);
+	}
 
 	return collisionShape;
-}
-
-
-btCollisionShape* createCollisionBox(float x, float y, float z)
-{
-	return new btBoxShape(btVector3(x, y, z));
-}
-
-btCollisionShape* createCollisionSphere(float radius)
-{
-	return new btSphereShape(radius);
 }
 
 #pragma managed(pop)

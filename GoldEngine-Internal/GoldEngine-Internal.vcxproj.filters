@@ -83,9 +83,6 @@
     <Filter Include="Source\Engine\EngineObjects\ModelRenderer">
       <UniqueIdentifier>{92b2e4ff-c689-440a-b479-e71dc85ba637}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Skybox">
-      <UniqueIdentifier>{b8173c9a-bfdd-4e66-90a9-ad1c6b994373}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines">
       <UniqueIdentifier>{8cd565ea-b573-41fb-ac22-1833499cbb34}</UniqueIdentifier>
     </Filter>
@@ -379,9 +376,6 @@
     <Filter Include="Headers\Engine\EngineObjects\Physics">
       <UniqueIdentifier>{30f886c6-7c83-4622-9974-0536376d7686}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\Physics\Triggers">
-      <UniqueIdentifier>{816d79d0-80ec-4ce8-a696-56cdb7441798}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Physics\Rigidbody">
       <UniqueIdentifier>{7415358c-8dd9-4d33-a6ff-612d86063b3e}</UniqueIdentifier>
     </Filter>
@@ -396,9 +390,6 @@
     </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Private">
       <UniqueIdentifier>{f27cd3d5-0dff-493d-a792-4d6fd823820a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\Skybox">
-      <UniqueIdentifier>{0deda414-d60e-434e-a96b-501333ca1dbc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Renderer Pipelines">
       <UniqueIdentifier>{6837f77a-7d0d-4196-8092-38879a32fb27}</UniqueIdentifier>
@@ -420,6 +411,12 @@
     </Filter>
     <Filter Include="Source\Engine\EngineObjects\Physics\Colliders">
       <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Colliders">
+      <UniqueIdentifier>{816d79d0-80ec-4ce8-a696-56cdb7441798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\ModelRenderer">
+      <UniqueIdentifier>{ef7c848d-cbf2-4100-a0d2-8b8162bd3241}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -476,9 +473,6 @@
     </ClInclude>
     <ClInclude Include="Objects\LightManager.h">
       <Filter>Source\Engine\EngineObjects\Lighting</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\ModelRenderer.h">
-      <Filter>Source\Engine\EngineObjects\ModelRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Objects\ScriptBehaviour.h">
       <Filter>Source\Engine\EngineObjects\Script</Filter>
@@ -1066,7 +1060,7 @@
       <Filter>Headers\Engine\EngineObjects\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Physics\Triggers\Collider.h">
-      <Filter>Headers\Engine\EngineObjects\Physics\Triggers</Filter>
+      <Filter>Headers\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Physics\RigidBody.h">
       <Filter>Headers\Engine\EngineObjects\Physics\Rigidbody</Filter>
@@ -1079,9 +1073,6 @@
     </ClInclude>
     <ClInclude Include="Objects\Private\Scene.h">
       <Filter>Headers\Engine\EngineObjects\Private</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\Skybox.h">
-      <Filter>Headers\Engine\EngineObjects\Skybox</Filter>
     </ClInclude>
     <ClInclude Include="Objects\Pipeline\ScriptableRenderPipeline.hpp">
       <Filter>Headers\Engine\EngineObjects\Renderer Pipelines\Scriptable</Filter>
@@ -1103,6 +1094,12 @@
     </ClInclude>
     <ClInclude Include="AnimationStruct.h">
       <Filter>Headers\Engine\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\Colliders\BoxCollider.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\ModelRenderer\ModelRenderer.hpp">
+      <Filter>Headers\Engine\EngineObjects\ModelRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1292,9 +1289,6 @@
     <ClCompile Include="cimnodes\cimnodes.cpp">
       <Filter>Deps\GUI\cimnodes</Filter>
     </ClCompile>
-    <ClCompile Include="Objects\Skybox.cpp">
-      <Filter>Source\Engine\EngineObjects\Skybox</Filter>
-    </ClCompile>
     <ClCompile Include="Object\Locs\FloatLoc.cpp">
       <Filter>Source\Engine\Object\Locs</Filter>
     </ClCompile>
@@ -1312,6 +1306,12 @@
     </ClCompile>
     <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp">
       <Filter>Source\Engine\EngineObjects\MeshRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\Colliders\BoxCollider.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\ModelRenderer\ModelRenderer.cpp">
+      <Filter>Source\Engine\EngineObjects\ModelRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

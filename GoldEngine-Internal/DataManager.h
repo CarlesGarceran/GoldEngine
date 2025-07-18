@@ -49,6 +49,33 @@ namespace Engine::Internal
 			Engine::Assets::Management::DataPack::singleton()->AddTextures2D(textureId, fileName);
 		}
 
+		// LOADING THROUGH POINTERS \\
+
+		inline static void LoadShader(unsigned int shaderId, RAYLIB::Shader* shader)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, *shader);
+		}
+
+		inline static void LoadModel(unsigned int modelId, RAYLIB::Model* model)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddModel(modelId, *model);
+		}
+
+		inline static void LoadTexture2D(unsigned int textureId, RAYLIB::Texture2D* texture)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddTexture2D(textureId, *texture);
+		}
+
+		inline static void LoadMusic(unsigned int musicId, RAYLIB::Music* music)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddMusic(musicId, *music);
+		}
+
+		inline static void LoadSound(unsigned int soundId, RAYLIB::Sound* sound)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddSound(soundId, *sound);
+		}
+
 		// FREEING \\
 
 		inline static void HL_FreeModels()

@@ -102,7 +102,7 @@ public:
 		printf(" -- Assembly Types -- \n");
 		for each (Type ^ type in loadedAssembly->GetTypes())
 		{
-			if (type->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || type->IsSubclassOf(Engine::Internal::Components::GameObject::typeid))
+			if ((type->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || type->IsSubclassOf(Engine::Internal::Components::GameObject::typeid)) && !type->IsAbstract)
 			{
 				Console::WriteLine("Type Found: " + type->FullName);
 			}
@@ -142,7 +142,7 @@ public:
 			{
 				if (!t->Namespace->IsNullOrEmpty(t->Namespace))
 				{
-					if (t->IsSubclassOf(parentType))
+					if (t->IsSubclassOf(parentType) && !t->IsAbstract)
 					{
 						types->Add(t);
 					}
@@ -164,7 +164,7 @@ public:
 			{
 				if (!t->Namespace->IsNullOrEmpty(t->Namespace))
 				{
-					if (t->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || t->IsSubclassOf(Engine::Internal::Components::GameObject::typeid))
+					if ((t->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || t->IsSubclassOf(Engine::Internal::Components::GameObject::typeid)) && !t->IsAbstract)
 					{
 						types->Add(t);
 					}

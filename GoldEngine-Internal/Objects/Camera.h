@@ -40,7 +40,6 @@ namespace Engine::EngineObjects
 				camera.position = nativeVector;
 			}
 			
-		public:
 			void setCameraTarget(RAYLIB::Vector3 nativeVector)
 			{
 				camera.target = nativeVector;
@@ -73,6 +72,9 @@ namespace Engine::EngineObjects
 	public:
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		CamMode cameraMode;
+
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		float fov = 60;
 
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		float nearPlane = 1.0f;

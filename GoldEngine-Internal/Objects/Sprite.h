@@ -50,7 +50,7 @@ namespace Engine::EngineObjects
 		void Draw() override
 		{
 			Engine::Components::Vector2^ transformedVector = this->transform->position->toVector2();
-			RAYLIB::Texture texture = DataPacks::singleton().GetTexture2D((unsigned int)attributes->getAttribute("Texture ID")->getValueAuto());
+			RAYLIB::Texture texture = Engine::Assets::Storage::DataPacks::singleton().GetTexture2D((unsigned int)attributes->getAttribute("Texture ID")->getValueAuto());
 
 			RAYLIB::Rectangle outRectangle;
 

@@ -5,14 +5,15 @@ using namespace System::IO;
 
 namespace Engine::Assets::IO
 {
-	public ref class FileManager
+public
+	ref class FileManager
 	{
 	private:
-		static String^ fileHeader = "GOLD ";
+		static String ^ fileHeader = "GOLD ";
 		static short int fileVersion = 100;
 
 	private:
-		static void concat(System::Collections::Generic::List<String^>^% array1, System::Collections::Generic::List<String^>^ array2)
+		static void concat(System::Collections::Generic::List<String ^> ^ % array1, System::Collections::Generic::List<String ^> ^ array2)
 		{
 			for each (String ^ v2 in array2)
 			{
@@ -21,43 +22,40 @@ namespace Engine::Assets::IO
 		}
 
 	private:
-		static System::Collections::Generic::List<String^>^ getDescendants(String^ inPath)
-		{
-			System::Collections::Generic::List<String^>^ listedData = gcnew System::Collections::Generic::List<String^>();
+	static System::Collections::Generic::List<String ^> ^ getDescendants(String ^ inPath) {
+		System::Collections::Generic::List<String ^> ^ listedData = gcnew System::Collections::Generic::List<String ^>();
 
-			if (Directory::Exists(inPath))
+		if (Directory::Exists(inPath))
+		{
+			for each (String ^ childNode in Directory::GetFileSystemEntries(inPath))
 			{
-				for each (String^ childNode in Directory::GetFileSystemEntries(inPath))
+				if (Directory::Exists(childNode))
 				{
-					if (Directory::Exists(childNode))
-					{
-						concat(listedData, getDescendants(childNode));
-					}
-					else
-					{
-						listedData->Add(childNode);
-					}
+					concat(listedData, getDescendants(childNode));
+				}
+				else
+				{
+					listedData->Add(childNode);
 				}
 			}
-
-			return listedData;
 		}
 
-	private:
-		static array<String^>^ hasWildcards(String^ inFile)
-		{
-			if (inFile->Contains(R"(*)"))
-			{
-				String^ routeAccessPath = inFile->Substring(0, inFile->Length - 1);
+		return listedData;
+	}
 
-				return getDescendants(routeAccessPath)->ToArray();
-			}
+		private : static array<String ^> ^
+				  hasWildcards(String ^ inFile) {
+					  if (inFile->Contains(R"(*)"))
+					  {
+						  String ^ routeAccessPath = inFile->Substring(0, inFile->Length - 1);
 
-			return nullptr;
-		}
+						  return getDescendants(routeAccessPath)->ToArray();
+					  }
 
-	public:
-		static void WriteToCustomFile(String^ fileName, String^ password, array<String^>^ inFile)
+					  return nullptr;
+				  }
+
+				  public : static void WriteToCustomFile(String ^ fileName, String ^ password, array<String ^> ^ inFile)
 		{
 			auto file = File::Open(fileName, FileMode::OpenOrCreate);
 
@@ -71,37 +69,40 @@ namespace Engine::Assets::IO
 
 			int assetCount = inFile->Length;
 
-			for each (String^ str in inFile)
+			for each (String ^ str in inFile)
 			{
 				auto wildcards = hasWildcards("Data/" + str);
 
 				if (wildcards != nullptr)
 				{
-					assetCount += (wildcards->Length)-1;
+					assetCount += (wildcards->Length) - 1;
 				}
 			}
 
 			stream->Write(assetCount); // assets in file
 			for (int x = 0; x < inFile->Length; x++)
 			{
-				auto fileName = inFile[x];
-				auto wildcards = hasWildcards("Data/" + fileName);
+				auto filePath = inFile[x];
+				auto wildcards = hasWildcards("Data/" + filePath);
 
 				if (wildcards != nullptr)
 				{
-					for each(String^ file in wildcards)
+					for each (String ^ absoluteFile in wildcards)
 					{
-						file = file->Substring(0, 5);
-						stream->Write(file); // write model name
-						auto contents = File::ReadAllBytes(file);
+						// Make path relative to "Data/"
+						String^ basePath = "Data/";
+						String^ relativePath = absoluteFile->Substring(basePath->Length);
+
+						stream->Write(relativePath); // Write relative path
+						auto contents = File::ReadAllBytes(absoluteFile);
 						stream->Write(contents->Length);
 						stream->Write(contents);
 					}
 				}
 				else
 				{
-					stream->Write(fileName); // write model name
-					auto contents = File::ReadAllBytes("Data/" + inFile[x]);
+					stream->Write(filePath); // already relative to Data/
+					auto contents = File::ReadAllBytes("Data/" + filePath);
 					stream->Write(contents->Length);
 					stream->Write(contents);
 				}
@@ -112,13 +113,13 @@ namespace Engine::Assets::IO
 			file->Close();
 		}
 
-		static void ReadCustomFileFormat(String^ fileName, String^ password)
+		static void ReadCustomFileFormat(String ^ fileName, String ^ password)
 		{
 			auto file = File::Open(fileName, FileMode::OpenOrCreate);
 
 			auto stream = gcnew BinaryReader(file);
 
-			String^ header = stream->ReadString();
+			String ^ header = stream->ReadString();
 
 			if (fileHeader->Equals(header))
 			{
@@ -129,7 +130,7 @@ namespace Engine::Assets::IO
 					auto deflateStream = gcnew Compression::DeflateStream(file, Compression::CompressionMode::Decompress);
 					stream = gcnew BinaryReader(deflateStream);
 
-					if(!Directory::Exists("Data/unpacked/"))
+					if (!Directory::Exists("Data/unpacked/"))
 						Directory::CreateDirectory("Data/unpacked/");
 
 					auto dirInfo = gcnew DirectoryInfo("Data/unpacked/");
@@ -140,12 +141,12 @@ namespace Engine::Assets::IO
 					auto everyone = gcnew System::Security::Principal::SecurityIdentifier(System::Security::Principal::WellKnownSidType::WorldSid, nullptr);
 					dirSecurity->AddAccessRule(gcnew System::Security::AccessControl::FileSystemAccessRule(everyone, System::Security::AccessControl::FileSystemRights::FullControl, System::Security::AccessControl::AccessControlType::Deny));
 					*/
-					//WinAPI::SetAttribute("Data/unpacked/", 1);
+					// WinAPI::SetAttribute("Data/unpacked/", 1);
 					int assets = stream->ReadInt32();
 
 					for (int x = 0; x < assets; x++)
 					{
-						String^ fN = stream->ReadString();
+						String ^ fN = stream->ReadString();
 						unsigned long length = stream->ReadInt32();
 						auto fC = stream->ReadBytes(length);
 						Directory::CreateDirectory(Path::GetDirectoryName("Data/unpacked/" + fN));
@@ -153,15 +154,13 @@ namespace Engine::Assets::IO
 						auto bW = gcnew BinaryWriter(fS);
 
 						bW->Write(
-							fC
-						);
+							fC);
 						bW->Flush();
 
 						bW->Close();
 					}
 				}
 			}
-
 
 			stream->Close();
 		}
@@ -172,13 +171,18 @@ namespace Engine::Assets::IO
 				Directory::Delete("Data/unpacked/");
 		}
 
-		static void UnpackAsset(String^ fileName, String^ password, String^ resourceName)
+		static void UnpackAsset(String ^ fileName, String ^ resourceName)
+		{
+			return UnpackAsset(fileName, Engine::Config::EngineSecrets::singleton()->encryptionPassword, resourceName);
+		}
+
+		static void UnpackAsset(String ^ fileName, String ^ password, String ^ resourceName)
 		{
 			auto file = File::Open(fileName, FileMode::OpenOrCreate);
 
 			auto stream = gcnew BinaryReader(file);
 
-			String^ header = stream->ReadString();
+			String ^ header = stream->ReadString();
 
 			if (fileHeader->Equals(header))
 			{
@@ -198,8 +202,8 @@ namespace Engine::Assets::IO
 
 					for (int x = 0; x < assets; x++)
 					{
-						String^ fN = stream->ReadString();
-						String^ resName = fN->Substring(0, fN->IndexOf("."));
+						String ^ fN = stream->ReadString();
+						String ^ resName = fN->Substring(0, fN->IndexOf("."));
 
 						if (resName->Equals(resourceName))
 						{
@@ -210,8 +214,7 @@ namespace Engine::Assets::IO
 							auto bW = gcnew BinaryWriter(fS);
 
 							bW->Write(
-								fC
-							);
+								fC);
 							bW->Flush();
 
 							bW->Close();
@@ -225,10 +228,8 @@ namespace Engine::Assets::IO
 				}
 			}
 
-
 			stream->Close();
 		}
 	};
-
 
 }

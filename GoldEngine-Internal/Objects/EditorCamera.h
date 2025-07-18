@@ -16,6 +16,7 @@ namespace Engine::EngineObjects::Editor
 		void Update() override
 		{
 			this->transform->position = Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().position);
+			nativeCamera->get().fovy = fov;
 			
 			if (attributes->hasAttribute("camera direction"))
 			{

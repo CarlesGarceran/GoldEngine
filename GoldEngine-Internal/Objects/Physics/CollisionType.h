@@ -2,11 +2,33 @@
 
 #ifdef USE_BULLET_PHYS
 
-public enum class CollisionType
+namespace Engine::EngineObjects::Physics::Enums
 {
-	Concave,
-	Convex,
-	BoundingBox
-};
+	public enum class CollisionType
+	{
+		Concave,
+		Convex,
+		BoundingBox
+	};
+
+	public enum class ColliderShape
+	{
+		Box,
+		Sphere,
+		Mesh
+	};
+
+	public enum class ColliderType
+	{
+		Collider,
+		Trigger
+	};
+
+	public enum class ForceMode
+	{
+		Impulse,
+		Force
+	};
+}
 
 #endif

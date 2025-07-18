@@ -394,6 +394,8 @@
     <ClInclude Include="Objects\EditorCamera.h" />
     <ClInclude Include="Objects\EditorPlugin.h" />
     <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h" />
+    <ClInclude Include="Objects\ModelRenderer\ModelRenderer.hpp" />
+    <ClInclude Include="Objects\Physics\Colliders\BoxCollider.h" />
     <ClInclude Include="Objects\Physics\CollisionType.h" />
     <ClInclude Include="Objects\Physics\PhysicsService.h" />
     <ClInclude Include="Objects\Physics\RigidBody.h" />
@@ -404,10 +406,8 @@
     <ClInclude Include="Objects\LightDm.h" />
     <ClInclude Include="Objects\LightManager.h" />
     <ClInclude Include="Objects\LuaScript.h" />
-    <ClInclude Include="Objects\ModelRenderer.h" />
     <ClInclude Include="Objects\Pipeline\ScriptableRenderPipeline.hpp" />
     <ClInclude Include="Objects\ScriptBehaviour.h" />
-    <ClInclude Include="Objects\Skybox.h" />
     <ClInclude Include="Objects\Sprite.h" />
     <ClInclude Include="Objects\UI\Button.h" />
     <ClInclude Include="Objects\UI\Image.h" />
@@ -505,13 +505,14 @@
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="Objects\Audio\AudioSource.cpp" />
     <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp" />
+    <ClCompile Include="Objects\ModelRenderer\ModelRenderer.cpp" />
+    <ClCompile Include="Objects\Physics\Colliders\BoxCollider.cpp" />
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\PhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\RigidBody.cpp" />
     <ClCompile Include="Objects\Physics\Triggers\Collider.cpp" />
     <ClCompile Include="Objects\Pipeline\ScriptableRenderPipeline.cpp" />
     <ClCompile Include="Objects\Private\Scene.cpp" />
-    <ClCompile Include="Objects\Skybox.cpp" />
     <ClCompile Include="Objects\UI\RenderSurface3D.cpp" />
     <ClCompile Include="Object\Color.cpp" />
     <ClCompile Include="Object\GameObject.cpp" />
@@ -773,17 +774,6 @@
     <None Include="imgui\misc\debuggers\imgui.gdb" />
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="Objects\Physics\Native\NativePhysicsService.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Solutions\API\raylib\build\x64\raylib\external\glfw\src\glfw.vcxproj">
-      <Project>{c91df341-6aba-37da-a77f-5c7366f8b376}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Solutions\API\raylib\build\x86\raylib\external\glfw\src\glfw.vcxproj">
-      <Project>{bc9b5eb3-da41-317c-80c3-02d41eb178f7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Solutions\API\raylib\build\x86\raylib\raylib.vcxproj">
-      <Project>{f9b3c4ed-8979-33ea-bf8f-f8408abdd508}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\misc\README.txt" />

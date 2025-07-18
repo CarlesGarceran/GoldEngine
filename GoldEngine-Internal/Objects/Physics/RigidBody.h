@@ -10,12 +10,6 @@
 
 namespace Engine::EngineObjects::Physics
 {
-	public enum class ForceMode
-	{
-		Impulse,
-		Force
-	};
-
 	public ref class RigidBody : Engine::EngineObjects::Script
 	{
 	private:
@@ -23,11 +17,13 @@ namespace Engine::EngineObjects::Physics
 		void onModelIdChanged(unsigned int newValue, unsigned int oldValue);
 		void onMeshIdChanged(unsigned int newValue, unsigned int oldValue);
 
+		void onMassChanged(float newValue, float oldValue);
+
 	public:
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		GameObject^ hookedObject;
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
-		CollisionType collisionType;
+		Enums::CollisionType collisionType;
 
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		unsigned int modelId;
@@ -35,17 +31,22 @@ namespace Engine::EngineObjects::Physics
 		unsigned int meshId;
 
 	public:
+		// RIGIDBODY PROPERTIES
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float mass;
+
+	public:
 		RigidBody(String^ name, Engine::Internal::Components::Transform^ transform);
 
 		void Start() override;
 
 		void Update() override;
+		void Draw() override;
 
 		void OnInactive() override;
 		void OnActive() override;
 
-		void AddForce(Engine::Components::Vector3^ position, ForceMode mode);
-		void addForce(Engine::Components::Vector3^ position, ForceMode mode) { return AddForce(position, mode); }
+		void AddForce(Engine::Components::Vector3^ position, Enums::ForceMode mode);
+		void addForce(Engine::Components::Vector3^ position, Enums::ForceMode mode) { return AddForce(position, mode); }
 
 		btRigidBody* getRigidBody();
 

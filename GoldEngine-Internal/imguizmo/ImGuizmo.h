@@ -125,6 +125,7 @@ namespace IMGUIZMO_NAMESPACE
 
    // call BeginFrame right after ImGui_XXXX_NewFrame();
    IMGUI_API void BeginFrame();
+   IMGUI_API void BeginFrameViewport(ImVec2 viewportPos, ImVec2 viewportSize);
 
    // this is necessary because when imguizmo is compiled into a dll, and imgui into another
    // globals are not shared between them.

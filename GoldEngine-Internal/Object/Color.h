@@ -32,6 +32,7 @@ namespace Engine::Components
 		std::array<float, 4> toFloat();
 		unsigned int% toHex();
 
+		void updateHexColor();
 		void setHex(unsigned int value);
 		void SetHex(unsigned int value) { this->setHex(value); }
 

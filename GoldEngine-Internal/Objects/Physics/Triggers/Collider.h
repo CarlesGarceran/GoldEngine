@@ -4,25 +4,14 @@
 
 namespace Engine::EngineObjects::Physics
 {
-	public enum class ColliderShape
+	public ref class Collider abstract : Engine::EngineObjects::Script
 	{
-		Box,
-		Sphere,
-		Mesh
-	};
+	protected:
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)]
+		Enums::ColliderShape colliderShape;
+		bool registered = false;
 
-	public enum class ColliderType
-	{
-		Collider,
-		Trigger
-	};
-
-	public ref class Collider : Engine::EngineObjects::Script
-	{
 	public:
-		[Engine::Scripting::PropertyAttribute]
-		ColliderShape colliderShape;
-
 		[Engine::Scripting::PropertyAttribute]
 		Engine::Components::Color^ wireColor;
 
@@ -30,20 +19,28 @@ namespace Engine::EngineObjects::Physics
 		bool renderWires = false;
 
 		[Engine::Scripting::PropertyAttribute]
-		ColliderType collisionType;
+		Enums::ColliderType collisionType;
+		/*
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		unsigned int modelId;
 
+		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		unsigned int meshIndex;
+		*/
 	private:
-		bool registered = false;
-
+		/*
+		Engine::Native::EnginePtr<RAYLIB::Model>* modelInstance = nullptr;
+		Engine::Native::EnginePtr<RAYLIB::Mesh>* meshInstance = nullptr;
+		*/
 	private:
-		void onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape);
+		void onColliderShapeChanged(Enums::ColliderShape newShape, Enums::ColliderShape oldShape);
 
 	public:
 		Collider(String^ name, Engine::Internal::Components::Transform^ transform);
 
-		void Start() override;
-		void DrawGizmo() override;
-		void Update() override;
+		virtual void Start() override;
+		virtual void DrawGizmo() override;
+		[Engine::Attributes::ExecuteInEditModeAttribute] void Update() override;
 	};
 }
 

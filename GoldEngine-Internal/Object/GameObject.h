@@ -6,7 +6,7 @@ namespace Engine::Internal::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
-	public ref class GameObject
+		public ref class GameObject
 	{
 	private:
 #ifdef USE_BULLET_PHYS
@@ -197,6 +197,7 @@ namespace Engine::Internal::Components
 		void RemoveCoroutine(System::Collections::IEnumerator^ coroutine);
 		void CleanCoroutines();
 
+		static void Destroy(GameObject^ instance);
 		static GameObject^ Instantiate(GameObject^ instance);
 		static GameObject^ Instantiate(GameObject^ instance, Transform^ parent);
 

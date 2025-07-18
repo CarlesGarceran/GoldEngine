@@ -3,7 +3,6 @@
 #ifdef USE_BULLET_PHYS
 
 #include "CollisionType.h"
-#include "../ModelRenderer.h"
 #include "Native/NativePhysicsService.h"
 #include "RigidBody.h"
 #include "PhysicsService.h"
@@ -14,12 +13,24 @@ using namespace Engine::EngineObjects::Physics::Native;
 
 #pragma managed(push, off)
 
-btRigidBody* createPhysBody(std::array<float,3> originPosition)
+void disposeRigidBody(btRigidBody* rigidBody)
 {
-	btScalar mass(1.0f);
+	if (!rigidBody) return;
 
-	//btCollisionShape* collisionShape = physicsService->getCollisionShapeFromID(this->modelId, this->meshId, (int)this->collisionType);
+	btMotionState* motionState = rigidBody->getMotionState();
+	if (motionState)
+		delete motionState;
 
+	btCollisionShape* shape = rigidBody->getCollisionShape();
+	if (shape)
+		delete shape;
+
+
+	delete rigidBody;
+}
+
+btRigidBody* createPhysBody(std::array<float,3> originPosition, float mass)
+{
 	btCollisionShape* collisionShape = new btBoxShape(btVector3(1, 1, 1)); 
 	btVector3 inertia(0, 0, 0);
 
@@ -58,10 +69,16 @@ std::array<float, 3> getVector(btRigidBody* rigidBody)
 
 void setVector(btRigidBody* rigidBody, float x, float y, float z)
 {
-	btTransform _transform;
-	rigidBody->getMotionState()->getWorldTransform(_transform);
+	if (rigidBody == nullptr)
+		return;
 
-	_transform.setOrigin(btVector3(x,y,z));
+	btTransform transform;
+	rigidBody->getMotionState()->getWorldTransform(transform);
+
+	transform.setOrigin(btVector3(x, y, z));
+
+	rigidBody->getMotionState()->setWorldTransform(transform);
+	rigidBody->setWorldTransform(transform);
 }
 
 void _addForce(btRigidBody* rigidBody, float x, float y, float z, int forceMode)
@@ -88,7 +105,7 @@ void RigidBody::createRigidBody()
 {
 	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
 
-	rigidBody = createPhysBody({ transform->position->x, transform->position->y, transform->position->z });
+	rigidBody = createPhysBody({ transform->position->x, transform->position->y, transform->position->z }, mass);
 
 	// Add it to the service
 	Singleton<PhysicsService^>::Instance->AddPhysicsObject(this);
@@ -98,6 +115,8 @@ void RigidBody::createRigidBody()
 		attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew System::Action<unsigned int, unsigned int>(this, &RigidBody::onModelIdChanged));
 	if (attributes->hasAttribute("meshId"))
 		attributes->getAttribute("meshId")->onPropertyChanged->connect(gcnew System::Action<unsigned int, unsigned int>(this, &RigidBody::onMeshIdChanged));
+	if (attributes->hasAttribute("mass"))
+		attributes->getAttribute("mass")->onPropertyChanged->connect(gcnew System::Action<float, float>(this, &RigidBody::onMassChanged));
 }
 
 void RigidBody::onModelIdChanged(unsigned int newValue, unsigned int oldValue)
@@ -110,12 +129,19 @@ void RigidBody::onMeshIdChanged(unsigned int newValue, unsigned int oldValue)
 	PhysicsService^ physicsService = Singleton<PhysicsService^>::Instance;
 }
 
+void Engine::EngineObjects::Physics::RigidBody::onMassChanged(float newValue, float oldValue)
+{
+	Singleton<PhysicsService^>::Instance->RemovePhysicsObject(this);
+
+	disposeRigidBody(rigidBody);
+}
+
 RigidBody::RigidBody(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
 {
 	if (!Singleton<PhysicsService^>::Instantiated)
 		return;
 
-	collisionType = CollisionType::Convex;
+	collisionType = Enums::CollisionType::Convex;
 	meshId = 0;
 	modelId = 0;
 	hookedObject = nullptr;
@@ -135,13 +161,11 @@ void RigidBody::Start()
 
 void RigidBody::Update()
 {
-	if (!Singleton<PhysicsService^>::Instantiated || hookedObject == nullptr || this->rigidBody == nullptr)
-		if (!Singleton<PhysicsService^>::Instantiated)
-			return;
-		else if (hookedObject == nullptr)
-			return;
-		else if (this->rigidBody == nullptr)
-			createRigidBody();
+	if (!Singleton<PhysicsService^>::Instantiated || hookedObject == nullptr)
+		return;
+	
+	if (this->rigidBody == nullptr)
+		createRigidBody();
 
 	if (!rigidBody->isActive())
 		printError("Rigidbody not active");
@@ -153,6 +177,11 @@ void RigidBody::Update()
 	transform->position->z = data[2];
 
 	hookedObject->transform->position->copy(transform->position);
+}
+
+void Engine::EngineObjects::Physics::RigidBody::Draw()
+{
+	setVector(rigidBody, transform->position->x, transform->position->y, transform->position->z);
 }
 
 void RigidBody::OnInactive()
@@ -169,7 +198,7 @@ void RigidBody::OnInactive()
 	setVector(rigidBody, (float)transform->position->x, (float)transform->position->y, (float)transform->position->z);
 }
 
-void RigidBody::AddForce(Engine::Components::Vector3^ position, ForceMode mode)
+void RigidBody::AddForce(Engine::Components::Vector3^ position, Enums::ForceMode mode)
 {
 	if (rigidBody == nullptr)
 		return;

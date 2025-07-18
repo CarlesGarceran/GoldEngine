@@ -380,13 +380,12 @@ System::Object^ GameObject::CastToType(Type^ T, bool useConvert)
 
 void Engine::Internal::Components::GameObject::Destroy()
 {
+	Singleton<Engine::Scripting::ObjectManager^>::Instance->Destroy(this);
+
 #ifdef USE_BULLET_PHYS
 	if(collisionShape != nullptr)
 		delete collisionShape;
 #endif
-
-	Dispose(true);
-	System::GC::SuppressFinalize(this);
 }
 
 
@@ -441,6 +440,11 @@ void Engine::Internal::Components::GameObject::RemoveCoroutine(System::Collectio
 void Engine::Internal::Components::GameObject::CleanCoroutines()
 {
 	this->coroutines->Clear();
+}
+
+void Engine::Internal::Components::GameObject::Destroy(GameObject^ instance)
+{
+	Singleton<Engine::Scripting::ObjectManager^>::Instance->Destroy(instance);
 }
 
 GameObject^ GameObject::Instantiate(GameObject^ instance)
