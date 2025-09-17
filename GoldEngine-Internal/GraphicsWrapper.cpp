@@ -1,3 +1,4 @@
+/*
 #include "Includes.h"
 #include "CastToNative.h"
 #include "GlIncludes.h"
@@ -42,7 +43,7 @@ RenderTexture& GraphicsWrapper::GL_GetDepthTexture(int width, int height)
 
 		RLGL::rlDisableFramebuffer();
 	}
-	else 
+	else
 		printWarning(gcnew String("FBO: Framebuffer object can not be created"));
 
 	return target;
@@ -100,14 +101,14 @@ void GraphicsWrapper::GL_LoadDepthTexture(RAYLIB::RenderTexture& renderTexture, 
 	renderTexture.depth.id = RLGL::rlLoadTextureDepth(width, height, renderBuffer);
 }
 
-void GraphicsWrapper::GL_DrawModel(RAYLIB::Model& model, Engine::Components::Vector3^ position, float scale, Engine::Components::Color^ color)
+void GraphicsWrapper::GL_DrawModel(RAYLIB::Model& model, Engine::Components::Vector3 position, float scale, Engine::Components::Color^ color)
 {
-	RAYLIB::DrawModel(model, position->toNative(), scale, color->toNative());
+	RAYLIB::DrawModel(model, position.toNative(), scale, color->toNative());
 }
 
-void GraphicsWrapper::GL_DrawTexture(RAYLIB::Texture& texture, Engine::Components::Vector2^ position, Engine::Components::Color^ color)
+void GraphicsWrapper::GL_DrawTexture(RAYLIB::Texture& texture, Engine::Components::Vector2 position, Engine::Components::Color^ color)
 {
-	RAYLIB::DrawTexture(texture, position->x, position->y, color->toNative());
+	RAYLIB::DrawTexture(texture, position.x, position.y, color->toNative());
 }
 
 void GraphicsWrapper::GL_UnloadModel(RAYLIB::Model& model)
@@ -155,9 +156,9 @@ void GraphicsWrapper::GL_ClearBackground(Engine::Components::Color^ color)
 	RAYLIB::ClearBackground(color->toNative());
 }
 
-void GraphicsWrapper::GL_DrawFPS(Engine::Components::Vector2^ position)
+void GraphicsWrapper::GL_DrawFPS(Engine::Components::Vector2 position)
 {
-	RAYLIB::DrawFPS(position->x, position->y);
+	RAYLIB::DrawFPS(position.x, position.y);
 }
 
 void GraphicsWrapper::GL_BeginBlendMode(rlWrapper::BlendMode mode)
@@ -170,9 +171,9 @@ void GraphicsWrapper::GL_EndBlendMode()
 	RAYLIB::EndBlendMode();
 }
 
-void GraphicsWrapper::GL_DrawRectangleLines(Engine::Components::Vector2^ position, Engine::Components::Vector2^ scale, Engine::Components::Color^ color)
+void GraphicsWrapper::GL_DrawRectangleLines(Engine::Components::Vector2 position, Engine::Components::Vector2 scale, Engine::Components::Color^ color)
 {
-	RAYLIB::DrawRectangleLines(position->x, position->y, scale->x, scale->y, color->toNative());
+	RAYLIB::DrawRectangleLines(position.x, position.y, scale->x, scale->y, color->toNative());
 }
 
 void GraphicsWrapper::GL_DrawRectangle(int x, int y, int width, int height, Engine::Components::Color^ color)
@@ -180,12 +181,12 @@ void GraphicsWrapper::GL_DrawRectangle(int x, int y, int width, int height, Engi
 	RAYLIB::DrawRectangle(x, y, width, height, color->toNative());
 }
 
-void GraphicsWrapper::GL_DrawRectangleV(Engine::Components::Vector2^ position, Engine::Components::Vector2^ scale, Engine::Components::Color^ color)
+void GraphicsWrapper::GL_DrawRectangleV(Engine::Components::Vector2 position, Engine::Components::Vector2 scale, Engine::Components::Color^ color)
 {
-	RAYLIB::DrawRectangleV(position->toNative(), scale->toNative(), color->toNative());
+	RAYLIB::DrawRectangleV(position.toNative(), scale->toNative(), color->toNative());
 }
 
-void GraphicsWrapper::GL_DrawLine(Engine::Components::Vector2^ origin, Engine::Components::Vector2^ dest, Engine::Components::Color^ color)
+void GraphicsWrapper::GL_DrawLine(Engine::Components::Vector2 origin, Engine::Components::Vector2 dest, Engine::Components::Color^ color)
 {
 	RAYLIB::DrawLine(origin->x, origin->y, dest->x, dest->y, color->toNative());
 }
@@ -238,3 +239,4 @@ RAYLIB::Shader& GraphicsWrapper::GL_GetShader(unsigned int id)
 {
 	return Engine::Assets::Storage::DataPacks::singleton().GetShader(id);
 }
+*/

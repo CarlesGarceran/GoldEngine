@@ -18,9 +18,9 @@ namespace Engine::Signals
 
 	public delegate bool LuaSignal(System::String^);
 
-	public delegate System::Object^ LuaSignal_V2(DynValue^);
+	public delegate System::Object^ LuaSignal_V2(MoonSharp::Interpreter::DynValue^);
 
-	public delegate System::Object^ LuaSignal_V3(cli::array<DynValue^>^);
+	public delegate System::Object^ LuaSignal_V3(cli::array<MoonSharp::Interpreter::DynValue^>^);
 
 	generic<typename T>
 	public delegate T SignalWithArgs(cli::array<System::Object^>^);
@@ -112,7 +112,7 @@ namespace Engine::Signals
 
 		void Bind(Engine::Lua::VM::LuaVM^ vmInstance, System::String^ funcName)
 		{
-			DynValue^ temp = vmInstance->GetScriptState()->Globals->Get(funcName);
+			MoonSharp::Interpreter::DynValue^ temp = vmInstance->GetScriptState()->Globals->Get(funcName);
 			invoker = funcName;
 
 			if (temp->Type == DataType::Function)

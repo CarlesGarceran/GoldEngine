@@ -4,7 +4,7 @@ namespace Engine::EngineObjects::Geometry
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
-	public ref class ModelRenderer : Engine::EngineObjects::Script
+	public ref class ModelRenderer : public Engine::EngineObjects::Geometry::Abstract::Renderer
 	{
 	private:
 		Engine::Native::EnginePtr<RAYLIB::Model>* model;
@@ -17,6 +17,7 @@ namespace Engine::EngineObjects::Geometry
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ tint;
 
 	public:
+		ModelRenderer();
 		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform);
 		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId);
 		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId, Engine::Components::Color^ tint);
@@ -26,6 +27,8 @@ namespace Engine::EngineObjects::Geometry
 		void Draw() override;
 
 		void Destroy() override;
+
+		RAYLIB::Model& GetModel() override;
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);

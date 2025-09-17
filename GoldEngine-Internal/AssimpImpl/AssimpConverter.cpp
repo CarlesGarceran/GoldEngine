@@ -147,10 +147,15 @@ void AssimpConverter::CreateMesh(unsigned int flags, std::string format)
     this->scene = impl.ReadFile(this->FileName, flags);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
         printf("Error loading model: %s\n", impl.GetErrorString());
+        return;
+    }
 
     if (!scene->HasMeshes())
+    {
         printf("The loaded scene has no meshes");
+    }
 
     for (int x = 0; x < scene->mNumMaterials; x++)
     {
@@ -165,10 +170,15 @@ void AssimpConverter::CreateMesh(unsigned int flags, std::string outputPath, std
     this->scene = impl.ReadFile(this->FileName, flags);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
         printf("Error loading model: %s\n", impl.GetErrorString());
+        return;
+    }
 
     if (!scene->HasMeshes())
+    {
         printf("The loaded scene has no meshes");
+    }
 
     for (int x = 0; x < scene->mNumMaterials; x++)
     {
@@ -189,6 +199,7 @@ void AssimpConverter::ConvertToRaylibMesh()
 {
     const unsigned int meshCount = this->scene->mNumMeshes;
     this->temporalMesh = new RAYLIB::Mesh[meshCount];
+    this->meshCount = meshCount;
 
     for (int x = 0; x < meshCount; x++)
     {
@@ -203,7 +214,7 @@ RAYLIB::Mesh* AssimpConverter::GetMeshes()
 
 unsigned int AssimpConverter::GetMeshCount()
 {
-    return (sizeof(this->temporalMesh) / sizeof(RAYLIB::Mesh));
+    return this->meshCount;
 }
 
 RAYLIB::Model& AssimpConverter::CreateModel()

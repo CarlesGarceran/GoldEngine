@@ -12,11 +12,15 @@ namespace Engine::Components
 		unsigned int layerBlendFlags;
 
 	public:
+		Layer();
 		Layer(int mask, System::String^ name);
+		Layer(int mask, System::String^ name, unsigned int layerBlendFlags);
 
 		void setLayerBlendFlags(unsigned int flags);
 		unsigned int getLayerBlendFlags();
 
 		bool IsLayer(Layer^ layerB);
+
+		System::String^ ToString() override;
 	};
 }

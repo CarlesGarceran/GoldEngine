@@ -4,166 +4,244 @@ namespace Engine::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
-	public ref class Vector3 : Engine::Interfaces::IInstantiable<Vector3^>
+	public value class Vector3
 	{
-	public:
-		float x, y, z;
+	private:
+		[Newtonsoft::Json::JsonPropertyAttribute]
+		float _x, _y, _z;
 
 	public:
-		[[JsonConstructorAttribute]]
-		Vector3(float, float, float);
-		Vector3();
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property float x
+		{
+			float get() { return _x; }
+			void set(float value) { _x = value; }
+		}
 
-		Engine::Components::Vector2^ toVector2();
-		System::Numerics::Vector3^ toNumericsVector3();
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property float y
+		{
+			float get() { return _y; }
+			void set(float value) { _y = value; }
+		}
+
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		property float z
+		{
+			float get() { return _z; }
+			void set(float value) { _z = value; }
+		}
+
+		property float Magnitude
+		{
+			float get() { return this->magnitude(); }
+		}
+
+	public:
+		Vector3(float x, float y, float z);
+
+		Engine::Components::Vector2 toVector2();
+		System::Numerics::Vector3 toNumericsVector3();
 
 		void Set(float x, float y, float z);
-
+		void Set(RAYLIB::Vector3 v);
 		void Set(float* v);
 
 		RAYLIB::Vector3 toNative();
 
 		RAYLIB::Color toColor();
 
-		Vector3^ add(Vector3^ origin);
-		Vector3^ add(float x, float y, float z) 
+		Vector3 add(Vector3 origin);
+		Vector3 add(float x, float y, float z) 
 		{
-			return add(gcnew Engine::Components::Vector3(x, y, z));
+			return add(Engine::Components::Vector3(x, y, z));
 		}
-		Vector3^ add(float x)
+		Vector3 add(float x)
 		{
 			return add(x, x, x);
 		}
 
-		Vector3^ multiply(Vector3^ origin);
-		Vector3^ multiply(float x, float y, float z)
+		Vector3 multiply(Vector3 origin);
+		Vector3 multiply(float x, float y, float z)
 		{
-			return multiply(gcnew Engine::Components::Vector3(x, y, z));
+			return multiply(Engine::Components::Vector3(x, y, z));
 		}
-		Vector3^ multiply(float x)
+		Vector3 multiply(float x)
 		{
 			return multiply(x, x, x);
 		}
 
-		Vector3^ divide(Vector3^ origin);
-		Vector3^ divide(float x, float y, float z) 
+		Vector3 divide(Vector3 origin);
+		Vector3 divide(float x, float y, float z) 
 		{
-			return divide(gcnew Engine::Components::Vector3(x, y, z));
+			return divide(Engine::Components::Vector3(x, y, z));
 		}
-		Vector3^ divide(float x)
+		Vector3 divide(float x)
 		{
 			return divide(x, x, x);
 		}
 
-		Vector3^ sub(Vector3^ origin);
-		Vector3^ sub(float x, float y, float z)
+		Vector3 sub(Vector3 origin);
+		Vector3 sub(float x, float y, float z)
 		{
-			return sub(gcnew Engine::Components::Vector3(x, y, z));
+			return sub(Engine::Components::Vector3(x, y, z));
 		}
-		Vector3^ sub(float x)
+		Vector3 sub(float x)
 		{
 			return sub(x, x, x);
 		}
 
-		void copy(const Vector3^ inVec);
-
-		static Vector3^ lerp(Vector3^ origin, Vector3^ target, float interpolate)
+		static Vector3 lerp(Vector3 origin, Vector3 target, float interpolate)
 		{
-			auto newX = RAYMATH::Lerp(origin->x, target->x, interpolate);
-			auto newY = RAYMATH::Lerp(origin->y, target->y, interpolate);
-			auto newZ = RAYMATH::Lerp(origin->z, target->z, interpolate);
+			auto newX = RAYMATH::Lerp(origin.x, target.x, interpolate);
+			auto newY = RAYMATH::Lerp(origin.y, target.y, interpolate);
+			auto newZ = RAYMATH::Lerp(origin.z, target.z, interpolate);
 
-			return gcnew Vector3(newX, newY, newZ);
+			return Vector3(newX, newY, newZ);
 		}
 
-		static Vector3^ zero()
+		static Vector3 Lerp(Vector3 origin, Vector3 target, float interpolate) { return lerp(origin, target, interpolate); }
+
+		Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
+		Engine::Components::Vector3 Lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
+
+		static Vector3 zero()
 		{
-			return gcnew Vector3(0, 0, 0);
+			return Vector3(0, 0, 0);
 		}
 
-		static Vector3^ Zero()
+		static Vector3 Zero()
 		{
 			return zero();
 		}
 
-		static Vector3^ add(Vector3^ left, Vector3^ right)
+		static Vector3 add(Vector3 left, Vector3 right)
 		{
-			return gcnew Vector3(left->x + right->x, left->y + right->y, left->z + right->z);
+			return Vector3(left.x + right.x, left.y + right.y, left.z + right.z);
 		}
 
-		static Vector3^ sub(Vector3^ left, Vector3^ right)
+		static Vector3 sub(Vector3 left, Vector3 right)
 		{
-			return gcnew Vector3(left->x - right->x, left->y - right->y, left->z - right->z);
+			return Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
 		}
 
-		static Vector3^ multiply(Vector3^ left, Vector3^ right)
+		static Vector3 multiply(Vector3 left, Vector3 right)
 		{
-			return gcnew Vector3(left->x * right->x, left->y * right->y, left->z * right->z);
+			return Vector3(left.x * right.x, left.y * right.y, left.z * right.z);
 		}
 
-		static Vector3^ divide(Vector3^ left, Vector3^ right)
+		static Vector3 divide(Vector3 left, Vector3 right)
 		{
-			return gcnew Vector3(left->x / right->x, left->y / right->y, left->z / right->z);
+			return Vector3(left.x / right.x, left.y / right.y, left.z / right.z);
 		}
 
-		static Vector3^ Create()
+		static Vector3 divide(Vector3 left, float right)
 		{
-			return gcnew Vector3();
+			return Vector3(left.x / right, left.y / right, left.z / right);
 		}
 
-		static Vector3^ New()
+		static Vector3 multiply(Vector3 left, float right)
 		{
-			return gcnew Vector3();
+			return Vector3(left.x * right, left.y * right, left.z * right);
 		}
 
-		static Vector3^ create(RAYLIB::Vector3 vec)
+		static Vector3 Create()
 		{
-			return gcnew Vector3(vec.x, vec.y, vec.z);
+			return Vector3();
 		}
 
-		static Vector3^ create(float vec[])
+		static Vector3 New()
 		{
-			return gcnew Vector3(vec[0], vec[1], vec[2]);
+			return Vector3();
 		}
 
-		static float Dot(Vector3^ left, Vector3^ right)
+		static Vector3 New(float x, float y, float z)
 		{
-			return (RAYMATH::Vector3DotProduct(left->toNative(), right->toNative()));
+			return Vector3(x,y,z);
 		}
 
-		static float Distance(Vector3^ left, Vector3^ right)
+		static Vector3 create(RAYLIB::Vector3 vec)
 		{
-			return RAYMATH::Vector3Distance(left->toNative(), right->toNative());
+			return Vector3(vec.x, vec.y, vec.z);
 		}
 
-		bool Equals(Vector3^ value) override
+		static Vector3 create(float vec[])
 		{
-			return ((this->x == value->x) && (this->y == value->y) && (this->z == value->z));
+			return Vector3(vec[0], vec[1], vec[2]);
 		}
 
-		Engine::Components::Vector3^ operator+(Vector3^ other)
+		static float Dot(Engine::Components::Vector3 left, Engine::Components::Vector3 right);
+		static float DistanceScalar(Engine::Components::Vector3 left, Engine::Components::Vector3 right);
+		static Engine::Components::Vector3 Direction(Engine::Components::Vector3 from, Engine::Components::Vector3 to);
+		static Engine::Components::Vector3 DirectionNormalized(Engine::Components::Vector3 from, Engine::Components::Vector3 to);
+		Engine::Components::Vector3 Normalized();
+		static float Distance(Vector3 left, Vector3 right);
+
+		bool Equals(Vector3 value) override
 		{
-			return Vector3::add(this, other);
+			return ((this->x == value.x) && (this->y == value.y) && (this->z == value.z));
 		}
 
-		Engine::Components::Vector3^ operator-(Vector3^ other)
+		/*
+		Engine::Components::Vector3 operator+(Vector3 other)
 		{
-			return Vector3::sub(this, other);
+			return Vector3::add(*this, other);
 		}
 
-		Engine::Components::Vector3^ operator*(Vector3^ other)
+		Engine::Components::Vector3 operator-(Vector3 other)
 		{
-			return Vector3::multiply(this, other);
+			return Vector3::sub(*this, other);
 		}
 
-		Engine::Components::Vector3^ operator/(Vector3^ other)
+		Engine::Components::Vector3 operator*(Vector3 other)
 		{
-			return Vector3::divide(this, other);
+			return Vector3::multiply(*this, other);
 		}
+
+		Engine::Components::Vector3 operator/(Vector3 other)
+		{
+			return Vector3::divide(*this, other);
+		}
+		*/
 
 		float magnitude()
 		{
 			return sqrt((x * x) + (y * y) + (z * z));
+		}
+
+		static Engine::Components::Vector3 operator+(Vector3 left, Vector3 right)
+		{
+			return Vector3::add(left, right);
+		}
+
+		static Engine::Components::Vector3 operator-(Vector3 left, Vector3 right)
+		{
+			return Vector3::sub(left, right);
+		}
+
+		static Engine::Components::Vector3 operator*(Vector3 left, Vector3 right)
+		{
+			return Vector3::multiply(left, right);
+		}
+
+		static Engine::Components::Vector3 operator*(Vector3 left, float right)
+		{
+			return Vector3::multiply(left, right);
+		}
+
+		static  Engine::Components::Vector3 operator/(Vector3 left, Vector3 right)
+		{
+			return Vector3::divide(left, right);
+		}
+
+		static  Engine::Components::Vector3 operator/(Vector3 left, float right)
+		{
+			return Vector3::divide(left, right);
+		}
+
+		static bool operator==(Vector3 left, Vector3 right)
+		{
+			return (left.x == right.x && left.y == right.y && left.z == right.z);
 		}
 	};
 

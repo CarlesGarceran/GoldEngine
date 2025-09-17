@@ -3,6 +3,7 @@
 #include "Material.h"
 
 using namespace Engine::Components;
+using namespace Engine::Components::Enums;
 using namespace Engine::Reflectable::Generic;
 
 bool containsLoc(System::String^ locName, System::Collections::Generic::List<Locs::Generic::ShaderLoc^>^ locations)
@@ -206,6 +207,218 @@ Engine::Components::Material^ Engine::Components::Material::New()
 	return gcnew Engine::Components::Material();
 }
 
+void DoTextureLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
+{
+	RAYLIB::Texture2D texture2D = DataPacks::singleton().GetTexture2D(((Engine::Components::Locs::TextureLoc^)genericLoc)->textureId);
+	SetShaderValueTexture(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), texture2D);
+}
+
+void DoColorLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
+{
+	auto array = ((Engine::Components::Locs::ColorLoc^)genericLoc)->color->toFloat();
+	SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), array.data(), RAYLIB::SHADER_ATTRIB_VEC4);
+}
+
+void DoStructLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
+{
+	Engine::Components::Locs::StructLoc^ structLoc = (Engine::Components::Locs::StructLoc^)genericLoc;
+	auto managedObject = structLoc->getInstance();
+
+	if (managedObject == nullptr)
+		return;
+
+	System::Type^ type = managedObject->GetType();
+
+	if (type == System::Array::typeid || type->IsSubclassOf(System::Array::typeid))
+	{
+		System::Array^ arrayPtr = (System::Array^)managedObject;
+
+		for (int i = 0; i < arrayPtr->Length; i++)
+		{
+			System::Object^ entry = arrayPtr->GetValue(i);
+
+			auto properties = GetFields(entry->GetType());
+			auto propNames = GetFieldName(properties);
+
+			for each(String ^ propertyName in propNames)
+			{
+				std::string pName = CastStringToNative(propertyName);
+				System::Reflection::FieldInfo^ prop = GetField(entry->GetType(), propertyName);
+				const char* location = (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str();
+
+				if (prop->FieldType == Engine::Components::Matrix16::typeid)
+				{
+					Engine::Components::Matrix16^ matrix = (Engine::Components::Matrix16^)GetFieldValue(entry, prop);
+					SetShaderValueMatrix(shader, GetShaderLocation(shader, location), matrix->toNative());
+					continue;
+				}
+
+				if (prop->FieldType == GLWrapper::Texture2D::typeid)
+				{
+					GLWrapper::Texture2D managedTex = (GLWrapper::Texture2D)GetFieldValue(entry, prop);
+					RAYLIB::Texture2D nativeTex = { 0 };
+					nativeTex.id = managedTex.Id;
+					nativeTex.width = managedTex.Width;
+					nativeTex.height = managedTex.Height;
+					nativeTex.mipmaps = managedTex.Mipmaps;
+					nativeTex.format = (int)managedTex.Format;
+
+					SetShaderValueTexture(shader, GetShaderLocation(shader, location), nativeTex);
+					continue;
+				}
+
+
+				if (prop->FieldType == TextureId::typeid)
+				{
+					unsigned int value = ((TextureId)GetFieldValue(entry, prop)).textureId;
+					SetShaderValueTexture(shader, GetShaderLocation(shader, location), DataPacks::singleton().GetTexture2D(value));
+					continue;
+				}
+
+				if (prop->FieldType == int::typeid)
+				{
+					int value = (int)GetFieldValue(entry, prop);
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_INT);
+					continue;
+				}
+
+				if (prop->FieldType == float::typeid)
+				{
+					float value = (float)GetFieldValue(entry, prop);
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_FLOAT);
+					continue;
+				}
+
+				if (prop->FieldType == Engine::Components::Vector2::typeid)
+				{
+					RAYLIB::Vector2 value = ((Engine::Components::Vector2)GetFieldValue(entry, prop)).toNative();
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC2);
+					continue;
+				}
+
+				if (prop->FieldType == Engine::Components::Vector3::typeid)
+				{
+					RAYLIB::Vector3 value = ((Engine::Components::Vector3)GetFieldValue(entry, prop)).toNative();
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC3);
+					continue;
+				}
+
+				if (prop->FieldType == Engine::Components::Quaternion::typeid)
+				{
+					RAYLIB::Vector4 value = ((Engine::Components::Quaternion^)GetFieldValue(entry, prop))->toNative();
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC4);
+					continue;
+				}
+
+				if (prop->FieldType == Engine::Components::Color::typeid)
+				{
+					auto value = ((Engine::Components::Color^)GetFieldValue(entry, prop))->toFloat();
+					SetShaderValue(shader, GetShaderLocation(shader, location), value.data(), SHADER_UNIFORM_VEC4);
+					continue;
+				}
+
+				if (prop->FieldType == bool::typeid)
+				{
+					int value = (int)((bool)GetFieldValue(entry, prop));
+					SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_INT);
+					continue;
+				}
+			}
+		}
+	}
+	else
+	{
+		auto properties = GetFields(managedObject->GetType());
+		auto propNames = GetFieldName(properties);
+
+		for each(String ^ propertyName in propNames)
+		{
+			std::string pName = CastStringToNative(propertyName);
+			System::Reflection::FieldInfo^ prop = GetField(managedObject->GetType(), propertyName);
+			auto entry = managedObject;
+
+			const char* location = (CastStringToNative(key->locName) + "." + pName).c_str();
+
+			if (prop->FieldType == Engine::Components::Matrix16::typeid)
+			{
+				Engine::Components::Matrix16^ matrix = (Engine::Components::Matrix16^)GetFieldValue(entry, prop);
+				SetShaderValueMatrix(shader, GetShaderLocation(shader, location), matrix->toNative());
+				continue;
+			}
+
+			if (prop->FieldType == GLWrapper::Texture2D::typeid)
+			{
+				GLWrapper::Texture2D managedTex = (GLWrapper::Texture2D)GetFieldValue(entry, prop);
+				RAYLIB::Texture2D nativeTex = { 0 };
+				nativeTex.id = managedTex.Id;
+				nativeTex.width = managedTex.Width;
+				nativeTex.height = managedTex.Height;
+				nativeTex.mipmaps = managedTex.Mipmaps;
+				nativeTex.format = (int)managedTex.Format;
+				
+				SetShaderValueTexture(shader, GetShaderLocation(shader, location), nativeTex);
+				continue;
+			}
+			
+			if (prop->FieldType == TextureId::typeid)
+			{
+				unsigned int value = ((TextureId)GetFieldValue(entry, prop)).textureId;
+				SetShaderValueTexture(shader, GetShaderLocation(shader, location), DataPacks::singleton().GetTexture2D(value));
+				continue;
+			}
+
+			if (prop->FieldType == int::typeid)
+			{
+				int value = (int)GetFieldValue(entry, prop);
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_INT);
+				continue;
+			}
+
+			if (prop->FieldType == float::typeid)
+			{
+				float value = (float)GetFieldValue(entry, prop);
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_FLOAT);
+				continue;
+			}
+
+			if (prop->FieldType == Engine::Components::Vector2::typeid)
+			{
+				RAYLIB::Vector2 value = ((Engine::Components::Vector2)GetFieldValue(entry, prop)).toNative();
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC2);
+				continue;
+			}
+
+			if (prop->FieldType == Engine::Components::Vector3::typeid)
+			{
+				RAYLIB::Vector3 value = ((Engine::Components::Vector3)GetFieldValue(entry, prop)).toNative();
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC3);
+				continue;
+			}
+
+			if (prop->FieldType == Engine::Components::Quaternion::typeid)
+			{
+				RAYLIB::Vector4 value = ((Engine::Components::Quaternion^)GetFieldValue(entry, prop))->toNative();
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_VEC4);
+				continue;
+			}
+
+			if (prop->FieldType == Engine::Components::Color::typeid)
+			{
+				auto value = ((Engine::Components::Color^)GetFieldValue(entry, prop))->toFloat();
+				SetShaderValue(shader, GetShaderLocation(shader, location), value.data(), SHADER_UNIFORM_VEC4);
+				continue;
+			}
+
+			if (prop->FieldType == bool::typeid)
+			{
+				int value = (int)((bool)GetFieldValue(entry, prop));
+				SetShaderValue(shader, GetShaderLocation(shader, location), &value, SHADER_UNIFORM_INT);
+				continue;
+			}
+		}
+	}
+}
+
 void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 {
 	for each (auto key in this->MaterialProperties)
@@ -218,14 +431,12 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 		{
 		case ColorLoc:
 		{
-			auto array = ((Engine::Components::Locs::ColorLoc^)genericLoc)->color->toFloat();
-			SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), array.data(), RAYLIB::SHADER_ATTRIB_VEC4);
+			DoColorLoc(shader, key, genericLoc);
 			break;
 		}
 		case TextureLoc:
 		{
-			RAYLIB::Texture2D texture2D = DataPacks::singleton().GetTexture2D(((Engine::Components::Locs::TextureLoc^)genericLoc)->textureId);
-			SetShaderValueTexture(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), texture2D);
+			DoTextureLoc(shader, key, genericLoc);
 			break;
 		}
 		case FloatLoc:
@@ -236,161 +447,13 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 		}
 		case StructLoc:
 		{
-			Engine::Components::Locs::StructLoc^ structLoc = (Engine::Components::Locs::StructLoc^)genericLoc;
-			auto managedObject = structLoc->getInstance();
-
-			if (managedObject == nullptr)
-				break;
-
-			System::Type^ type = managedObject->GetType();
-
-			if (type == System::Array::typeid || type->IsSubclassOf(System::Array::typeid))
-			{
-				System::Array^ arrayPtr = (System::Array^)managedObject;
-
-				for (int i = 0; i < arrayPtr->Length; i++)
-				{
-					System::Object^ entry = arrayPtr->GetValue(i);
-
-					auto properties = GetFields(entry->GetType());
-					auto propNames = GetFieldName(properties);
-
-					for each(String ^ propertyName in propNames)
-					{
-						std::string pName = CastStringToNative(propertyName);
-						System::Reflection::FieldInfo^ prop = GetField(entry->GetType(), propertyName);
-
-						if (prop->FieldType == TextureId::typeid)
-						{
-							unsigned int value = ((TextureId)GetFieldValue(entry, prop)).textureId;
-							SetShaderValueTexture(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), DataPacks::singleton().GetTexture2D(value));
-							continue;
-						}
-
-						if (prop->FieldType == int::typeid)
-						{
-							int value = (int)GetFieldValue(entry, prop);
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_INT);
-							continue;
-						}
-
-						if (prop->FieldType == float::typeid)
-						{
-							float value = (float)GetFieldValue(entry, prop);
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_FLOAT);
-							continue;
-						}
-
-						if (prop->FieldType == Engine::Components::Vector2::typeid)
-						{
-							RAYLIB::Vector2 value = ((Engine::Components::Vector2^)GetFieldValue(entry, prop))->toNative();
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_VEC2);
-							continue;
-						}
-
-						if (prop->FieldType == Engine::Components::Vector3::typeid)
-						{
-							RAYLIB::Vector3 value = ((Engine::Components::Vector3^)GetFieldValue(entry, prop))->toNative();
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_VEC3);
-							continue;
-						}
-
-						if (prop->FieldType == Engine::Components::Quaternion::typeid)
-						{
-							RAYLIB::Vector4 value = ((Engine::Components::Quaternion^)GetFieldValue(entry, prop))->toNative();
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_VEC4);
-							continue;
-						}
-
-						if (prop->FieldType == Engine::Components::Color::typeid)
-						{
-							auto value = ((Engine::Components::Color^)GetFieldValue(entry, prop))->toFloat();
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), value.data(), SHADER_UNIFORM_VEC4);
-							continue;
-						}
-
-						if (prop->FieldType == bool::typeid)
-						{
-							int value = (int)((bool)GetFieldValue(entry, prop));
-							SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "[" + std::to_string(i) + "]." + pName).c_str()), &value, SHADER_UNIFORM_INT);
-							continue;
-						}
-					}
-				}
-			}
-			else
-			{
-				auto properties = GetFields(managedObject->GetType());
-				auto propNames = GetFieldName(properties);
-
-				for each(String^ propertyName in propNames)
-				{
-					std::string pName = CastStringToNative(propertyName);
-					System::Reflection::FieldInfo^ prop = GetField(managedObject->GetType(), propertyName);
-					
-					if (prop->FieldType == TextureId::typeid)
-					{
-						unsigned int value = ((TextureId)GetFieldValue(managedObject, prop)).textureId;
-						SetShaderValueTexture(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), DataPacks::singleton().GetTexture2D(value));
-						continue;
-					}
-
-					if (prop->FieldType == int::typeid)
-					{
-						int value = (int)GetFieldValue(managedObject, prop);
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_INT);
-						continue;
-					}
-					
-					if (prop->FieldType == float::typeid)
-					{
-						float value = (float)GetFieldValue(managedObject, prop);
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_FLOAT);
-						continue;
-					}
-
-					if (prop->FieldType == Engine::Components::Vector2::typeid)
-					{
-						RAYLIB::Vector2 value = ((Engine::Components::Vector2^)GetFieldValue(managedObject, prop))->toNative();
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_VEC2);
-						continue;
-					}
-
-					if (prop->FieldType == Engine::Components::Vector3::typeid)
-					{
-						RAYLIB::Vector3 value = ((Engine::Components::Vector3^)GetFieldValue(managedObject, prop))->toNative();
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_VEC3);
-						continue;
-					}
-
-					if (prop->FieldType == Engine::Components::Quaternion::typeid)
-					{
-						RAYLIB::Vector4 value = ((Engine::Components::Quaternion^)GetFieldValue(managedObject, prop))->toNative();
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_VEC4);
-						continue;
-					}
-
-					if (prop->FieldType == Engine::Components::Color::typeid)
-					{
-						auto value = ((Engine::Components::Color^)GetFieldValue(managedObject, prop))->toFloat();
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), value.data(), SHADER_UNIFORM_VEC4);
-						continue;
-					}
-
-					if (prop->FieldType == bool::typeid)
-					{
-						int value = (int)((bool)GetFieldValue(managedObject, prop));
-						SetShaderValue(shader, GetShaderLocation(shader, (CastStringToNative(key->locName) + "." + pName).c_str()), &value, SHADER_UNIFORM_INT);
-						continue;
-					}
-				}
-			}
+			DoStructLoc(shader, key, genericLoc);
 			break;
 		}
 		case Vector2Loc:
 		{
 			auto vec2 = ((Engine::Components::Locs::Vector2Loc^)genericLoc)->value;
-			SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &(vec2->toNative()), RAYLIB::SHADER_ATTRIB_VEC2);
+			SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &(vec2.toNative()), RAYLIB::SHADER_ATTRIB_VEC2);
 			break;
 		}
 		}

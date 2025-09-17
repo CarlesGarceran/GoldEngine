@@ -32,9 +32,16 @@ namespace Engine::Components
 		std::array<float, 4> toFloat();
 		unsigned int% toHex();
 
+		unsigned int% toARGB();
+		unsigned int% ToARGB() { return toARGB(); }
+
+		void setARGB(unsigned int value);
+		void SetARGB(unsigned int value) { this->setARGB(value); }
+
+		void setRGBA(unsigned int value);
+		void SetRGBA(unsigned int value) { this->setRGBA(value); }
+
 		void updateHexColor();
-		void setHex(unsigned int value);
-		void SetHex(unsigned int value) { this->setHex(value); }
 
 		void setR(__int8 value);
 		void setG(__int8 value);

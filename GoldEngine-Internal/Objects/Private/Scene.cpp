@@ -13,6 +13,11 @@ Scene::Scene(String^ name, Engine::Internal::Components::Transform^ transform) :
 	this->name = "game";
 }
 
+GameObject^ Engine::EngineObjects::Private::Scene::GetService(System::String^ serviceName)
+{
+	return GetChild(serviceName);
+}
+
 void Scene::Update()
 {
 	if (!isProtected())

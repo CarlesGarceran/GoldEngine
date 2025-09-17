@@ -10,7 +10,7 @@ using namespace System::IO;
 
 namespace Engine::Assets::Management
 {
-	typedef enum assetType { _Model, _Shader, _Texture2D, _Material, _Sound, _Musics, _Fonts };
+	typedef enum assetType { _Model, _Shader, _Texture2D, _Material, _Sound, _Musics, _Fonts, _Animations };
 
 	public ref class DataPack
 	{
@@ -23,14 +23,14 @@ namespace Engine::Assets::Management
 		{
 			print("[DataPack]:", "Adding stored assets to the datapacks");
 
-			for each (unsigned int shader_id in shaders->Keys)
+			for each(unsigned int shader_id in shaders->Keys)
 			{
 				auto filePath = shaders[shader_id];
 
 				AddShader(shader_id, filePath[0], filePath[1]);
 			}
 
-			for each (unsigned int modelId in models->Keys)
+			for each(unsigned int modelId in models->Keys)
 			{
 				System::String^ filePath = models[modelId];
 
@@ -44,21 +44,21 @@ namespace Engine::Assets::Management
 				AddMaterial(materialId, filePath);
 			}
 
-			for each (unsigned int textureId in textures2d->Keys)
+			for each(unsigned int textureId in textures2d->Keys)
 			{
 				System::String^ filePath = textures2d[textureId];
 
 				AddTextures2D(textureId, filePath);
 			}
 
-			for each (unsigned int soundId in sounds->Keys)
+			for each(unsigned int soundId in sounds->Keys)
 			{
 				System::String^ filePath = sounds[soundId];
 
 				AddSound(soundId, filePath);
 			}
 
-			for each (unsigned int musicId in musics->Keys)
+			for each(unsigned int musicId in musics->Keys)
 			{
 				System::String^ filePath = musics[musicId];
 
@@ -72,7 +72,7 @@ namespace Engine::Assets::Management
 				AddFont(fontId, filePath);
 			}
 
-			for each (unsigned int animationId in fonts->Keys)
+			for each(unsigned int animationId in fonts->Keys)
 			{
 				System::String^ filePath = fonts[animationId];
 
@@ -125,7 +125,7 @@ namespace Engine::Assets::Management
 		DataPack(String^ fileName)
 		{
 			singletonRef = this;
-			
+
 			shaders = gcnew Dictionary<unsigned int, array<String^>^>();
 			models = gcnew Dictionary<unsigned int, String^>();
 			materials = gcnew Dictionary<unsigned int, String^>();
@@ -148,177 +148,102 @@ namespace Engine::Assets::Management
 				sstring[1] = (fs);
 
 				shaders->Add(id, sstring);
-
-				std::string vertexShader = "";
-				std::string fragmentShader = "";
-
-				vertexShader = CastStringToNative(vs);
-				fragmentShader = CastStringToNative(fs);
-
-				Shader s = LoadShader(vertexShader.c_str(), fragmentShader.c_str());
-
-				printConsole("Compiling New Shader [" + id + "]");
-				printConsole("VertexShader: " + vs);
-				printConsole("FragmentShader: " + fs);
-
-				Engine::Assets::Storage::DataPacks::singleton().AddShader(id, s);
-
-				return s;
 			}
-			else
+
+			std::string vertexShader = "";
+			std::string fragmentShader = "";
+
+			vertexShader = CastStringToNative(vs);
+			fragmentShader = CastStringToNative(fs);
+
+			Shader s = LoadShader(vertexShader.c_str(), fragmentShader.c_str());
+
+			print("[Resource Manager]:", "Compiling Stored Shader [" + id + "]");
+			print("[Resource Manager]:", "VertexShader: " + vs);
+			print("[Resource Manager]:", "FragmentShader: " + fs);
+
+			if (s.id == NULL)
 			{
-				std::string vertexShader = "";
-				std::string fragmentShader = "";
-
-				vertexShader = CastStringToNative(vs);
-				fragmentShader = CastStringToNative(fs);
-
-				Shader s = LoadShader(vertexShader.c_str(), fragmentShader.c_str());
-
-				print("[Resource Manager]:", "Compiling Stored Shader [" + id + "]");
-				print("[Resource Manager]:", "VertexShader: " + vs);
-				print("[Resource Manager]:", "FragmentShader: " + fs);
-
-				if (s.id == NULL)
-				{
-					print("[Resource Manager]:", "Failed to compile shader [" + id + "]");
-					print("[Resource Manager]", "------------------------------------------");
-					return Engine::Assets::Storage::DataPacks::singleton().GetNativeDataPack()->fallbackShader->getInstance();
-				}
-
-				print("[Resource Manager]:", "Compiled Shader id -> " + s.id);
-
+				print("[Resource Manager]:", "Failed to compile shader [" + id + "]");
 				print("[Resource Manager]", "------------------------------------------");
-
-				Engine::Assets::Storage::DataPacks::singleton().AddShader(id, s);
-
-				return s;
+				return Engine::Assets::Storage::DataPacks::singleton().GetNativeDataPack()->fallbackShader->getInstance();
 			}
+
+			print("[Resource Manager]:", "Compiled Shader id -> " + s.id);
+
+			print("[Resource Manager]", "------------------------------------------");
+
+			Engine::Assets::Storage::DataPacks::singleton().AddShader(id, s);
+
+			return s;
 		}
 
 		Engine::Components::Material^ AddMaterial(unsigned int id, String^ path)
 		{
 			if (!materials->ContainsKey(id))
-			{
 				materials->Add(id, path);
-				
-				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
-				material->DeserializeProperties();
 
-				print("[Resource Manager]:", "Loading Material");
+			Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
+			material->DeserializeProperties();
 
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Loading Material");
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]:", "Path -> " + path);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
+			print("[Resource Manager]", "------------------------------------------");
 
-				return material;
-			}
-			else
-			{
-				Engine::Components::Material^ material = Deserialize<Engine::Components::Material^>(File::ReadAllText(path));
-				material->DeserializeProperties();
+			Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
 
-				print("[Resource Manager]:", "Loading Material");
-
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Engine::Assets::Storage::DataPacks::singleton().AddMaterial(id, material);
-
-				return material;
-			}
+			return material;
 		}
 
 		Model AddModel(unsigned int id, String^ path)
 		{
 			if (!models->ContainsKey(id))
-			{
 				models->Add(id, path);
-				std::string text = "";
 
-				text = CastStringToNative(path);
+			std::string text = "";
 
-				Model m = LoadModel(text.c_str());
+			text = CastStringToNative(path);
 
-				print("[Resource Manager]:", "Loading Model");
+			Model m = LoadModel(text.c_str());
 
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Loading Model");
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]:", "Path -> " + path);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				Engine::Assets::Storage::DataPacks::singleton().AddModel(id, m);
+			print("[Resource Manager]", "------------------------------------------");
 
-				return m;
-			}
-			else
-			{
-				std::string text = "";
+			Engine::Assets::Storage::DataPacks::singleton().AddModel(id, m);
 
-				text = CastStringToNative(path);
-
-				Model m = LoadModel(text.c_str());
-
-				print("[Resource Manager]:", "Loading Model");
-
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Engine::Assets::Storage::DataPacks::singleton().AddModel(id, m);
-
-				return m;
-			}
+			return m;
 		}
 
 		Sound AddSound(unsigned int id, String^ sound)
 		{
 			if (!sounds->ContainsKey(id))
-			{
 				sounds->Add(id, sound);
 
-				std::string text = "";
+			std::string text = "";
 
-				text = CastStringToNative(sound);
+			text = CastStringToNative(sound);
 
-				print("[Resource Manager]:", "Loading Sound");
+			print("[Resource Manager]:", "Loading Sound");
 
-				print("[Resource Manager]:", "Path -> " + sound);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Path -> " + sound);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]", "------------------------------------------");
 
-				Sound _sound = LoadSound(text.c_str());
+			RAYLIB::Wave wave = LoadWave(text.c_str());
 
-				Engine::Assets::Storage::DataPacks::singleton().AddSound(id, _sound);
+			Sound _sound = LoadSoundFromWave(wave);
 
-				return _sound;
-			}
-			else
-			{
-				std::string text = "";
+			Engine::Assets::Storage::DataPacks::singleton().AddSound(id, _sound);
 
-				text = CastStringToNative(sound);
-
-				Sound _sound = LoadSound(text.c_str());
-
-				print("[Resource Manager]:", "Loading Sound");
-
-				print("[Resource Manager]:", "Path -> " + sound);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Engine::Assets::Storage::DataPacks::singleton().AddSound(id, _sound);
-
-				return _sound;
-			}
+			return _sound;
 		}
 
 		Music AddMusic(unsigned int id, String^ sound)
@@ -326,88 +251,50 @@ namespace Engine::Assets::Management
 			if (!musics->ContainsKey(id))
 			{
 				musics->Add(id, sound);
-
-				std::string text = "";
-
-				text = CastStringToNative(sound);
-
-				print("[Resource Manager]:", "Loading Music");
-
-				print("[Resource Manager]:", "Path -> " + sound);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Music _sound = LoadMusicStream(text.c_str());
-
-				Engine::Assets::Storage::DataPacks::singleton().AddMusic(id, _sound);
-
-				return _sound;
 			}
-			else
-			{
-				std::string text = "";
 
-				text = CastStringToNative(sound);
+			std::string text = "";
 
-				Music _sound = LoadMusicStream(text.c_str());
+			text = CastStringToNative(sound);
 
-				print("[Resource Manager]:", "Loading Music");
+			Music _sound = LoadMusicStream(text.c_str());
 
-				print("[Resource Manager]:", "Path -> " + sound);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Loading Music");
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]:", "Path -> " + sound);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				Engine::Assets::Storage::DataPacks::singleton().AddMusic(id, _sound);
+			print("[Resource Manager]", "------------------------------------------");
 
-				return _sound;
-			}
+			Engine::Assets::Storage::DataPacks::singleton().AddMusic(id, _sound);
+
+			return _sound;
 		}
 
 		Font AddFont(unsigned int id, String^ font)
 		{
-			if (!musics->ContainsKey(id))
+			if (!fonts->ContainsKey(id))
 			{
-				musics->Add(id, font);
-
-				std::string text = "";
-
-				text = CastStringToNative(font);
-
-				print("[Resource Manager]:", "Loading Font");
-
-				print("[Resource Manager]:", "Path -> " + font);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Font _font = LoadFont(text.c_str());
-
-				Engine::Assets::Storage::DataPacks::singleton().AddFont(id, _font);
-
-				return _font;
+				fonts->Add(id, font);
 			}
-			else
-			{
-				std::string text = "";
 
-				text = CastStringToNative(font);
+			std::string text = "";
 
-				Font _font = LoadFont(text.c_str());
+			text = CastStringToNative(font);
 
-				print("[Resource Manager]:", "Loading Font");
+			Font _font = LoadFont(text.c_str());
 
-				print("[Resource Manager]:", "Path -> " + font);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Loading Font");
+
+			print("[Resource Manager]:", "Path -> " + font);
+			print("[Resource Manager]:", "Id -> " + id);
 
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]", "------------------------------------------");
 
-				Engine::Assets::Storage::DataPacks::singleton().AddFont(id, _font);
+			Engine::Assets::Storage::DataPacks::singleton().AddFont(id, _font);
 
-				return _font;
-			}
+			return _font;
 		}
 
 		AnimationStruct AddModelAnimation(unsigned int id, String^ path)
@@ -415,46 +302,26 @@ namespace Engine::Assets::Management
 			if (!modelAnimations->ContainsKey(id))
 			{
 				modelAnimations->Add(id, path);
-				std::string text = "";
-
-				text = CastStringToNative(path);
-
-				AnimationStruct animStruct = { 0 };
-
-				animStruct.animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct.animationCount);
-
-				print("[Resource Manager]:", "Loading Animation");
-
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Engine::Assets::Storage::DataPacks::singleton().AddAnimations(id, animStruct);
-
-				return animStruct;
 			}
-			else
-			{
-				std::string text = "";
 
-				text = CastStringToNative(path);
+			std::string text = "";
 
-				AnimationStruct animStruct = { 0 };
+			text = CastStringToNative(path);
 
-				animStruct.animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct.animationCount);
+			AnimationStruct* animStruct = new AnimationStruct{ 0 };
 
-				print("[Resource Manager]:", "Loading Animation");
+			animStruct->animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct->animationCount);
 
-				print("[Resource Manager]:", "Path -> " + path);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Loading Animation");
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]:", "Path -> " + path);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				Engine::Assets::Storage::DataPacks::singleton().AddAnimations(id, animStruct);
+			print("[Resource Manager]", "------------------------------------------");
 
-				return animStruct;
-			}
+			Engine::Assets::Storage::DataPacks::singleton().AddAnimations(id, *animStruct);
+
+			return *animStruct;
 		}
 
 		Texture2D AddTextures2D(unsigned int id, String^ tex)
@@ -462,43 +329,24 @@ namespace Engine::Assets::Management
 			if (!textures2d->ContainsKey(id))
 			{
 				textures2d->Add(id, tex);
-
-				std::string text = "";
-
-				text = CastStringToNative(tex);
-
-				print("[Resource Manager]:", "Loading Texture2D");
-
-				print("[Resource Manager]:", "Path -> " + tex);
-				print("[Resource Manager]:", "Id -> " + id);
-
-				print("[Resource Manager]", "------------------------------------------");
-
-				Texture2D tex = LoadTexture(text.c_str());
-
-				Engine::Assets::Storage::DataPacks::singleton().AddTexture2D(id, tex);
-
-				return tex;
 			}
-			else
-			{
-				std::string text = "";
 
-				text = CastStringToNative(tex);
+			std::string text = "";
 
-				Texture2D texture = LoadTexture(text.c_str());
+			text = CastStringToNative(tex);
 
-				print("[Resource Manager]:", "Loading Texture2D");
+			print("[Resource Manager]:", "Loading Texture2D");
 
-				print("[Resource Manager]:", "Path -> " + tex);
-				print("[Resource Manager]:", "Id -> " + id);
+			print("[Resource Manager]:", "Path -> " + tex);
+			print("[Resource Manager]:", "Id -> " + id);
 
-				print("[Resource Manager]", "------------------------------------------");
+			print("[Resource Manager]", "------------------------------------------");
 
-				Engine::Assets::Storage::DataPacks::singleton().AddTexture2D(id, texture);
+			Texture2D texture = LoadTexture(text.c_str());
 
-				return texture;
-			}
+			Engine::Assets::Storage::DataPacks::singleton().AddTexture2D(id, texture);
+
+			return texture;
 		}
 
 		bool hasAsset(assetType aTyp, unsigned int value)
@@ -506,9 +354,9 @@ namespace Engine::Assets::Management
 			switch (aTyp)
 			{
 			case _Shader:
-				for each (auto T in shaders)
+				for each(auto T in shaders)
 				{
-					if (T.Key == value) 
+					if (T.Key == value)
 					{
 						return true;
 					}
@@ -516,7 +364,7 @@ namespace Engine::Assets::Management
 				return false;
 				break;
 			case _Material:
-				for each (auto T in materials)
+				for each(auto T in materials)
 				{
 					if (T.Key == value)
 					{
@@ -526,7 +374,7 @@ namespace Engine::Assets::Management
 				return false;
 				break;
 			case _Model:
-				for each (auto T in models)
+				for each(auto T in models)
 				{
 					if (T.Key == value)
 					{
@@ -536,7 +384,7 @@ namespace Engine::Assets::Management
 				return false;
 				break;
 			case _Texture2D:
-				for each (auto T in textures2d)
+				for each(auto T in textures2d)
 				{
 					if (T.Key == value)
 					{
@@ -546,7 +394,7 @@ namespace Engine::Assets::Management
 				return false;
 				break;
 			case _Sound:
-				for each (auto T in sounds)
+				for each(auto T in sounds)
 				{
 					if (T.Key == value)
 					{
@@ -556,7 +404,27 @@ namespace Engine::Assets::Management
 				return false;
 				break;
 			case _Musics:
-				for each (auto T in musics)
+				for each(auto T in musics)
+				{
+					if (T.Key == value)
+					{
+						return true;
+					}
+				}
+				return false;
+				break;
+			case _Fonts:
+				for each (auto T in fonts)
+				{
+					if (T.Key == value)
+					{
+						return true;
+					}
+				}
+				return false;
+				break;
+			case _Animations:
+				for each (auto T in modelAnimations)
 				{
 					if (T.Key == value)
 					{
@@ -573,7 +441,7 @@ namespace Engine::Assets::Management
 			switch (aTyp)
 			{
 			case _Shader:
-				for each (auto T in shaders)
+				for each(auto T in shaders)
 				{
 					if (T.Value[0] == value || T.Value[1] == value)
 					{
@@ -583,7 +451,7 @@ namespace Engine::Assets::Management
 				return std::tuple<bool, int>(false, 0);
 				break;
 			case _Material:
-				for each (auto T in materials)
+				for each(auto T in materials)
 				{
 					if (T.Value == value)
 					{
@@ -593,7 +461,7 @@ namespace Engine::Assets::Management
 				return std::tuple<bool, int>(false, 0);
 				break;
 			case _Model:
-				for each (auto T in models)
+				for each(auto T in models)
 				{
 					if (T.Value == value)
 					{
@@ -603,7 +471,7 @@ namespace Engine::Assets::Management
 				return std::tuple<bool, int>(false, 0);
 				break;
 			case _Texture2D:
-				for each (auto T in textures2d)
+				for each(auto T in textures2d)
 				{
 					if (T.Value == value)
 					{
@@ -613,7 +481,7 @@ namespace Engine::Assets::Management
 				return std::tuple<bool, int>(false, 0);
 				break;
 			case _Sound:
-				for each (auto T in sounds)
+				for each(auto T in sounds)
 				{
 					if (T.Value == value)
 					{
@@ -623,7 +491,27 @@ namespace Engine::Assets::Management
 				return std::tuple<bool, int>(false, 0);
 				break;
 			case _Musics:
-				for each (auto T in musics)
+				for each(auto T in musics)
+				{
+					if (T.Value == value)
+					{
+						return std::tuple<bool, int>(true, T.Key);
+					}
+				}
+				return std::tuple<bool, int>(false, 0);
+				break;
+			case _Fonts:
+				for each (auto T in fonts)
+				{
+					if (T.Value == value)
+					{
+						return std::tuple<bool, int>(true, T.Key);
+					}
+				}
+				return std::tuple<bool, int>(false, 0);
+				break;
+			case _Animations:
+				for each (auto T in modelAnimations)
 				{
 					if (T.Value == value)
 					{
@@ -642,37 +530,49 @@ namespace Engine::Assets::Management
 			switch (type)
 			{
 			case _Material:
-				for each (auto T in materials)
+				for each(auto T in materials)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
 				break;
 			case _Model:
-				for each (auto T in models)
+				for each(auto T in models)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
 				break;
 			case _Shader:
-				for each (auto T in shaders)
+				for each(auto T in shaders)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
 				break;
 			case _Texture2D:
-				for each (auto T in textures2d)
+				for each(auto T in textures2d)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
 				break;
 			case _Sound:
-				for each (auto T in sounds)
+				for each(auto T in sounds)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
 				break;
 			case _Musics:
-				for each (auto T in musics)
+				for each(auto T in musics)
+				{
+					assetId = Math::Max(assetId, T.Key + 1);
+				}
+				break;
+			case _Fonts:
+				for each (auto T in fonts)
+				{
+					assetId = Math::Max(assetId, T.Key + 1);
+				}
+				break;
+			case _Animations:
+				for each (auto T in modelAnimations)
 				{
 					assetId = Math::Max(assetId, T.Key + 1);
 				}
@@ -744,7 +644,7 @@ namespace Engine::Assets::Management
 			AddModel(modelId, modelStr);
 		}
 
-		void ReloadTexture(unsigned int textureId) 
+		void ReloadTexture(unsigned int textureId)
 		{
 			String^ textureStr = this->textures2d[textureId];
 			AddTextures2D(textureId, textureStr);
@@ -758,7 +658,7 @@ namespace Engine::Assets::Management
 			String^ fragmentShader = str[1];
 			AddShader(shaderId, vertexShader, fragmentShader);
 		}
-		
+
 		void ReloadMaterial(unsigned int materialId)
 		{
 			String^ soundStr = this->materials[materialId];

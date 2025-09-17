@@ -6,7 +6,7 @@ using namespace MoonSharp::Interpreter;
 namespace Engine::Lua::VM
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-		public ref class LuaVM
+	public ref class LuaVM
 	{
 	public:
 		String^ BINARY_HEADER = "GoldVM";
@@ -18,36 +18,20 @@ namespace Engine::Lua::VM
 		String^ source;
 		DynValue^ value;
 
-	public:
-		LuaVM()
-		{
-			tempBuffer = "";
-			MoonSharp::Interpreter::Script::DefaultOptions->CheckThreadAccess = false;
-
-			scriptState = gcnew MoonSharp::Interpreter::Script(CoreModules::Preset_Complete);
-			scriptState->Options->CheckThreadAccess = false;
-
-			RegisterGlobalFunctions();
-		}
+		System::IO::Stream^ bytecode;
 
 	public:
-		auto GetGlobals()
-		{
-			return scriptState->Globals;
-		}
+		LuaVM();
 
 	public:
-		MoonSharp::Interpreter::Script^ GetScriptState()
-		{
-			return scriptState;
-		}
+		auto GetGlobals() { return scriptState->Globals; }
+		auto GetRegistry() { return scriptState->Registry; }
+		MoonSharp::Interpreter::Script^ GetScriptState() { return scriptState; }
 
-	public:
 		void LoadSource(String^ source)
 		{
-			this->source = source;
+			DumpSource(source);
 		}
-
 
 	public:
 		void WriteLuaCodeToFile(String^ src);
@@ -90,11 +74,15 @@ namespace Engine::Lua::VM
 			scriptState->Globals[functionName] = method;
 		}
 
-	public:
-		void RegisterScript(String^ source)
+		generic <class T>
+		void RegisterGlobalFunction(String^ functionName, T method)
 		{
-			ExecuteSource(source);
+			scriptState->Globals[functionName] = method;
 		}
+
+	public:
+		void RegisterScript(String^ source);
+		void RegisterCoroutine(String^ source);
 
 	private:
 		bool hasFunction(String^ data)
@@ -108,147 +96,28 @@ namespace Engine::Lua::VM
 		}
 
 	public:
-		bool InvokeFunction(String^ functionName)
-		{
-			try
-			{
-				if (hasFunction(functionName))
-				{
-					scriptState->Call(scriptState->Globals[functionName]);
-					return true;
-				}
-			}
-			catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (MoonSharp::Interpreter::InterpreterException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-				printError(ex->StackTrace);
-			}
+		bool InvokeFunctionCo(String^ functionName);
+		bool InvokeFunctionCo(MoonSharp::Interpreter::DynValue^ function);
 
-			return false;
-		}
-
-		bool InvokeFunction(MoonSharp::Interpreter::DynValue^ functionName)
-		{
-			try
-			{
-				scriptState->Call(functionName);
-				return true;
-			}
-			catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (MoonSharp::Interpreter::InterpreterException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-				printError(ex->StackTrace);
-			}
-
-			return false;
-		}
-
-		bool InvokeFunction(String^ functionName, array<System::Object^>^ args)
-		{
-			try
-			{
-				if (hasFunction(functionName))
-				{
-					scriptState->Call(scriptState->Globals[functionName], args);
-					return true;
-				}
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-			}
-
-			return false;
-		}
-
-		bool InvokeFunction(String^ functionName, List<System::Object^>^ args)
-		{
-			try
-			{
-				if (hasFunction(functionName))
-				{
-					scriptState->Call(scriptState->Globals[functionName], args->ToArray());
-					return true;
-				}
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-			}
-
-			return false;
-		}
-
-		System::Object^ InvokeFunctionO(MoonSharp::Interpreter::DynValue^ functionName)
-		{
-			try
-			{
-				return scriptState->Call(functionName);
-			}
-			catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (MoonSharp::Interpreter::InterpreterException^ ex)
-			{
-				printError(ex->DecoratedMessage);
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-				printError(ex->StackTrace);
-			}
-
-			return nullptr;
-		}
+		bool InvokeFunction(String^ functionName);
+		bool InvokeFunction(MoonSharp::Interpreter::DynValue^ functionName);
+		bool InvokeFunction(String^ functionName, array<System::Object^>^ args);
+		bool InvokeFunction(String^ functionName, List<System::Object^>^ args);
+		System::Object^ InvokeFunctionO(MoonSharp::Interpreter::DynValue^ functionName);
 
 	private:
-		void ExecuteSource(String^ source)
-		{
-			this->source = source;
+		void LuaVM_LoadString(Object^ source);
+		void LuaVM_RunFunctionByName(Object^ functionName);
+		void LuaVM_RunFunctionByPointer(Object^ functionPointer);
 
-			try
-			{
-				value = scriptState->DoString(source, scriptState->Globals, "GoldEngineLuaThread");
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-			}
-		}
-
-		void ExecuteSource(String^ source, String^ friendlyName)
-		{
-			this->source = source;
-			try
-			{
-				value = scriptState->DoString(source, scriptState->Globals, friendlyName);
-			}
-			catch (Exception^ ex)
-			{
-				printError(ex->Message);
-			}
-		}
+		void DumpSource(String^ source);
+		void ExecuteSourceCo(String^ source);
+		void ExecuteSource(String^ source);
+		void ExecuteSource(String^ source, String^ friendlyName);
 
 		DynValue^ RunScript(String^ source)
 		{
-			this->source = source;
+			DumpSource(source);
 
 			try
 			{
@@ -263,7 +132,7 @@ namespace Engine::Lua::VM
 
 		DynValue^ RunScript(String^ source, String^ friendlyName)
 		{
-			this->source = source;
+			DumpSource(source);
 
 			try
 			{

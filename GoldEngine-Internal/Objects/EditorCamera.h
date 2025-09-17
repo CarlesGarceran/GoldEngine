@@ -17,18 +17,12 @@ namespace Engine::EngineObjects::Editor
 		{
 			this->transform->position = Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().position);
 			nativeCamera->get().fovy = fov;
-			
-			if (attributes->hasAttribute("camera direction"))
-			{
-				attributes->getAttribute("camera direction")->setValue(Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().target));
-			}
+			transform->rotation = Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().target);
 
 			if (cameraMode == CamMode::CAMERA_CUSTOM)
 			{
-				if (attributes->getAttribute("camera direction"))
-					this->nativeCamera->get().target = ((Engine::Components::Vector3^)attributes->getAttribute("camera direction")->getValue())->toNative();
-
-				this->nativeCamera->getCameraPtr()->position = transform->position->toNative();
+				this->nativeCamera->get().target = transform->rotation.toNative();
+				this->nativeCamera->getCameraPtr()->position = transform->position.toNative();
 			}
 
 			UpdateCamera(this->nativeCamera->getCameraPtr(), (int)cameraMode);
@@ -37,7 +31,7 @@ namespace Engine::EngineObjects::Editor
 
 		void OnActive() override
 		{
-			this->nativeCamera->getCameraPtr()->position = transform->position->toNative();
+			this->nativeCamera->getCameraPtr()->position = transform->position.toNative();
 		}
 	};
 }

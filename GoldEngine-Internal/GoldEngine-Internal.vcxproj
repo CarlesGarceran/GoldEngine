@@ -61,7 +61,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>NetCore</CLRSupport>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -75,13 +75,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>NetCore</CLRSupport>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PlaybackEngine_Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>NetCore</CLRSupport>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -152,6 +153,8 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;C:\Users\Carles\source\repos\GoldEngine\GoldEngine-Internal\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -167,6 +170,8 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;C:\Users\Carles\source\repos\GoldEngine\GoldEngine-Internal\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>raylib.lib;winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -183,6 +188,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -199,6 +205,8 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;C:\Users\Carles\source\repos\GoldEngine\GoldEngine-Internal\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -216,6 +224,7 @@
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -234,6 +243,8 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>..\Solutions\Physics\bullet3\src;..\Solutions\Physics\bullet3\Extras\HACD;C:\Users\Carles\source\repos\GoldEngine\GoldEngine-Internal\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;user32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -351,8 +362,10 @@
     <ClInclude Include="Event.h" />
     <ClInclude Include="ExecuteInEditModeAttribute.h" />
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="GameWindow.h" />
     <ClInclude Include="GlIncludes.h" />
     <ClInclude Include="GraphicsWrapper.h" />
+    <ClInclude Include="imfiledialog\ImFileDialog.h" />
     <ClInclude Include="imguistyleserializer.h" />
     <ClInclude Include="imguizmo\GraphEditor.h" />
     <ClInclude Include="imguizmo\ImCurveEdit.h" />
@@ -361,7 +374,10 @@
     <ClInclude Include="imguizmo\ImSequencer.h" />
     <ClInclude Include="imguizmo\ImZoomSlider.h" />
     <ClInclude Include="imgui\FileExplorer\filedialog.h" />
+    <ClInclude Include="imgui\Fonts\fa_solid_900.h" />
+    <ClInclude Include="imgui\Fonts\font_awesome_5.h" />
     <ClInclude Include="imgui\Fonts\IconsFontAwesome4.h" />
+    <ClInclude Include="imgui\Fonts\IconsFontAwesome6.h" />
     <ClInclude Include="imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="imgui\misc\freetype\imgui_freetype.h" />
     <ClInclude Include="imgui\misc\single_file\imgui_single_file.h" />
@@ -369,6 +385,8 @@
     <ClInclude Include="imgui\TextEditor\TextEditor.h" />
     <ClInclude Include="imnodes\ImNodes.h" />
     <ClInclude Include="imnodes\imnodes_internal.h" />
+    <ClInclude Include="imnotifications\ImNotify.h" />
+    <ClInclude Include="imnotifications\ImNotifyWrapper.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Instantiable.h" />
     <ClInclude Include="LogFileReporter.h" />
@@ -384,18 +402,23 @@
     <ClInclude Include="native\NativeSingleton.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="Macros.h" />
+    <ClInclude Include="Objects\Abstract\Renderer.h" />
     <ClInclude Include="Objects\Audio\AudioSource.h" />
     <ClInclude Include="Objects\BoundingBoxRenderer.h" />
     <ClInclude Include="Objects\Camera.h" />
     <ClInclude Include="Objects\Camera2D.h" />
     <ClInclude Include="Objects\Camera3D.h" />
+    <ClInclude Include="Objects\CapsuleRenderer.h" />
     <ClInclude Include="Objects\CubeRenderer.h" />
     <ClInclude Include="Objects\Daemon.h" />
     <ClInclude Include="Objects\EditorCamera.h" />
     <ClInclude Include="Objects\EditorPlugin.h" />
     <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h" />
     <ClInclude Include="Objects\ModelRenderer\ModelRenderer.hpp" />
+    <ClInclude Include="Objects\Particles\ParticleEmitter.h" />
     <ClInclude Include="Objects\Physics\Colliders\BoxCollider.h" />
+    <ClInclude Include="Objects\Physics\Colliders\CapsuleCollider.h" />
+    <ClInclude Include="Objects\Physics\Colliders\MeshCollider.h" />
     <ClInclude Include="Objects\Physics\CollisionType.h" />
     <ClInclude Include="Objects\Physics\PhysicsService.h" />
     <ClInclude Include="Objects\Physics\RigidBody.h" />
@@ -423,6 +446,7 @@
     <ClInclude Include="Object\Locs\Vector2Loc.h" />
     <ClInclude Include="Object\Locs\Vector3Loc.h" />
     <ClInclude Include="Object\Material.h" />
+    <ClInclude Include="Object\Matrix.h" />
     <ClInclude Include="Object\ObjectType.h" />
     <ClInclude Include="Object\Prefab.h" />
     <ClInclude Include="Object\Quaternion.h" />
@@ -480,9 +504,11 @@
     <ClCompile Include="EditorTools\CodeEditor.cpp" />
     <ClCompile Include="EditorTools\MaterialEditor.cpp" />
     <ClCompile Include="EngineGC.cpp" />
+    <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="GoldEngine.cpp" />
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="GraphicsWrapper.cpp" />
+    <ClCompile Include="imfiledialog\ImFileDialog.cpp" />
     <ClCompile Include="imguistyleserializer.cpp" />
     <ClCompile Include="imguizmo\GraphEditor.cpp" />
     <ClCompile Include="imguizmo\ImCurveEdit.cpp" />
@@ -498,15 +524,21 @@
     <ClCompile Include="imgui\Style\ScopedStyle.cpp" />
     <ClCompile Include="imgui\TextEditor\TextEditor.cpp" />
     <ClCompile Include="imnodes\ImNodes.cpp" />
+    <ClCompile Include="imnotifications\ImNotifyWrapper.cpp" />
     <ClCompile Include="Instantiable.cpp" />
     <ClCompile Include="LuaVM.cpp" />
     <ClCompile Include="native\CollisionShape.cpp" />
     <ClCompile Include="Native\miniaudio.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="Objects\Abstract\Renderer.cpp" />
     <ClCompile Include="Objects\Audio\AudioSource.cpp" />
+    <ClCompile Include="Objects\CapsuleRenderer.cpp" />
     <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp" />
     <ClCompile Include="Objects\ModelRenderer\ModelRenderer.cpp" />
+    <ClCompile Include="Objects\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Objects\Physics\Colliders\BoxCollider.cpp" />
+    <ClCompile Include="Objects\Physics\Colliders\CapsuleCollider.cpp" />
+    <ClCompile Include="Objects\Physics\Colliders\MeshCollider.cpp" />
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\PhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\RigidBody.cpp" />
@@ -524,6 +556,7 @@
     <ClCompile Include="Object\Locs\Vector2Loc.cpp" />
     <ClCompile Include="Object\Locs\Vector3Loc.cpp" />
     <ClCompile Include="Object\Material.cpp" />
+    <ClCompile Include="Object\Matrix.cpp" />
     <ClCompile Include="Object\Prefab.cpp" />
     <ClCompile Include="Object\Quaternion.cpp" />
     <ClCompile Include="Object\Transform.cpp" />

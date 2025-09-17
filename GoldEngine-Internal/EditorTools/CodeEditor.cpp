@@ -1,8 +1,6 @@
 #pragma managed(push,on)
 #include "../SDK.h"
 
-#if (!PRODUCTION_BUILD)
-
 #include "../imgui/FileExplorer/filedialog.h"
 #include "CodeEditor.h"
 #include "../LuaVM.h"
@@ -21,6 +19,8 @@ using namespace System;
 using namespace System::IO;
 
 /* SCRIPTING TEMPLATES */
+
+#if (!PRODUCTION_BUILD)
 
 std::string luaTemplate = std::string(R"(-- Called when the object gets instantiated
 function Start()

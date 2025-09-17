@@ -16,6 +16,95 @@
 using namespace Engine::Scripting;
 using namespace Engine::Lua::VM;
 
+void Engine::Lua::VM::LuaVM::LuaVM_LoadString(Object^ param)
+{
+	System::String^ source = safe_cast<System::String^>(param);
+
+	try
+	{
+		auto func = scriptState->LoadString(source, scriptState->Globals, "GoldEngineLuaThread");
+		auto co = scriptState->CreateCoroutine(func);
+		co->Coroutine->Resume();
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+}
+
+void Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByName(Object^ functionName)
+{
+	System::String^ source = safe_cast<System::String^>(functionName);
+
+	try
+	{
+		if (hasFunction(source))
+		{
+			auto func = scriptState->Globals[source];
+			auto co = scriptState->CreateCoroutine(func);
+			co->Coroutine->Resume();
+		}
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+}
+
+void Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByPointer(Object^ functionPointer)
+{
+	MoonSharp::Interpreter::DynValue^ source = safe_cast<MoonSharp::Interpreter::DynValue^>(functionPointer);
+
+	try
+	{
+		auto co = scriptState->CreateCoroutine(source);
+		co->Coroutine->Resume();
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
+}
+
+void Engine::Lua::VM::LuaVM::DumpSource(String^ source)
+{
+	this->source = source;
+
+	this->scriptState->Dump(
+		this->scriptState->LoadString(
+			source,
+			this->scriptState->Globals,
+			"GoldEngineCompilerThread"
+		),
+		this->bytecode
+	);
+}
+
 // VMWRAPPER \\
 
 cli::array<EngineAssembly^>^ VMWrapper::GetAssemblies()
@@ -133,6 +222,243 @@ void LuaVM::AttachDebugger()
 		printError("Could not attach debugger to Script.");
 }
 
+void Engine::Lua::VM::LuaVM::RegisterScript(String^ source)
+{
+	ExecuteSource(source);
+}
+
+void Engine::Lua::VM::LuaVM::RegisterCoroutine(String^ source)
+{
+	ExecuteSourceCo(source);
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunctionCo(String^ functionName)
+{
+	try
+	{
+		if (hasFunction(functionName))
+		{
+			System::Threading::Thread^ thread = gcnew System::Threading::Thread(
+				gcnew System::Threading::ParameterizedThreadStart(
+					this, &Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByName
+				)
+			);
+
+			thread->Start(functionName);
+			return true;
+		}
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
+
+	return false;
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunctionCo(MoonSharp::Interpreter::DynValue^ function)
+{
+	try
+	{
+		System::Threading::Thread^ thread = gcnew System::Threading::Thread(
+			gcnew System::Threading::ParameterizedThreadStart(
+				this, &Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByPointer
+			)
+		);
+
+		thread->Start(function);
+		return true;
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+	return false;
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunction(String^ functionName)
+{
+	try
+	{
+		if (hasFunction(functionName))
+		{
+			scriptState->Call(scriptState->Globals[functionName]);
+			return true;
+		}
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
+
+	return false;
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunction(MoonSharp::Interpreter::DynValue^ functionName)
+{
+	try
+	{
+		scriptState->Call(functionName);
+		return true;
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
+
+	return false;
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunction(String^ functionName, array<System::Object^>^ args)
+{
+	try
+	{
+		if (hasFunction(functionName))
+		{
+			scriptState->Call(scriptState->Globals[functionName], args);
+			return true;
+		}
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+
+	return false;
+}
+
+bool Engine::Lua::VM::LuaVM::InvokeFunction(String^ functionName, List<System::Object^>^ args)
+{
+	try
+	{
+		if (hasFunction(functionName))
+		{
+			scriptState->Call(scriptState->Globals[functionName], args->ToArray());
+			return true;
+		}
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+
+	return false;
+}
+
+System::Object^ Engine::Lua::VM::LuaVM::InvokeFunctionO(MoonSharp::Interpreter::DynValue^ functionName)
+{
+	try
+	{
+		return scriptState->Call(functionName);
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+		printError(ex->StackTrace);
+	}
+
+	return nullptr;
+}
+
+void Engine::Lua::VM::LuaVM::ExecuteSourceCo(String^ source)
+{
+	DumpSource(source);
+
+	try
+	{
+		System::Threading::Thread^ thread = gcnew System::Threading::Thread(
+			gcnew System::Threading::ParameterizedThreadStart(
+				this, &Engine::Lua::VM::LuaVM::LuaVM_LoadString
+			)
+		);
+
+		thread->Start(source);
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (MoonSharp::Interpreter::InterpreterException^ ex)
+	{
+		printError(ex->DecoratedMessage);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+}
+
+void Engine::Lua::VM::LuaVM::ExecuteSource(String^ source)
+{
+	DumpSource(source);
+
+	try
+	{
+		value = scriptState->DoString(source, scriptState->Globals, "GoldEngineMainThread");
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+}
+
+void Engine::Lua::VM::LuaVM::ExecuteSource(String^ source, String^ friendlyName)
+{
+	DumpSource(source);
+
+	try
+	{
+		value = scriptState->DoString(source, scriptState->Globals, friendlyName);
+	}
+	catch (Exception^ ex)
+	{
+		printError(ex->Message);
+	}
+}
+
 inline void LuaVM::RegisterGlobal(String^ functionName, System::Type^ userData)
 {
 	scriptState->Globals[functionName] = userData;
@@ -226,7 +552,7 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("VMWrap", VMWrapper::typeid);
 	RegisterGlobal("Time", Engine::Scripting::Time::typeid);
 	RegisterGlobal("Screen", Engine::Scripting::Screen::typeid);
-	RegisterGlobal("Graphics", Engine::Internal::GraphicsWrapper::typeid);
+	//RegisterGlobal("Graphics", Engine::Internal::GraphicsWrapper::typeid);
 	RegisterGlobal("Vector2", Engine::Components::Vector2::typeid);
 	RegisterGlobal("Vector3", Engine::Components::Vector3::typeid);
 	RegisterGlobal("Color", Engine::Components::Color::typeid);
@@ -235,6 +561,7 @@ void LuaVM::RegisterGlobalFunctions()
 	// REGISTER DATAMODEL INSTANCES (workspace, gui)
 	if (Singleton<Engine::Scripting::ObjectManager^>::Instantiated)
 	{
+		RegisterGlobal("game", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("workspace")->Parent);
 		RegisterGlobal("workspace", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("workspace"));
 		RegisterGlobal("gui", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("gui"));
 		RegisterGlobal("lighting", Engine::Scripting::ObjectManager::singleton()->GetDatamodel("lighting"));
@@ -252,6 +579,7 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("info", gcnew System::Action<String^>(&Logging::LogDebug));
 	RegisterGlobal("require", gcnew System::Func<System::Object^, LuaVM^>(this, &LuaVM::RequireOverride));
 	RegisterGlobal("log", gcnew System::Action<String^, String^>(&Logging::LogCustom));
+	RegisterGlobal("wait", gcnew System::Action<double>(&Time::Wait));
 
 	// CREATE CUSTOM LUA FUNCTIONS
 	RegisterGlobal("HasProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, bool>(&VMWrapper::HasProperty));
@@ -456,6 +784,9 @@ void LuaVM::GenerateLuaBindings()
 
 					RemapConstructors(luaSrcFile, type, apiName);
 					RemapFunctions(luaSrcFile, type, apiName);
+
+					luaSrcFile += "local script = LuaScript.new();\n";
+					luaSrcFile += "local attributes = AttributeManager.new();\n";
 				}
 			}
 			catch (Exception^ ex)
@@ -518,6 +849,19 @@ void LuaVM::ReadLuaCodeFromFile(String^ src)
 	{
 		printError("Lua header mismatch\n");
 	}
+}
+
+Engine::Lua::VM::LuaVM::LuaVM()
+{
+	tempBuffer = "";
+	MoonSharp::Interpreter::Script::DefaultOptions->CheckThreadAccess = false;
+
+	scriptState = gcnew MoonSharp::Interpreter::Script(CoreModules::Preset_Complete);
+	scriptState->Options->CheckThreadAccess = false;
+
+	bytecode = gcnew System::IO::MemoryStream();
+
+	RegisterGlobalFunctions();
 }
 
 void LuaVM::WriteLuaCodeToFile(String^ src)

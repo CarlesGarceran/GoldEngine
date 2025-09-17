@@ -20,7 +20,7 @@ namespace Engine::EngineObjects
 
 		void Draw() override
 		{
-			auto v3 = getTransform()->scale->toNative();
+			auto v3 = getTransform()->scale.toNative();
 			RAYLIB::Color c =
 			{
 				color >> 0,
@@ -29,7 +29,7 @@ namespace Engine::EngineObjects
 				color >> 24
 			};
 			
-			DrawCube(getTransform()->position->toNative(), v3.x, v3.y, v3.z , c);
+			DrawCube(getTransform()->position.toNative(), v3.x, v3.y, v3.z , c);
 		}
 
 	public:

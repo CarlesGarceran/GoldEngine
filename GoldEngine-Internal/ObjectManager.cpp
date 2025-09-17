@@ -151,6 +151,27 @@ GameObject^ ObjectManager::GetDatamodel(String^ dataModelName, bool createDataMo
 	return loadedScene->GetDatamodelMember(dataModelName, createDataModel);
 }
 
+void GetDescendantsOfRef(Engine::Internal::Components::GameObject^ parent, List<GameObject^>^% instances)
+{
+	for each (GameObject ^ instance in parent->GetChildren())
+	{
+		instances->Add(instance);
+		GetDescendantsOfRef(instance, instances);
+	}
+}
+
+List<Engine::Internal::Components::GameObject^>^ Engine::Scripting::ObjectManager::GetDescendantsOf(Engine::Internal::Components::GameObject^ parent)
+{
+	System::Collections::Generic::List<GameObject^>^ instances = gcnew System::Collections::Generic::List<GameObject^>();
+
+	for each (GameObject^ instance in parent->GetChildren())
+	{
+		instances->Add(instance);
+		GetDescendantsOfRef(instance, instances);
+	}
+
+	return instances;
+}
 
 Engine::EngineObjects::Camera^ ObjectManager::GetMainCamera()
 {

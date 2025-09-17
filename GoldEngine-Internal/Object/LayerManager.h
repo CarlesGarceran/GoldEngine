@@ -4,6 +4,7 @@ using namespace System;
 using namespace Engine::Components;
 
 #include "../CastToNative.h"
+#include "../Event.h"
 
 namespace Engine::Scripting
 {
@@ -13,18 +14,51 @@ namespace Engine::Scripting
 	private:
 		static System::Collections::Generic::List<Layer^>^ layers;
 
+	private:
+		static Layer^ CreateLayer(unsigned int layerId, System::String^ layerName, unsigned int layerFlags)
+		{
+			Layer^ createdLayer = gcnew Layer(layerId, layerName);
+			createdLayer->setLayerBlendFlags(layerFlags);
+
+			return createdLayer;
+		}
+
+	public:
+		static Engine::Scripting::Events::Event^ onLayerAdded = gcnew Engine::Scripting::Events::Event();
+		static Engine::Scripting::Events::Event^ onLayerRemoved = gcnew Engine::Scripting::Events::Event();
+
 	public:
 		static void RegisterDefaultLayers()
 		{
 			layers = gcnew System::Collections::Generic::List<Layer^>();
 
-			Layer^ transparentLayer = gcnew Layer(2, "Transparent");
-			transparentLayer->setLayerBlendFlags(RAYLIB::BLEND_ALPHA);
+			AddLayer(CreateLayer(0, "EngineRoot", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(1, "Geometry", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(2, "Transparent", RAYLIB::BLEND_ALPHA));
+			AddLayer(CreateLayer(3, "PostFX", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(4, "Triggers", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(5, "Colliders", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(6, "PhysicsWorld", RAYLIB::BLEND_ADDITIVE));
+		}
 
-			AddLayer(gcnew Layer(0, "EngineRoot"));
-			AddLayer(gcnew Layer(1, "Geometry"));
-			AddLayer(transparentLayer);
-			AddLayer(gcnew Layer(3, "PostFX"));
+		static void ClearLayers()
+		{
+			layers->Clear();
+		}
+
+		static System::String^ SerializeLayers()
+		{
+			return Newtonsoft::Json::JsonConvert::SerializeObject(layers);
+		}
+
+		static void LoadLayers(System::String^ _layers)
+		{
+			layers = (System::Collections::Generic::List<Layer^>^)Newtonsoft::Json::JsonConvert::DeserializeObject<System::Collections::Generic::List<Layer^>^>(_layers);
+		}
+
+		static void LoadLayers(System::Collections::Generic::List<Layer^>^ _layers)
+		{
+			layers = _layers;
 		}
 
 	public:
@@ -84,7 +118,56 @@ namespace Engine::Scripting
 	public:
 		static void AddLayer(Layer^ layer)
 		{
+			if (layer == nullptr)
+			{
+				//printError("Attempt to add a null layer to the stack.");
+				return;
+			}
+
+			if (GetLayerFromId(layer->layerMask) != nullptr)
+			{
+				//printError("Attempt to add a repeated layer with ID: " + layer->layerMask);
+				return;
+			}
+
 			layers->Add(layer);
+			onLayerAdded->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
+		}
+
+		static void RemoveLayer(Layer^ layer)
+		{
+			if (GetLayerFromId(layer->layerMask) != nullptr)
+			{
+				if (layers->Contains(layer))
+				{
+					layers->Remove(layer);
+				}
+				else
+				{
+					layers->Remove(GetLayerFromId(layer->layerMask));
+				}
+
+				onLayerRemoved->invoke(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
+			}
+		}
+
+		static void RemoveLayer(unsigned int layerId)
+		{
+			if (GetLayerFromId(layerId) != nullptr)
+			{
+				auto layer = GetLayerFromId(layerId);
+
+				if (layers->Contains(layer))
+				{
+					layers->Remove(layer);
+				}
+				else
+				{
+					layers->Remove(GetLayerFromId(layer->layerMask));
+				}
+
+				onLayerRemoved->invoke(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
+			}
 		}
 
 	public:

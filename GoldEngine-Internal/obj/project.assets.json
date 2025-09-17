@@ -1,44 +1,11 @@
 {
   "version": 3,
   "targets": {
-    "net8.0-windows7.0": {
-      "glfw/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/glfw.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/glfw.dll": {}
-        }
-      },
-      "raylib/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/raylib.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/raylib.dll": {}
-        }
-      }
-    }
+    "net8.0-windows7.0": {}
   },
-  "libraries": {
-    "glfw/1.0.0": {
-      "type": "project",
-      "path": "../Solutions/API/raylib/build/x64/raylib/external/glfw/src/glfw.vcxproj",
-      "msbuildProject": "../Solutions/API/raylib/build/x64/raylib/external/glfw/src/glfw.vcxproj"
-    },
-    "raylib/1.0.0": {
-      "type": "project",
-      "path": "../Solutions/API/raylib/build/x86/raylib/raylib.vcxproj",
-      "msbuildProject": "../Solutions/API/raylib/build/x86/raylib/raylib.vcxproj"
-    }
-  },
+  "libraries": {},
   "projectFileDependencyGroups": {
-    "net8.0-windows7.0": [
-      "glfw >= 1.0.0",
-      "raylib >= 1.0.0"
-    ]
+    "net8.0-windows7.0": []
   },
   "packageFolders": {
     "C:\\Users\\Carles\\.nuget\\packages\\": {},
@@ -77,17 +44,7 @@
       "frameworks": {
         "net8.0-windows7.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {
-            "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj": {
-              "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x64\\raylib\\external\\glfw\\src\\glfw.vcxproj"
-            },
-            "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj": {
-              "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\external\\glfw\\src\\glfw.vcxproj"
-            },
-            "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj": {
-              "projectPath": "C:\\Users\\Carles\\source\\repos\\GoldEngine\\Solutions\\API\\raylib\\build\\x86\\raylib\\raylib.vcxproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "restoreAuditProperties": {

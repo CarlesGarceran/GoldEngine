@@ -141,8 +141,6 @@ RAYLIB::Shader& DataPacks::GetShader(unsigned int shaderId)
 	}
 	catch (std::exception ex)
 	{
-		printError(gcnew String(ex.what()));
-
 		if (nativePacks->fallbackShader == nullptr)
 			nativePacks->fallbackShader = new Engine::Native::EnginePtr(RAYLIB::LoadShader("./Data/Engine/Shaders/base.vs", "./Data/Engine/Shaders/base.fs"));
 
@@ -159,8 +157,7 @@ Engine::Components::Material^ DataPacks::GetMaterial(unsigned int materialId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
-		return nullptr;
+		return *nativePacks->fallbackMaterial;
 	}
 }
 
@@ -173,7 +170,6 @@ Sound& DataPacks::GetSound(unsigned int soundId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
 		RAYLIB::Sound emptyMusic = { 0 };
 		return emptyMusic;
 	}
@@ -194,7 +190,6 @@ Music& DataPacks::GetMusic(unsigned int musicId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
 		RAYLIB::Music emptyMusic = { 0 };
 		return emptyMusic;
 	}
@@ -354,8 +349,6 @@ RAYLIB::Mesh& DataPacks::GetMesh(unsigned int musicId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
-
 		if (nativePacks->fallbackMesh == nullptr)
 			nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(nativePacks->fallbackModel->getInstance().meshes[0]);
 

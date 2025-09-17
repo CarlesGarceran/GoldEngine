@@ -52,5 +52,5 @@ void WinAPI::SetAttribute(const char* path, int ptr)
 
 void WinAPI::LoadLib(const char* libName)
 {
-    LoadLibrary(libName);
+    LoadLibraryA(libName);
 }

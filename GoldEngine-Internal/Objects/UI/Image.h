@@ -38,15 +38,15 @@ namespace Engine::EngineObjects::UI
 		{
 			RAYLIB::BeginBlendMode(RAYLIB::BlendMode::BLEND_ALPHA);
 
-			Engine::Components::Vector2^ transformedVector = this->transform->position->toVector2();
+			Engine::Components::Vector2 v2 = this->transform->position.toVector2();
 			RAYLIB::Texture texture = Engine::Assets::Storage::DataPacks::DataPacks::singleton().GetTexture2D((unsigned int)attributes->getAttribute("Texture ID")->getValueAuto());
 
 			RAYLIB::Rectangle outRectangle;
 
 			outRectangle.x = 0;
 			outRectangle.y = 0;
-			outRectangle.width = this->transform->scale->x;
-			outRectangle.height = this->transform->scale->y;
+			outRectangle.width = this->transform->scale.x;
+			outRectangle.height = this->transform->scale.y;
 
 			RAYLIB::Rectangle inRectangle;
 
@@ -59,7 +59,7 @@ namespace Engine::EngineObjects::UI
 				texture,
 				inRectangle,
 				outRectangle,
-				transformedVector->toNative(),
+				v2.toNative(),
 				attributes->getAttribute("Image Rotation")->getValue<float>(),
 				attributes->getAttribute("Image Tint")->getValue<Engine::Components::Color^>()->toNative()
 			);

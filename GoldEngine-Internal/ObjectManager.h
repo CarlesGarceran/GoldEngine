@@ -191,6 +191,8 @@ namespace Engine::Scripting
 			}
 		}
 
+		List<Engine::Internal::Components::GameObject^>^ GetDescendantsOf(Engine::Internal::Components::GameObject^ parent);
+
 		List<Engine::Internal::Components::GameObject^>^ GetChildrenOf(Engine::Internal::Components::GameObject^ parent)
 		{
 			List<Engine::Internal::Components::GameObject^>^ newList = gcnew List<Engine::Internal::Components::GameObject^>();

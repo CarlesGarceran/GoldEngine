@@ -15,7 +15,7 @@ namespace Engine::EngineObjects
 			}
 		}
 
-		Script() : Engine::EngineObjects::ScriptBehaviour("Script", gcnew Engine::Internal::Components::Transform(Engine::Components::Vector3::zero(), Engine::Components::Vector3::zero(), gcnew Engine::Components::Vector3(1,1,1), nullptr))
+		Script() : Engine::EngineObjects::ScriptBehaviour("Script", gcnew Engine::Internal::Components::Transform(Engine::Components::Vector3::zero(), Engine::Components::Vector3::zero(), Engine::Components::Vector3(1,1,1), nullptr))
 		{
 			for each (Engine::Scripting::Attribute ^ attrib in attributes->attributes)
 			{

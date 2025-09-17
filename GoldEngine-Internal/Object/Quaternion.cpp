@@ -11,7 +11,7 @@ RAYLIB::Vector4 Engine::Components::Quaternion::toNative()
 	return { this->x, this->y, this->z, this->w };
 }
 
-Engine::Components::Vector3^ Engine::Components::Quaternion::toEuler()
+Engine::Components::Vector3 Engine::Components::Quaternion::toEuler()
 {
-	return gcnew Engine::Components::Vector3(x, y, z);
+	return Engine::Components::Vector3(x, y, z);
 }

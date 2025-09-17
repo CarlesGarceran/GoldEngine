@@ -71,9 +71,9 @@ namespace Engine::Management::MiddleLevel
 				this->sceneObject = gcnew Engine::EngineObjects::ScriptBehaviour(
 					gcnew System::String("Null Instance"),
 					gcnew Engine::Internal::Components::Transform(
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
+						Engine::Components::Vector3(0, 0, 0),
+						Engine::Components::Vector3(0, 0, 0),
+						Engine::Components::Vector3(0, 0, 0),
 						nullptr)
 				);
 

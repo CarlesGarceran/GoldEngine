@@ -78,8 +78,10 @@ using namespace Engine::Attributes;
 
 // Geometry
 
+#include "Objects/Abstract/Renderer.h"
 #include "Objects/MeshRenderer/MeshRenderer.h"
 #include "Objects/ModelRenderer/ModelRenderer.hpp"
+#include "Objects/CapsuleRenderer.h"
 
 // Audio
 
@@ -99,6 +101,10 @@ using namespace Engine::Attributes;
 #include "Objects/Physics/Triggers/Collider.h"
 #include "Objects/Physics/PhysicsService.h"
 
+#include "Objects/Physics/Colliders/BoxCollider.h"
+#include "Objects/Physics/Colliders/CapsuleCollider.h"
+#include "Objects/Physics/Colliders/MeshCollider.h"
+
 #endif
 
 // render pipelines
@@ -110,6 +116,7 @@ using namespace Engine::Attributes;
 // MiniAudio Init
 #include "native/miniaudio.h"
 
+#include "imfiledialog/ImFileDialog.h"
 
 using namespace Engine;
 using namespace Engine::EngineObjects;
@@ -135,7 +142,7 @@ static System::Reflection::Assembly^ ResolveAssembly(System::Object^ sender, Sys
 			return loadedAssembly;
 	}
 
-	System::String^ assemblyFolder = System::IO::Path::Combine(AppDomain::CurrentDomain->BaseDirectory, "Bin/Asm/");
+	System::String^ assemblyFolder = System::IO::Path::Combine(AppDomain::CurrentDomain->BaseDirectory, "Bin/");
 	System::String^ assemblyPath = System::IO::Path::Combine(assemblyFolder, requestedName->Name + ".dll");
 
 	if (File::Exists(assemblyPath))
@@ -152,7 +159,9 @@ static Newtonsoft::Json::JsonSerializerSettings^ SerializerSettings()
 {
 	auto serializerSettings = gcnew Newtonsoft::Json::JsonSerializerSettings();
 	serializerSettings->Converters->Add(gcnew Newtonsoft::Json::Converters::StringEnumConverter());
+	serializerSettings->Converters->Add(gcnew Newtonsoft::Json::Converters::KeyValuePairConverter());
 	serializerSettings->TypeNameHandling = Newtonsoft::Json::TypeNameHandling::None;
+	serializerSettings->PreserveReferencesHandling = PreserveReferencesHandling::Objects;
 
 	return serializerSettings;
 }
@@ -176,25 +185,19 @@ static void engine_bootstrap()
 	if (!Directory::Exists("Bin/"))
 		Directory::CreateDirectory("Bin");
 
-	if (!Directory::Exists("Bin/Asm"))
-		Directory::CreateDirectory("Bin/Asm");
-
 	if (!Directory::Exists("Data"))
 		Directory::CreateDirectory("Data");
+
+	if (!Directory::Exists("Cfg"))
+		Directory::CreateDirectory("Cfg");
 
 	if (!Directory::Exists("Data/Keys/"))
 		Directory::CreateDirectory("Data/Keys/");
 
 	if (!File::Exists("Data/Keys/map.iv"))
 	{
-		FileStream^ fs = File::Open("Data/Keys/map.iv", System::IO::FileMode::OpenOrCreate);
-		BinaryWriter^ writer = gcnew BinaryWriter(fs);
-
-		Random^ r = gcnew Random();
-
-		writer->Write(System::Guid::NewGuid().ToString());
-		writer->Close();
-		fs->Close();
+		String^ guid = System::Guid::NewGuid().ToString();
+		File::WriteAllText("Data/Keys/map.iv", guid);
 	}
 
 	if (!Directory::Exists("Data/UserData/"))
@@ -231,14 +234,24 @@ bool readonlyLock = false;
 bool fpsCap = true;
 bool fpsCheck = true;
 bool reparentLock = false;
+
 std::string consoleBufferData = "";
 std::string asset_filter_name = "";
 std::string styleFN;
+
 RAYLIB::Texture modelTexture;
 RAYLIB::Texture textureTexture;
 RAYLIB::Texture materialTexture;
 RAYLIB::Texture scriptTexture;
 RAYLIB::Texture soundTexture;
+
+RAYLIB::Texture dragTexture;
+RAYLIB::Texture translateTexture;
+RAYLIB::Texture rotateTexture;
+RAYLIB::Texture scaleTexture;
+
+RAYLIB::Texture playTexture;
+RAYLIB::Texture stopTexture;
 
 bool fileDialogOpen = false;
 int tmp1;
@@ -259,6 +272,7 @@ bool assetsVisible = true;
 bool consoleVisible = true;
 bool scenevpVisible = true;
 msclr::gcroot<String^> jsonData = "";
+msclr::gcroot<String^> sceneSnapshot = "";
 
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
@@ -295,6 +309,48 @@ assetDisplay displayingAssets;
 
 int displayingAsset = 0;
 
+UNMANAGED_BEGIN
+
+void DeleteTexture(void* tex)
+{
+	if (tex == nullptr) return;
+
+	Texture2D* texture = reinterpret_cast<Texture2D*>(tex);
+	UnloadTexture(*texture);
+	delete texture;
+}
+
+void* CreateTexture(RAYLIB::Image* image, int w, int h, char fmt)
+{
+	if (image == nullptr || image->data == nullptr) return nullptr;
+
+	if (w != image->width || h != image->height) {
+	}
+
+	if (fmt == 0)
+	{
+		int pixelCount = image->width * image->height;
+		RAYLIB::Color* pixels = reinterpret_cast<RAYLIB::Color*>(image->data);
+
+		for (int i = 0; i < pixelCount; i++)
+		{
+			std::swap(pixels[i].r, pixels[i].b);
+		}
+	}
+
+	Texture2D* tex = new Texture2D;
+	*tex = LoadTextureFromImage(*image);
+	
+	return reinterpret_cast<void*>(tex);
+}
+
+void ConfigureImFileDialog()
+{
+	ifd::FileDialog::Instance().CreateTexture = &CreateTexture;
+	ifd::FileDialog::Instance().DeleteTexture = &DeleteTexture;
+}
+
+UNMANAGED_END
 
 void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 {
@@ -313,6 +369,10 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 	if (consoleCommand.find("clear()") != std::string::npos || consoleCommand.find("Clear()") != std::string::npos)
 	{
 		Engine::Scripting::Logging::clearLogs();
+	}
+	else if (consoleCommand.find("ifd()") != std::string::npos)
+	{
+		ifd::FileDialog::Instance().Open("TestFileDialog", "Open file", "All Files (*.*),.*", false);
 	}
 	else
 	{
@@ -375,6 +435,25 @@ String^ GetAccessRoute(Engine::Internal::Components::GameObject^ object)
 	return GetParentRoute(object->transform) + "/" + object->name;
 }
 
+void TogglePlayMode(EditorWindow^ window)
+{
+	bool playmode = !EngineState::PlayMode;
+
+	auto scene = Singleton<Engine::Scripting::ObjectManager^>::Instance->GetLoadedScene();
+
+	if (playmode)
+	{
+		sceneSnapshot = Serialize(scene);
+		print("[GoldEngine]:", "Entering PlayMode");
+	}
+	else
+	{
+		print("[GoldEngine]:", "Leaving PlayMode");
+	}
+
+	EngineState::PlayMode = playmode;
+}
+
 EditorWindow::EditorWindow()
 {
 #if HIDE_CONSOLE == true
@@ -394,7 +473,7 @@ EditorWindow::EditorWindow()
 
 	assemblies->Add(gcnew EngineAssembly(System::Reflection::Assembly::GetExecutingAssembly()));
 
-	for each (String ^ fileName in Directory::GetFiles("Bin\\Asm\\"))
+	for each (String ^ fileName in Directory::GetFiles("Bin\\"))
 	{
 		if (fileName->Contains(".dll"))
 		{
@@ -504,7 +583,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 
 			if ((rPBR::LightType)lightType == rPBR::LightType::LIGHT_DIRECTIONAL || (rPBR::LightType)lightType == rPBR::LightType::LIGHT_SPOT)
 			{
-				Engine::Components::Vector3^ target = light->target;
+				Engine::Components::Vector3 target = light->target;
 
 				float nativeVector[3] = { light->target->x, light->target->y, light->target->z };
 
@@ -512,7 +591,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 				ImGui::SameLine();
 				if (ImGui::DragFloat2("###LIGHT_TARGET", nativeVector, 1.0f, float::MinValue, float::MaxValue, "%.3f"))
 				{
-					light->target = gcnew Engine::Components::Vector3(nativeVector[0], nativeVector[1], nativeVector[2]);
+					light->target = Engine::Components::Vector3(nativeVector[0], nativeVector[1], nativeVector[2]);
 				}
 			}
 
@@ -607,25 +686,11 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						}
 						else if (attrib->getValueType()->Equals(Engine::Components::Vector3::typeid))
 						{
-							Engine::Components::Vector3^ vector = attrib->getValue<Engine::Components::Vector3^>();
-
-							float data[3] = { vector->x, vector->y, vector->z };
-
-							if (ImGui::DragFloat3(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), data, 1.0f, -INFINITY, INFINITY, "%.2f"))
-							{
-								attrib->setValue(Engine::Components::Vector3::create(data));
-							}
+							Vector3Editor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(Engine::Components::Vector2::typeid))
 						{
-							Engine::Components::Vector2^ vector = (Engine::Components::Vector2^)attrib->getValue();
-
-							float data[2] = { vector->x, vector->y };
-
-							if (ImGui::DragFloat2(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), data, 1.0f, -INFINITY, INFINITY, "%.2f"))
-							{
-								attrib->setValue(Engine::Components::Vector2::create(data));
-							}
+							Vector2Editor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(UInt32::typeid))
 						{
@@ -712,15 +777,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						}
 						else if (attrib->getValueType()->Equals(Double::typeid))
 						{
-							float tmp = (double)attrib->getValue();
-
-							float value = (double)tmp;
-
-							if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
-							{
-								attrib->setValue(value, false);
-								attrib->setType(float::typeid);
-							}
+							DoubleEditor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(bool::typeid))
 						{
@@ -729,6 +786,10 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						else if (attrib->getValueType()->Equals(Engine::Components::Color::typeid))
 						{
 							ColorEditor(attrib);
+						}
+						else if (attrib->getValueType()->Equals(System::Collections::Generic::List::typeid))
+						{
+							ListEditor(attrib);
 						}
 
 						idx++;
@@ -910,9 +971,9 @@ void EditorWindow::createAssetEntries(String^ path)
 				auto meshRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer(
 					"ModelRenderer",
 					gcnew Engine::Internal::Components::Transform(
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(1, 1, 1),
+						Engine::Components::Vector3(0, 0, 0),
+						Engine::Components::Vector3(0, 0, 0),
+						Engine::Components::Vector3(1, 1, 1),
 						nullptr
 					),
 					assetId,
@@ -1158,15 +1219,17 @@ void EditorWindow::Start()
 	SetWindowFlags(FLAG_INTERLACED_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_ALWAYS_RUN);
 	OpenWindow(1280, 720, (const char*)EDITOR_VERSION);
 
+	ConfigureImFileDialog();
 	gcnew Engine::Managers::SignalManager();
 
 	if (File::Exists("./Data/Keys/secrets.dat"))
 	{
 		auto secrets = Engine::Config::EngineSecrets::ImportSecrets("./Data/Keys/secrets.dat");
 
-		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(secrets->encryptionPassword);
+		unsigned int password = Engine::Encryption::CypherLib::GetPasswordBytes(secrets->getPassword());
+		passwd = password;
 
-		auto config = Engine::Config::EngineConfiguration::ImportConfig("./Data/appinfo.dat");
+		auto config = Engine::Config::EngineConfiguration::ImportConfig("./Data/appinfo.dat", password);
 
 		if (!Directory::Exists(System::Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData) + "/../LocalLow/" + config->logPath->Substring(0, config->logPath->IndexOf('/'))))
 		{
@@ -1217,9 +1280,10 @@ void EditorWindow::DrawMainMenuBar()
 
 			if (ImGui::BeginMenu("Set encryption password"))
 			{
-				if (ImGui::InputText("###PASSWORD_SETTER", &password))
+				if (ImGui::InputText("###PASSWORD_SETTER", &password, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					Engine::Config::EngineSecrets::singleton()->encryptionPassword = gcnew String(password.c_str());
+					Engine::Config::EngineSecrets::singleton()->setEncryptionPassword(gcnew String(password.c_str()));
+					passwd = Engine::Encryption::CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->getPassword());
 				}
 
 				ImGui::EndMenu();
@@ -1264,9 +1328,9 @@ void EditorWindow::DrawMainMenuBar()
 				}
 
 				ImGui::EndMenu();
-			}
+			}	
 
-			if (ImGui::MenuItem("Build Settings"))
+			if (ImGui::MenuItem("Build"))
 			{
 
 			}
@@ -1361,15 +1425,11 @@ void EditorWindow::DrawMainMenuBar()
 
 			if (ImGui::MenuItem("Editor View"))
 			{
-				print("[GoldEngine]:", "Exiting PlayMode");
-
-				EngineState::PlayMode = false;
+				TogglePlayMode(this);
 			}
 			if (ImGui::MenuItem("Game View"))
 			{
-				print("[GoldEngine]:", "Entering PlayMode");
-
-				EngineState::PlayMode = true;
+				TogglePlayMode(this);
 			}
 			ImGui::SeparatorText("Render Pipelines");
 
@@ -1401,6 +1461,11 @@ void EditorWindow::DrawMainMenuBar()
 
 		if (ImGui::BeginMenu("Object", true))
 		{
+			Engine::Internal::Components::Transform^ parent = nullptr;
+
+			if (selectedObject != nullptr)
+				parent = selectedObject->transform;
+
 			if (ImGui::MenuItem("Empty Object"))
 			{
 				Engine::EngineObjects::Script^ newObject = gcnew Engine::EngineObjects::Script("Empty Object",
@@ -1408,7 +1473,7 @@ void EditorWindow::DrawMainMenuBar()
 						Engine::Components::Vector3::create({ 0,0,0 }),
 						Engine::Components::Vector3::create({ 0,0,0 }),
 						Engine::Components::Vector3::create({ 1,1,1 }),
-						scene->GetDatamodelMember("workspace")->getTransform()
+						parent
 					)
 				);
 
@@ -1426,8 +1491,23 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							scene->GetDatamodelMember("workspace")->getTransform()
+							parent
 						), 0xFFFFFFFF);
+
+					scene->AddObjectToScene(cubeRenderer);
+				}
+
+				if (ImGui::MenuItem("Capsule Renderer"))
+				{
+					Engine::EngineObjects::Geometry::CapsuleRenderer^ cubeRenderer = gcnew Engine::EngineObjects::Geometry::CapsuleRenderer(
+						"CapsuleRenderer",
+						gcnew Engine::Internal::Components::Transform(
+							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Vector3::create({ 1,1,1 }),
+							parent
+						)
+					);
 
 					scene->AddObjectToScene(cubeRenderer);
 				}
@@ -1446,7 +1526,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							nullptr
+							parent
 						));
 
 					scene->AddObjectToScene(newCamera);
@@ -1458,7 +1538,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							nullptr
+							parent
 						));
 
 					scene->AddObjectToScene(newCamera);
@@ -1478,10 +1558,10 @@ void EditorWindow::DrawMainMenuBar()
 						auto sprite = gcnew Engine::EngineObjects::Sprite(
 							"Sprite",
 							gcnew Engine::Internal::Components::Transform(
-								gcnew Engine::Components::Vector3(0, 0, 0),
-								gcnew Engine::Components::Vector3(0, 0, 0),
-								gcnew Engine::Components::Vector3(1, 1, 1),
-								scene->GetDatamodelMember("workspace")->getTransform()
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(1, 1, 1),
+								parent
 							)
 						);
 
@@ -1501,7 +1581,7 @@ void EditorWindow::DrawMainMenuBar()
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 0,0,0 }),
-								scene->GetDatamodelMember("workspace")->getTransform()
+								parent
 							)
 						);
 
@@ -1516,7 +1596,7 @@ void EditorWindow::DrawMainMenuBar()
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 0,0,0 }),
 								Engine::Components::Vector3::create({ 1,1,1 }),
-								scene->GetDatamodelMember("workspace")->getTransform()
+								parent
 							)
 						);
 
@@ -1539,10 +1619,10 @@ void EditorWindow::DrawMainMenuBar()
 					auto meshRenderer = gcnew Engine::EngineObjects::Physics::RigidBody(
 						"RigidBody",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
-							nullptr
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
+							parent
 						)
 					);
 
@@ -1554,9 +1634,9 @@ void EditorWindow::DrawMainMenuBar()
 					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Collider(
 						"Collider",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
 							scene->GetDatamodelMember("workspace")->transform
 						)
 					);
@@ -1564,6 +1644,57 @@ void EditorWindow::DrawMainMenuBar()
 					scene->AddObjectToScene(meshRenderer);
 				}
 				*/
+
+				if (ImGui::BeginMenu("Colliders"))
+				{
+					if (ImGui::MenuItem("Box Collider"))
+					{
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::BoxCollider(
+							"BoxCollider",
+							gcnew Engine::Internal::Components::Transform(
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(1, 1, 1),
+								parent
+							)
+						);
+
+						scene->AddObjectToScene(meshRenderer);
+					}
+
+					if (ImGui::MenuItem("Capsule Collider"))
+					{
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::CapsuleCollider(
+							"CapsuleCollider",
+							gcnew Engine::Internal::Components::Transform(
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(1, 1, 1),
+								parent
+							)
+						);
+
+						scene->AddObjectToScene(meshRenderer);
+					}
+
+					if (ImGui::MenuItem("Mesh Collider"))
+					{
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::MeshCollider(
+							"MeshCollider",
+							gcnew Engine::Internal::Components::Transform(
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Vector3(1, 1, 1),
+								parent
+							)
+						);
+
+						scene->AddObjectToScene(meshRenderer);
+					}
+
+					ImGui::EndMenu();
+				}
+
 #else
 				ImGui::Text("Engine not compiled with physics engine module");
 #endif
@@ -1580,9 +1711,9 @@ void EditorWindow::DrawMainMenuBar()
 					auto meshRenderer = gcnew Engine::EngineObjects::AudioSource(
 						"AudioSource",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
 							nullptr
 						)
 					);
@@ -1603,14 +1734,14 @@ void EditorWindow::DrawMainMenuBar()
 					auto meshRenderer = gcnew Engine::EngineObjects::LightSource(
 						"Point Light",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
 							nullptr
 						),
 						0xFF0000FF,
 						rPBR::LightType::LIGHT_POINT,
-						gcnew Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
+						Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
 						1.0f,
 						1
 					);
@@ -1619,19 +1750,19 @@ void EditorWindow::DrawMainMenuBar()
 					scene->AddObjectToScene(meshRenderer);
 				}
 
-				if (ImGui::MenuItem("Dirrectional Light"))
+				if (ImGui::MenuItem("Directional Light"))
 				{
 					auto meshRenderer = gcnew Engine::EngineObjects::LightSource(
 						"Directional Light",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
 							nullptr
 						),
 						0xFF0000FF,
 						rPBR::LightType::LIGHT_DIRECTIONAL,
-						gcnew Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
+						Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
 						1.0f,
 						1
 					);
@@ -1644,14 +1775,14 @@ void EditorWindow::DrawMainMenuBar()
 					auto meshRenderer = gcnew Engine::EngineObjects::LightSource(
 						"Spot Light",
 						gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(0, 0, 0),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(0, 0, 0),
+							Engine::Components::Vector3(1, 1, 1),
 							nullptr
 						),
 						0xFF0000FF,
 						rPBR::LightType::LIGHT_SPOT,
-						gcnew Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
+						Engine::Components::Vector3(1.0f, 1.0f, 1.0f),
 						1.0f,
 						1
 					);
@@ -1677,9 +1808,9 @@ void EditorWindow::DrawMainMenuBar()
 					if (ImGui::MenuItem("Image"))
 					{
 						auto image = gcnew Engine::EngineObjects::UI::Image("Image", gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(1, 1, 1),
 							scene->GetDatamodelMember("gui")->getTransform()
 						));
 
@@ -1695,10 +1826,10 @@ void EditorWindow::DrawMainMenuBar()
 					if (ImGui::MenuItem("RenderSurface3D"))
 					{
 						auto image = gcnew Engine::EngineObjects::Surface::RenderSurface3D("RenderSurface3D", gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(1, 1, 1),
-							scene->GetDatamodelMember("workspace")->getTransform()
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(1, 1, 1),
+							parent
 						));
 
 						scene->AddObjectToScene(image);
@@ -1713,9 +1844,9 @@ void EditorWindow::DrawMainMenuBar()
 					if (ImGui::MenuItem("Button"))
 					{
 						auto button = gcnew Engine::EngineObjects::UI::Button("Button", gcnew Engine::Internal::Components::Transform(
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(),
-							gcnew Engine::Components::Vector3(1, 1, 1),
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(),
+							Engine::Components::Vector3(1, 1, 1),
 							scene->GetDatamodelMember("gui")->getTransform()
 						));
 
@@ -1738,7 +1869,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							scene->GetDatamodelMember("workspace")->getTransform()
+							parent
 						));
 
 					scene->AddObjectToScene(luaScript);
@@ -1863,10 +1994,8 @@ void EditorWindow::DrawMainMenuBar()
 
 				ImGui::EndMenu();
 			}
-			if (ImGui::Checkbox("FPS", &fpsCheck))
-			{
-				fpsCap = fpsCheck;
-			}
+
+			ImGui::Checkbox("FPS", &fpsCap);
 
 			ImGui::EndMenu();
 		}
@@ -2199,54 +2328,54 @@ void EditorWindow::DrawProperties()
 				{
 					// position
 					float pos[3] = {
-						selectedObject->getTransform()->position->x,
-						selectedObject->getTransform()->position->y,
-						selectedObject->getTransform()->position->z
+						selectedObject->getTransform()->position.x,
+						selectedObject->getTransform()->position.y,
+						selectedObject->getTransform()->position.z
 					};
 
 					if (ImGui::DragFloat3("Position", pos, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
-						selectedObject->getTransform()->position = gcnew Engine::Components::Vector3(pos[0], pos[1], pos[2]);
+						selectedObject->getTransform()->position = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
 					}
 				}
 				else
 				{
 					// local position
 					float pos[3] = {
-						selectedObject->getTransform()->localPosition->x,
-						selectedObject->getTransform()->localPosition->y,
-						selectedObject->getTransform()->localPosition->z
+						selectedObject->getTransform()->localPosition.x,
+						selectedObject->getTransform()->localPosition.y,
+						selectedObject->getTransform()->localPosition.z
 					};
 
 					if (ImGui::DragFloat3("Local Position", pos, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
-						selectedObject->getTransform()->localPosition = gcnew Engine::Components::Vector3(pos[0], pos[1], pos[2]);
+						selectedObject->getTransform()->localPosition = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
 					}
 				}
 
 				// rotation
 				float rot[3] = {
-					selectedObject->getTransform()->rotation->x,
-					selectedObject->getTransform()->rotation->y,
-					selectedObject->getTransform()->rotation->z
+					selectedObject->getTransform()->rotation.x,
+					selectedObject->getTransform()->rotation.y,
+					selectedObject->getTransform()->rotation.z
 				};
 
 				if (ImGui::DragFloat3("Rotation", rot, 5.0f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 				{
-					selectedObject->getTransform()->rotation = gcnew Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+					selectedObject->getTransform()->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
 				}
 
 				// scale
 
 				float scale[3] = {
-					selectedObject->getTransform()->scale->x,
-					selectedObject->getTransform()->scale->y,
-					selectedObject->getTransform()->scale->z
+					selectedObject->getTransform()->scale.x,
+					selectedObject->getTransform()->scale.y,
+					selectedObject->getTransform()->scale.z
 				};
 
 				if (ImGui::DragFloat3("Scale", scale, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 				{
-					selectedObject->getTransform()->scale = gcnew Engine::Components::Vector3(scale[0], scale[1], scale[2]);
+					selectedObject->getTransform()->scale = Engine::Components::Vector3(scale[0], scale[1], scale[2]);
 				}
 			} // Transform
 
@@ -2334,7 +2463,6 @@ void EditorWindow::DrawAssets()
 	if (assetsVisible)
 		ImGui::End();
 }
-
 void EditorWindow::DrawImGuizmo()
 {
 	if (selectedObject == nullptr)
@@ -2350,13 +2478,13 @@ void EditorWindow::DrawImGuizmo()
 
 	ImGuizmo::BeginFrameViewport(windowPos, windowSize);
 
-	ImGuizmo::SetOrthographic(!camera->is3DCamera());
+	ImGuizmo::SetOrthographic(camera->is3DCamera() == false);
 	ImGuizmo::SetDrawlist();
 
 	float matrix[16];
-	float pos[3] = { selectedObject->transform->position->x, selectedObject->transform->position->y, selectedObject->transform->position->z };
-	float rot[3] = { selectedObject->transform->rotation->x, selectedObject->transform->rotation->y, selectedObject->transform->rotation->z };
-	float sca[3] = { selectedObject->transform->scale->x, selectedObject->transform->scale->y, selectedObject->transform->scale->z };
+	float pos[3] = { selectedObject->transform->position.x, selectedObject->transform->position.y, selectedObject->transform->position.z };
+	float rot[3] = { selectedObject->transform->rotation.x, selectedObject->transform->rotation.y, selectedObject->transform->rotation.z };
+	float sca[3] = { selectedObject->transform->scale.x, selectedObject->transform->scale.y, selectedObject->transform->scale.z };
 
 	float view[16];
 	float projection[16];
@@ -2365,8 +2493,26 @@ void EditorWindow::DrawImGuizmo()
 	float nearPlane = camera->nearPlane;
 	float farPlane = camera->farPlane;
 
+	/*
+	
+	float camPos[3] = { camera->transform->position.x, camera->transform->position.y, camera->transform->position.z };
+	float camRot[3] = { camera->transform->rotation->x, camera->transform->rotation->y, camera->transform->rotation->z };
+	float camSca[3] = { camera->transform->scale->x, camera->transform->scale->y, camera->transform->scale->z };
+
+	RAYLIB::Matrix rotX = RAYMATH::MatrixRotateX(camRot[0]);
+	RAYLIB::Matrix rotY = RAYMATH::MatrixRotateY(camRot[1]);
+	RAYLIB::Matrix rotZ = RAYMATH::MatrixRotateZ(camRot[2]);
+
+	RAYLIB::Matrix rotation = RAYMATH::MatrixMultiply(rotY, RAYMATH::MatrixMultiply(rotX, rotZ));
+
+	RAYLIB::Matrix translation = RAYMATH::MatrixTranslate(-camPos[0], -camPos[1], -camPos[2]);
+
+	// View matrix = rotation * translation
+	RAYLIB::Matrix viewMtx = RAYMATH::MatrixMultiply(rotation, translation);
+	*/
+
 	RAYLIB::Matrix projMtx;
-	RAYLIB::Matrix viewMtx = RAYLIB::GetCameraMatrix(*(RAYLIB::Camera*)camera->get());
+	RAYLIB::Matrix viewMtx = RAYLIB::GetCameraMatrix(*((RAYLIB::Camera*)camera->get()));
 
 	if (camera->is3DCamera())
 	{
@@ -2401,34 +2547,66 @@ void EditorWindow::DrawImGuizmo()
 	{
 		ImGuizmo::DecomposeMatrixToComponents(matrix, pos, rot, sca);
 
-		selectedObject->transform->position->x = pos[0];
-		selectedObject->transform->position->y = pos[1];
-		selectedObject->transform->position->z = pos[2];
-
-		selectedObject->transform->rotation->x = rot[0];
-		selectedObject->transform->rotation->y = rot[1];
-		selectedObject->transform->rotation->z = rot[2];
-
-		selectedObject->transform->scale->x = sca[0];
-		selectedObject->transform->scale->y = sca[1];
-		selectedObject->transform->scale->z = sca[2];
+		selectedObject->transform->position = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
+		selectedObject->transform->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+		selectedObject->transform->scale = Engine::Components::Vector3(sca[0], sca[1], sca[2]);
 	}
 }
+void EditorWindow::DrawToolbar()
+{
+	ImGui::Begin("ToolBar", nullptr, ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoResize );
+	{
+		int width = (int)Engine::Scripting::Screen::Width;
+		ImVec2 size = ImVec2(
+			width,
+			32+8
+		);
+		ImGui::SetWindowSize(size);
 
+		if (rlImGuiImageButtonSize("###SELECTION", &dragTexture, { 24, 24 }))
+		{
+			mCurrentGizmoOperation = ImGuizmo::OPERATION::BOUNDS;
+		}
+		ImGui::SameLine();
+		if (rlImGuiImageButtonSize("###TRANSLATE", &translateTexture, { 24, 24 }))
+		{
+			mCurrentGizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		}
+		ImGui::SameLine();
+		if (rlImGuiImageButtonSize("###ROTATE", &rotateTexture, { 24, 24 }))
+		{
+			mCurrentGizmoOperation = ImGuizmo::OPERATION::ROTATE;
+		}
+		ImGui::SameLine();
+		if (rlImGuiImageButtonSize("###SCALE", &scaleTexture, { 24, 24 }))
+		{
+			mCurrentGizmoOperation = ImGuizmo::OPERATION::SCALE;
+		}
+		ImGui::SameLine();
+		ImGui::SameLine();
+		ImGui::SameLine();
+		ImGui::SameLine();
+		if (rlImGuiImageButtonSize("###PLAY", &playTexture, { 24, 24 }))
+		{
+			TogglePlayMode(this);
+		}
+		ImGui::SameLine();
+		if (rlImGuiImageButtonSize("###STOP", &stopTexture, { 24, 24 }))
+		{
+			TogglePlayMode(this);
+		}
+	}
+	ImGui::End();
+}
 void EditorWindow::DrawImGui()
 {
-	if (!initSettings)
-	{
-		ImGui::LoadIniSettingsFromDisk("imgui.ini");
-		WaitTime(2.5);
-		initSettings = true;
-	}
-
 	auto viewPort = ImGui::GetMainViewport();
 	ImGui::DockSpaceOverViewport(viewPort->ID, viewPort, ImGuiDockNodeFlags_None);
 
 	DrawMainMenuBar();
-
+	DrawToolbar();
 	DrawHierarchy();
 
 	if (codeEditor->isCodeEditorOpen())
@@ -2438,6 +2616,17 @@ void EditorWindow::DrawImGui()
 		materialEditor->GUI();
 
 	DrawAssets();
+
+	if (ifd::FileDialog::Instance().IsDone("TestFileDialog"))
+	{
+		if (ifd::FileDialog::Instance().HasResult())
+		{
+			std::string res = ifd::FileDialog::Instance().GetResult().u8string();
+			printf("DIRECTORY[%s]\n", res.c_str());
+		}
+
+		ifd::FileDialog::Instance().Close();
+	}
 
 	if (styleEditor)
 	{
@@ -2472,6 +2661,14 @@ void EditorWindow::DrawImGui()
 		rlImGuiImageRenderTextureCustom(&renderPipeline->framebufferTexturePtr->getInstance(), new int[2] { (int)ImGui::GetWindowSize().x, (int)ImGui::GetWindowSize().y }, new float[2] {17.5f, 35.0f});
 		DrawImGuizmo();
 
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+
+			ImGui::RenderNotifications(ImGui::GetWindowPos(), ImGui::GetWindowSize());
+
+			ImGui::PopStyleVar(2);
+		}
 
 		if (ImGui::IsWindowFocused())
 		{
@@ -2650,6 +2847,19 @@ void EditorWindow::DrawImGui()
 			ImGui::Text("Window Height:");
 			ImGui::SameLine();
 			ImGuiNET::ImGui::InputInt("###_ENGINECONFIG_WINDOW_HEIGHT", config->resolution->h);
+
+			if (ImGui::Button("Set Window Mode Fullscreen"))
+			{
+				config->resolution->w = -1;
+				config->resolution->h = -1;
+			}
+		}
+
+		ImGui::SeparatorText("FrameRate");
+
+		{
+			ImGui::Text("Target FPS:");
+			ImGuiNET::ImGui::SliderInt("###_ENGINECONFIG_TARGETFPS", config->targetFPS, 1, 1000);
 		}
 
 		ImGui::SeparatorText("Window Flags");
@@ -2697,6 +2907,12 @@ void EditorWindow::DrawImGui()
 					ImGui::Text("Borderless Windowed:");
 					ImGui::SameLine();
 					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_BorderlessFullScreen"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->BorderlessWindowed);
+				}
+
+				{
+					ImGui::Text("Run On Minimized:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_RunOnMinimized"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->AlwaysRun);
 				}
 
 				ImGui::EndListBox();
@@ -2914,14 +3130,13 @@ void EditorWindow::Exit()
 }
 void EditorWindow::RegisterKeybinds()
 {
+	if (InputManager::IsKeyDown(KeyCodes::KEY_LEFT_CONTROL) && InputManager::IsKeyPressed(KeyCodes::KEY_P))
+	{
+		TogglePlayMode(this);
+	}
+
 	if (EngineState::PlayMode)
 	{
-		if (InputManager::IsKeyDown(KeyCodes::KEY_LEFT_CONTROL) && InputManager::IsKeyPressed(KeyCodes::KEY_P))
-		{
-			print("[GoldEngine]:", "Exiting PlayMode");
-
-			EngineState::PlayMode = false;
-		}
 	}
 	else
 	{
@@ -2929,13 +3144,6 @@ void EditorWindow::RegisterKeybinds()
 		{
 			Singleton<ObjectManager^>::Instance->Destroy(selectedObject);
 			selectedObject = nullptr;
-		}
-
-		if (InputManager::IsKeyDown(KeyCodes::KEY_LEFT_CONTROL) && InputManager::IsKeyPressed(KeyCodes::KEY_P))
-		{
-			print("[GoldEngine]:", "Entering PlayMode");
-
-			EngineState::PlayMode = true;
 		}
 
 		if (InputManager::IsKeyDown(KeyCodes::KEY_LEFT_CONTROL) && InputManager::IsKeyPressed(KeyCodes::KEY_S))
@@ -2988,9 +3196,9 @@ void EditorWindow::create()
 		gameRoot = gcnew Engine::EngineObjects::Private::Scene(
 			"game",
 			gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
 				nullptr
 			)
 		);
@@ -3007,9 +3215,9 @@ void EditorWindow::create()
 			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
 				"game",
 				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
 					nullptr
 				)
 			);
@@ -3031,9 +3239,9 @@ void EditorWindow::create()
 	{
 		auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService("PhysicsService",
 			gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
 				nullptr
 			)
 		);
@@ -3049,9 +3257,9 @@ void EditorWindow::create()
 	{
 		lightManager = gcnew LightManager("lighting",
 			gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
 				nullptr
 			),
 			"Data/Engine/Shaders/Illumina/Illumina.vert",
@@ -3072,9 +3280,9 @@ void EditorWindow::create()
 		{
 			lightManager = lightManager = gcnew LightManager("lighting",
 				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
 					nullptr
 				),
 				"Data/Engine/Shaders/Illumina/Illumina.vert",
@@ -3089,9 +3297,9 @@ void EditorWindow::create()
 	{
 		auto lightdm = gcnew Engine::EngineObjects::Daemons::LightDaemon("lightdm",
 			gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
 				nullptr
 			),
 			lightManager
@@ -3117,6 +3325,12 @@ void EditorWindow::create()
 		camera3D->setParent(gameRoot);
 		scene->PushToRenderQueue(camera3D);
 	}
+
+	ImGuiToast toast(ImGuiToastType_Success, 5000);
+	toast.setTitle("GoldEngine Editor");
+	toast.setContent("Scene Loaded!");
+
+	ImGui::InsertNotification(toast);
 }
 void EditorWindow::Init()
 {
@@ -3125,8 +3339,14 @@ void EditorWindow::Init()
 	materialTexture = LoadTexture("EditorAssets/Icons/Material.png");
 	soundTexture = LoadTexture("EditorAssets/Icons/Sound.png");
 	scriptTexture = LoadTexture("EditorAssets/Icons/Script.png");
+	translateTexture = LoadTexture("EditorAssets/Icons/Translate.png");
+	rotateTexture = LoadTexture("EditorAssets/Icons/Rotate.png");
+	scaleTexture = LoadTexture("EditorAssets/Icons/Scale.png");
+	dragTexture = LoadTexture("EditorAssets/Icons/Mouse.png");
+	playTexture = LoadTexture("EditorAssets/Icons/Run.png");
+	stopTexture = LoadTexture("EditorAssets/Icons/Stop.png");
 
-	cameraPosition = gcnew Engine::Components::Vector3(0, 0, 0);
+	cameraPosition = Engine::Components::Vector3(0, 0, 0);
 
 	while (!scene->sceneLoaded())
 		WaitTime(1.0);
@@ -3222,297 +3442,7 @@ void EditorWindow::Update()
 
 #else
 
-#pragma region PLAYBACK ENGINE
-
-public ref class GameWindow : public Engine::Window
-{
-private:
-	bool initSettings = false;
-	System::Collections::Generic::List<EngineAssembly^>^ assemblies;
-	Scene^ scene;
-	DataPack^ packedData;
-	Engine::Render::ScriptableRenderPipeline^ renderPipeline;
-
-public:
-	GameWindow()
-	{
-#if HIDE_CONSOLE == true
-		WinAPI::FreeCons();
-#endif
-
-		engine_bootstrap();
-
-		assemblies = gcnew System::Collections::Generic::List<EngineAssembly^>();
-		dataPack = DataPacks();
-
-		assemblies->Add(gcnew EngineAssembly(System::Reflection::Assembly::GetExecutingAssembly()));
-
-		for each (String ^ fileName in Directory::GetFiles("Bin\\Asm\\"))
-		{
-			if (fileName->Contains(".goldasm") || fileName->Contains(".dll"))
-			{
-				String^ path = Directory::GetCurrentDirectory() + "\\" + fileName;
-
-				assemblies->Add(gcnew EngineAssembly(path));
-			}
-		}
-
-		SceneManager::SetAssemblyManager(assemblies);
-
-		for each (EngineAssembly ^ assembly in assemblies)
-		{
-			assembly->ListAssemblyTypes();
-		}
-
-		Start();
-	}
-
-	virtual void Start() override
-	{
-		auto secrets = Engine::Config::EngineSecrets::ImportSecrets("./Data/Keys/secrets.dat");
-
-		passwd = CypherLib::GetPasswordBytes(secrets->encryptionPassword);
-
-		auto config = Engine::Config::EngineConfiguration::ImportConfig("./Data/appinfo.dat");
-
-		config->windowFlags = config->_windowFlags->toWindowFlags();
-
-		SetWindowFlags(config->windowFlags);
-		OpenWindow(config->resolution->w, config->resolution->h, config->getWindowName().c_str());
-
-		if (config->resolution->x != -1 && config->resolution->y != -1)
-			SetWindowPosition(config->resolution->x, config->resolution->y);
-		else
-			SetWindowPosition(config->resolution->x + (config->resolution->w / 2), config->resolution->y + (config->resolution->h / 2));
-
-		gcnew Engine::Managers::SignalManager();
-
-		if (!Directory::Exists(System::Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData) + "/../LocalLow/" + config->logPath->Substring(0, config->logPath->IndexOf('/'))))
-		{
-			Directory::CreateDirectory(System::Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData) + "/../LocalLow/" + config->logPath->Substring(0, config->logPath->IndexOf('/')));
-		}
-
-		gcnew Engine::Utils::LogReporter(System::Environment::GetFolderPath(Environment::SpecialFolder::ApplicationData) + "/../LocalLow/" + config->logPath);
-
-		LayerManager::RegisterDefaultLayers();
-
-		Preload();
-
-		Loop();
-	}
-
-private:
-	void create()
-	{
-#ifdef USE_ILLUMINA
-		LightManager^ lightManager = nullptr;
-#endif
-
-		Engine::EngineObjects::Private::Scene^ gameRoot = nullptr;
-
-		if (!scene->ExistsMember("game"))
-		{
-			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-				"game",
-				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				)
-			);
-			scene->PushToRenderQueue(gameRoot);
-		}
-		else
-		{
-			try
-			{
-				gameRoot = scene->GetMember("game")->ToObjectType<Engine::EngineObjects::Private::Scene^>();
-			}
-			catch (Exception^ ex)
-			{
-				gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-					"game",
-					gcnew Engine::Internal::Components::Transform(
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						nullptr
-					)
-				);
-			}
-		}
-
-		auto workspace = scene->GetDatamodelMember("workspace", true);
-		workspace->setParent(gameRoot);
-		auto editor_only = scene->GetDatamodelMember("editor only", true);
-		editor_only->setParent(gameRoot);
-		auto gui = scene->GetDatamodelMember("gui", true);
-		gui->setParent(gameRoot);
-		auto daemonParent = scene->GetDatamodelMember("daemons", true);
-		daemonParent->setParent(gameRoot);
-
-#ifdef USE_BULLET_PHYS
-
-		if (!scene->ExistsMember("PhysicsService"))
-		{
-			auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService("PhysicsService",
-				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				)
-			);
-
-			scene->PushToRenderQueue(physicsService);
-		}
-
-#endif
-
-#ifdef USE_ILLUMINA
-		if (!scene->ExistsMember("lighting"))
-		{
-			lightManager = gcnew LightManager("lighting",
-				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				),
-				"Data/Engine/Shaders/Illumina/Illumina.vert",
-				"Data/Engine/Shaders/Illumina/Illumina.frag"
-			);
-			lightManager->setParent(gameRoot);
-			lightManager->protectMember();
-
-			scene->PushToRenderQueue(lightManager);
-		}
-		else
-		{
-			try
-			{
-				lightManager = scene->GetMember("lighting")->ToObjectType<LightManager^>();
-			}
-			catch (Exception^ ex)
-			{
-				lightManager = lightManager = gcnew LightManager("lighting",
-					gcnew Engine::Internal::Components::Transform(
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						gcnew Engine::Components::Vector3(0, 0, 0),
-						nullptr
-					),
-					"Data/Engine/Shaders/Illumina/Illumina.vert",
-					"Data/Engine/Shaders/Illumina/Illumina.frag"
-				);
-			}
-			lightManager->setParent(gameRoot);
-			lightManager->protectMember();
-		}
-
-		if (ObjectManager::singleton()->GetChildrenOf(daemonParent)->Count <= 0)
-		{
-			auto lightdm = gcnew Engine::EngineObjects::Daemons::LightDaemon("lightdm",
-				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				),
-				lightManager
-			);
-			lightdm->SetParent(daemonParent);
-			scene->PushToRenderQueue(lightdm);
-		}
-#endif
-
-	}
-
-public:
-	void Init() override
-	{
-		while (!scene->sceneLoaded())
-			WaitTime(1.0);
-
-		//Engine::Assets::Management::DataPack::SetSingletonReference(packedData);
-		create();
-
-		Logging::LogCustom("[GL Version]:", "Current OpenGL version is -> " + RLGL::rlGetVersion() + ".");
-
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
-
-		ImGui::GetIO().ConfigErrorRecovery = false;
-		ImGui::GetIO().ConfigErrorRecoveryEnableAssert = true;
-		ImGui::GetIO().ConfigErrorRecoveryEnableDebugLog = false;
-		ImGui::GetIO().ConfigErrorRecoveryEnableTooltip = true;
-	}
-
-	void Preload() override
-	{
-		dataPack.LoadDefaultAssets();
-		renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
-
-		SceneManager::LoadSceneFromFile(gcnew System::String(fileName), passwd, scene);
-
-		while (!scene->sceneLoaded())
-		{
-			RAYLIB::WaitTime(1.0f);
-		}
-
-		packedData = scene->getSceneDataPack();
-
-		renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
-
-		Init();
-	}
-
-	void DrawImGui() override
-	{
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
-
-		if (!initSettings)
-		{
-			ImGui::LoadIniSettingsFromDisk("imgui.ini");
-			WaitTime(2.5);
-			initSettings = true;
-		}
-
-		auto viewPort = ImGui::GetMainViewport();
-		ImGui::DockSpaceOverViewport(ImGui::GetID("MAIN", "vport"), viewPort, ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode);
-	}
-
-	void Draw() override
-	{
-		renderPipeline->ExecuteRenderWorkflow(this, scene);
-	}
-
-	virtual void Update() override
-	{
-		if (Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance != renderPipeline)
-			renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
-
-		for each (GameObject ^ obj in scene->GetRenderQueue())
-		{
-			if (obj != nullptr)
-			{
-				obj->GameUpdate();
-			}
-		}
-
-		engine_keybinds();
-
-		Engine::GC::EngineGC::Update();
-	}
-
-	virtual void Exit() override
-	{
-		DataManager::HL_FreeAll();
-		Engine::Utils::LogReporter::singleton->CloseThread();
-	}
-};
-
-#pragma endregion
+#include "GameWindow.h"
 
 #endif
 

@@ -74,5 +74,8 @@ namespace Engine::EngineObjects
 
 	private:
 		void onSoundChanged(unsigned int, unsigned int);
+
+	public:
+		RAYLIB::AudioStream GetAudioStream();
 	};
 }

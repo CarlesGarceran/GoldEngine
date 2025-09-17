@@ -15,6 +15,8 @@ public:
 
 public ref class CodeEditor
 {
+#if (!PRODUCTION_BUILD)
+
 private:
 	int selectedTab = 0;
 	Engine::Native::EnginePtr<std::vector<EditorTab>>* tabs;
@@ -36,4 +38,5 @@ public:
 
 	void setCodeEditorOpen(bool value);
 	bool isCodeEditorOpen();
+#endif
 };

@@ -6,19 +6,11 @@
 
 using namespace Newtonsoft::Json;
 
-[[JsonConstructorAttribute]]
 Engine::Components::Vector3::Vector3(float x, float y, float z)
 {
 	this->x = x;
 	this->y = y;
 	this->z = z;
-}
-
-Engine::Components::Vector3::Vector3()
-{
-	this->x = 0.0f;
-	this->y = 0.0f;
-	this->z = 0.0f;
 }
 
 void Engine::Components::Vector3::Set(float x, float y, float z)
@@ -35,6 +27,13 @@ void Engine::Components::Vector3::Set(float* v)
 	this->z = v[2];
 }
 
+void Engine::Components::Vector3::Set(RAYLIB::Vector3 v)
+{
+	this->x = v.x;
+	this->y = v.y;
+	this->z = v.z;
+}
+
 RAYLIB::Color Engine::Components::Vector3::toColor()
 {
 	return GetColor(x + y + z);
@@ -45,67 +44,66 @@ RAYLIB::Vector3 Engine::Components::Vector3::toNative()
 	return { x,y,z };
 }
 
-Engine::Components::Vector3^ Engine::Components::Vector3::add(Vector3^ origin)
+Engine::Components::Vector3 Engine::Components::Vector3::add(Vector3 origin)
 {
-	Vector3^ copy = Vector3::Create();
-	copy->copy(this);
-
-	copy->x += origin->x;
-	copy->y += origin->y;
-	copy->z += origin->z;
-	
-	return copy;
+	return *this + origin;
 }
 
-Engine::Components::Vector3^ Engine::Components::Vector3::multiply(Vector3^ origin)
+Engine::Components::Vector3 Engine::Components::Vector3::multiply(Vector3 origin)
 {
-	Vector3^ copy = Vector3::Create();
-	copy->copy(this);
-
-	copy->x *= origin->x;
-	copy->y *= origin->y;
-	copy->z *= origin->z;
-
-	return copy;
+	return *this * origin;
 }
 
-Engine::Components::Vector3^ Engine::Components::Vector3::divide(Vector3^ origin)
+Engine::Components::Vector3 Engine::Components::Vector3::divide(Vector3 origin)
 {
-	Vector3^ copy = Vector3::Create();
-	copy->copy(this);
-
-	copy->x /= origin->x;
-	copy->y /= origin->y;
-	copy->z /= origin->z;
-
-	return this;
+	return *this / origin;
 }
 
-Engine::Components::Vector3^ Engine::Components::Vector3::sub(Vector3^ origin)
+Engine::Components::Vector3 Engine::Components::Vector3::sub(Vector3 origin)
 {
-	Vector3^ copy = Vector3::Create();
-	copy->copy(this);
-
-	copy->x -= origin->x;
-	copy->y -= origin->y;
-	copy->z -= origin->z;
-
-	return copy;
+	return *this - origin;
 }
 
-void Engine::Components::Vector3::copy(const Vector3^ origin)
+float Engine::Components::Vector3::Dot(Engine::Components::Vector3 left, Engine::Components::Vector3 right)
 {
-	this->x = origin->x;
-	this->y = origin->y;
-	this->z = origin->z;
+	return (RAYMATH::Vector3DotProduct(left.toNative(), right.toNative()));
 }
 
-Engine::Components::Vector2^ Engine::Components::Vector3::toVector2()
+float Engine::Components::Vector3::DistanceScalar(Engine::Components::Vector3 left, Engine::Components::Vector3 right)
 {
-	return gcnew Engine::Components::Vector2(x, y);
+	return RAYMATH::Vector3Distance(left.toNative(), right.toNative());
 }
 
-System::Numerics::Vector3^ Engine::Components::Vector3::toNumericsVector3()
+Engine::Components::Vector3 Engine::Components::Vector3::Direction(Engine::Components::Vector3 from, Engine::Components::Vector3 to)
 {
-	return gcnew System::Numerics::Vector3(this->x, this->y, this->z);
+	return to - from;
+}
+
+Engine::Components::Vector3 Engine::Components::Vector3::DirectionNormalized(Engine::Components::Vector3 from, Engine::Components::Vector3 to)
+{
+	return (to - from).Normalized();
+}
+
+Engine::Components::Vector3 Engine::Components::Vector3::Normalized()
+{
+	return Engine::Components::Vector3::create(
+		RAYMATH::Vector3Normalize(
+			this->toNative()
+		)
+	);
+}
+
+float Engine::Components::Vector3::Distance(Vector3 left, Vector3 right)
+{
+	return DistanceScalar(left, right);
+}
+
+Engine::Components::Vector2 Engine::Components::Vector3::toVector2()
+{
+	return Engine::Components::Vector2(x, y);
+}
+
+System::Numerics::Vector3 Engine::Components::Vector3::toNumericsVector3()
+{
+	return System::Numerics::Vector3(this->x, this->y, this->z);
 }

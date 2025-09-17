@@ -15,10 +15,10 @@ Engine::Components::Color::Color(unsigned int colorHex)
 {
 	this->hexColor = colorHex;
 
-	r = (hexColor >> 0) & 0xFF;
-	g = (hexColor >> 8) & 0xFF;
-	b = (hexColor >> 16) & 0xFF;
-	a = (hexColor >> 24) & 0xFF;
+	r = (hexColor >> 24) & 0xFF;
+	g = (hexColor >> 16) & 0xFF;
+	b = (hexColor >> 8) & 0xFF;
+	a = (hexColor >> 0) & 0xFF;
 }
 
 Engine::Components::Color::Color(__int8 red, __int8 green, __int8 blue, __int8 alpha)
@@ -44,6 +44,25 @@ unsigned int% Engine::Components::Color::toHex()
 	return this->hexColor;
 }
 
+unsigned int% Engine::Components::Color::toARGB()
+{
+	return
+		((unsigned int)(a & 0xFF) << 24) |
+		((unsigned int)(b & 0xFF) << 16) |
+		((unsigned int)(g & 0xFF) << 8) |
+		((unsigned int)(r & 0xFF) << 0);
+}
+
+void Engine::Components::Color::setARGB(unsigned int value)
+{
+	a = (value >> 24) & 0xFF;
+	r = (value >> 16) & 0xFF;
+	g = (value >> 8) & 0xFF;
+	b = value & 0xFF;
+
+	updateHexColor();
+}
+
 RAYLIB::Color Engine::Components::Color::toNativeAlt()
 {
 	return RAYLIB::GetColor(hexColor);
@@ -51,22 +70,13 @@ RAYLIB::Color Engine::Components::Color::toNativeAlt()
 
 RAYLIB::Color Engine::Components::Color::toNative()
 {
-	__int8 rByte;
-	__int8 gByte;
-	__int8 bByte;
-	__int8 aByte;
-
-	rByte = (hexColor >> 0) & 0xFF;
-	gByte = (hexColor >> 8) & 0xFF;
-	bByte = (hexColor >> 16) & 0xFF;
-	aByte = (hexColor >> 24) & 0xFF;
-
 	RAYLIB::Color color = {};
 
-	color.r = rByte;
-	color.g = gByte;
-	color.b = bByte;
-	color.a = aByte;
+	// This is like a bomb, if you touch one channel the entire thing blows up and the red channel is suddenly green.
+	color.a = r;
+	color.r = a;
+	color.g = b;
+	color.b = g;
 
 	return color;
 }
@@ -101,20 +111,20 @@ std::array<float, 4> Engine::Components::Color::toFloat()
 void Engine::Components::Color::updateHexColor()
 {
 	hexColor =
-		((unsigned int)(a & 0xFF) << 24) |
-		((unsigned int)(b & 0xFF) << 16) |
-		((unsigned int)(g & 0xFF) << 8) |
-		((unsigned int)(r & 0xFF) << 0);
+		((unsigned int)(r & 0xFF) << 24) |
+		((unsigned int)(g & 0xFF) << 16) |
+		((unsigned int)(b & 0xFF) << 8) |
+		((unsigned int)(a & 0xFF) << 0);
 }
 
-void Engine::Components::Color::setHex(unsigned int value)
+void Engine::Components::Color::setRGBA(unsigned int value)
 {
 	this->hexColor = value;
 
-	r = (hexColor >> 0) & 0xFF;
-	g = (hexColor >> 8) & 0xFF;
-	b = (hexColor >> 16) & 0xFF;
-	a = (hexColor >> 24) & 0xFF;
+	r = (hexColor >> 24) & 0xFF;
+	g = (hexColor >> 16) & 0xFF;
+	b = (hexColor >> 8) & 0xFF;
+	a = (hexColor >> 0) & 0xFF;
 }
 
 

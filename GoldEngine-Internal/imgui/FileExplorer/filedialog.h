@@ -87,9 +87,9 @@ namespace Engine::Editor::Gui
 				}
 				else
 				{
-					if (s->Contains(current_filter))
+					if (s->Contains(current_filter, StringComparison::InvariantCultureIgnoreCase))
 					{
-						files->Add(s->Replace("\\", "/"));
+						files->Add(s);
 					}
 				}
 			}
@@ -147,7 +147,8 @@ namespace Engine::Editor::Gui
 			if (!registeredFont)
 			{
 				ImGuiIO& io = ImGui::GetIO();
-				float baseFontSize = 13.0f;
+
+				float baseFontSize = 16.0f;
 				float iconFontSize = baseFontSize * 2.0f / 3.0f;
 
 				static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
@@ -157,7 +158,7 @@ namespace Engine::Editor::Gui
 				icons_config.GlyphMinAdvanceX = iconFontSize;
 
 				io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FA, iconFontSize, &icons_config, icons_ranges);
-
+				
 				registeredFont = true;
 			}
 
@@ -165,7 +166,7 @@ namespace Engine::Editor::Gui
 
 			ImGui::OpenPopup(name);
 			bool isFile = !isDirectory(selectedFile);
-			if (ImGui::BeginPopupModal(name, (bool*)false, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize))
+			if (ImGui::BeginPopupModal(name, (bool*)false, ImGuiWindowFlags_NoDocking))
 			{
 				char* route = new char[currentRoute->Length + (8*32)];
 				strcpy(route, CastStringToNative(currentRoute).c_str());
@@ -220,15 +221,19 @@ namespace Engine::Editor::Gui
 
 				for each (String ^ fileName in files)
 				{
-					if (isDirectory(fileName)) {
-						if (ImGui::Selectable(std::string(ICON_FA_FOLDER_O + CastStringToNative(" " + fileName)).c_str()))
+					auto s_ = fileName->Replace("\\", "/");
+					s_ = (s_->Substring(s_->LastIndexOf("/")+1));
+
+					if (isDirectory(fileName)) 
+					{
+						if (ImGui::Selectable(std::string(ICON_FA_FOLDER_O + CastStringToNative(" " + s_)).c_str()))
 						{
 							selectedFile = fileName->Replace("\\", "/");
 						}
 					}
 					else
 					{
-						if (ImGui::Selectable(std::string(ICON_FA_FILE_O + CastStringToNative(" " + fileName)).c_str()))
+						if (ImGui::Selectable(std::string(ICON_FA_FILE_O + CastStringToNative(" " + s_)).c_str()))
 						{
 							selectedFile = fileName->Replace("\\", "/");
 						}

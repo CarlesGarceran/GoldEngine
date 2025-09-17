@@ -30,12 +30,57 @@ namespace Engine::Managers
 			return System::IO::File::Exists("Data/" + fN + ".scn");
 		}
 
+		static void LoadSceneFromMemory(System::String^ sceneMetadata)
+		{
+			Engine::Management::Scene^ loadedScene = Engine::Management::Scene::getLoadedScene();
+			unsigned int passwd = Engine::Encryption::CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->encryptionPassword);
+
+			LoadSceneFromMemory(sceneMetadata, passwd, loadedScene);
+		}
+
 		static void LoadSceneFromFile(System::String^ sceneName)
 		{
 			Engine::Management::Scene^ loadedScene = Engine::Management::Scene::getLoadedScene();
 			unsigned int passwd = Engine::Encryption::CypherLib::GetPasswordBytes(Engine::Config::EngineSecrets::singleton()->encryptionPassword);
 
 			LoadSceneFromFile(sceneName, passwd, loadedScene);
+		}
+
+		static void LoadSceneFromMemory(String^ sceneMetadata, unsigned int passwd, Engine::Management::Scene^% loadedScene)
+		{
+			auto parsedScene = Newtonsoft::Json::JsonConvert::DeserializeObject<Engine::Management::Scene^>(sceneMetadata);
+
+			loadedScene->setPassword(passwd);
+			// bridge all the unsetted values from the parsed scene
+			loadedScene->assetPacks = parsedScene->assetPacks;
+			loadedScene->sceneName = parsedScene->sceneName;
+			loadedScene->scene_assemblies = parsedScene->scene_assemblies;
+			loadedScene->skyColor = parsedScene->skyColor;
+			loadedScene->sceneRequirements = parsedScene->sceneRequirements;
+
+
+			List<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
+
+			msclr::lock lock(sceneObjects);
+			if (lock.try_acquire(1000))
+			{
+				auto data = sceneObjects->ToArray();
+				loadedScene->cleanupSceneObjects();
+				parsedScene->cleanupSceneObjects();
+
+				for each(auto object in data)
+				{
+					object->deserialize();
+					parsedScene->AddObjectToScene(object->GetReference());
+				}
+			}
+
+			for each(GameObject ^ object in parsedScene->GetRenderQueue())
+			{
+				loadedScene->AddObjectToScene((GameObject^)object);
+			}
+
+			Engine::Management::Scene::getLoadedScene()->flagSceneLoaded(true);
 		}
 
 		static void LoadSceneFromFile(System::String^ fN, unsigned int passwd, Engine::Management::Scene^% loadedScene)

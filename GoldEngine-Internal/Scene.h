@@ -24,6 +24,9 @@ namespace Engine::Management
 		unsigned int password;
 		static Scene^ singleton;
 		event OnSceneLoaded^ onLoadedScene;
+		event OnSceneLoaded^ raiseSetup;
+		event OnSceneLoaded^ raiseInit;
+		event OnSceneLoaded^ raiseAwake;
 
 		// Properties
 	public:
@@ -296,8 +299,9 @@ namespace Engine::Management
 
 				if (!sceneFinishedLoading)
 				{
-					onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Setup);
-					onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Init);
+					raiseSetup += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Setup);
+					raiseInit += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Init);
+					raiseAwake += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Awake);
 					onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Start);
 				}
 				else
@@ -306,6 +310,7 @@ namespace Engine::Management
 					{
 						object->Setup();
 						object->Init();
+						object->Awake();
 						object->Start();
 					}
 					catch (Exception^ ex)
@@ -344,9 +349,9 @@ namespace Engine::Management
 		{
 			return gcnew Engine::Internal::Components::GameObject(datamodel,
 				gcnew Engine::Internal::Components::Transform(
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(0, 0, 0),
-					gcnew Engine::Components::Vector3(1, 1, 1),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Vector3(1, 1, 1),
 					nullptr
 				),
 				Engine::Internal::Components::ObjectType::Datamodel,
@@ -360,6 +365,9 @@ namespace Engine::Management
 		{
 			try
 			{
+				raiseSetup();
+				raiseInit();
+				raiseAwake();
 				onLoadedScene();
 			}
 			catch (Exception^ ex)

@@ -6,6 +6,43 @@ std::string exportId = "";
 std::string exportDesc = "";
 AssimpConverter* fbxConverter = nullptr;
 
+void DoubleEditor(Engine::Scripting::Attribute^ attrib)
+{
+	float tmp = (double)attrib->getValue();
+
+	float value = (double)tmp;
+
+	if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
+	{
+		attrib->setValue(value, false);
+		attrib->setType(float::typeid);
+	}
+}
+
+void Vector3Editor(Engine::Scripting::Attribute^ attrib)
+{
+	Engine::Components::Vector3 vector = attrib->getValue<Engine::Components::Vector3>();
+
+	float data[3] = { vector.x, vector.y, vector.z };
+
+	if (ImGui::DragFloat3(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), data, 1.0f, -INFINITY, INFINITY, "%.2f"))
+	{
+		attrib->setValue(Engine::Components::Vector3::create(data));
+	}
+}
+
+void Vector2Editor(Engine::Scripting::Attribute^ attrib)
+{
+	Engine::Components::Vector2 vector = (Engine::Components::Vector2)attrib->getValue();
+
+	float data[2] = { vector.x, vector.y };
+
+	if (ImGui::DragFloat2(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), data, 1.0f, -INFINITY, INFINITY, "%.2f"))
+	{
+		attrib->setValue(Engine::Components::Vector2::create(data));
+	}
+}
+
 void BoolEditor(Engine::Scripting::Attribute^ attrib)
 {
 	bool tmp = (bool)attrib->getValue();
@@ -29,18 +66,13 @@ void StringEditor(Engine::Scripting::Attribute^ attrib)
 	if (value == nullptr)
 		value = "";
 
-	int valueLen = value->Length;
-	char* data = new char[valueLen + 1 * 8];
-
-	strcpy(data, CastStringToNative(value).c_str());
+	std::string str = CastStringToNative(value);
 
 	ImGui::SetNextItemWidth(ImGui::GetWindowWidth() - 25);
-	if (ImGui::InputText(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), data, valueLen + 1 * 8))
+	if (ImGui::InputText(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &str))
 	{
-		attrib->setValue(gcnew String(data));
+		attrib->setValue(gcnew String(str.c_str()));
 	}
-
-	delete[] data;
 }
 
 void ColorEditor(Engine::Scripting::Attribute^ attrib) 
@@ -56,7 +88,6 @@ void ColorEditor(Engine::Scripting::Attribute^ attrib)
 	{
 		value = (Engine::Components::Color^)attrib->getValue();
 	}
-
 
 	auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(value->toHex()));
 
@@ -107,6 +138,10 @@ void EnumEditor(Engine::Scripting::Attribute^ attrib)
 	}
 }
 
+void ListEditor(Engine::Scripting::Attribute^ attrib)
+{
+
+}
 
 void EnableFBXConverter(std::string fbxFilePath)
 {

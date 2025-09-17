@@ -18,6 +18,7 @@ namespace Engine
 		int tickRate = 0;
 		int physicsTick = 60;
 		int targetFPS = 60;
+		int oldTargetFps;
 
 		ArrayList drawList;
 
@@ -35,20 +36,7 @@ namespace Engine
 			OpenWindow(width, height, CastToNative(name));
 		}
 
-		void OpenWindow(int width, int height, const char* name)
-		{
-			EngineState::glInitialized = true;
-
-			InitWindow(width, height, name);
-			InitAudioDevice();
-			RLGL::rlglInit(width, height);
-			RLGL::rlEnableDepthTest();
-
-			InitializeExtensions();
-
-			rlImGuiSetup(true);
-			ImNodes::CreateContext();
-		}
+		void OpenWindow(int width, int height, const char* name);
 
 		void InitializeExtensions();
 
@@ -64,6 +52,7 @@ namespace Engine
 
 		void SetFPS(int fps)
 		{
+			oldTargetFps = targetFPS;
 			targetFPS = fps;
 		}
 
@@ -74,10 +63,14 @@ namespace Engine
 
 		void Loop()
 		{
-			SetTargetFPS(targetFPS);
-
-			while (!WindowShouldClose())
+			while (!RAYLIB::WindowShouldClose())
 			{
+				if (oldTargetFps != targetFPS)
+				{
+					SetTargetFPS(targetFPS);
+					oldTargetFps = targetFPS;
+				}
+
 				Update();
 				Draw();
 			}
@@ -85,8 +78,8 @@ namespace Engine
 			rlImGuiShutdown();
 			ImNodes::DestroyContext();
 			Exit();
-			CloseAudioDevice();
-			CloseWindow();
+			RAYLIB::CloseAudioDevice();
+			RAYLIB::CloseWindow();
 		}
 
 		// stubmethods

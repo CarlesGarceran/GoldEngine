@@ -74,7 +74,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->shaders[x];
 
-				sP->destroy();
+				delete sP;
 			}
 
 			nativePacks->shaders.clear();
@@ -86,7 +86,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->musics[x];
 
-				sP->destroy();
+				delete sP;
 			}
 
 			nativePacks->musics.clear();
@@ -99,7 +99,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->sounds[x];
 
-				sP->destroy();
+				delete sP;
 			}
 
 			nativePacks->sounds.clear();
@@ -111,7 +111,7 @@ namespace Engine::Assets::Storage
 			try
 			{
 				auto sP = nativePacks->shaders.at(shaderId);
-				sP->destroy();
+				delete sP;
 			}
 			catch (std::exception ex)
 			{
@@ -140,7 +140,7 @@ namespace Engine::Assets::Storage
 			{
 				auto sP = nativePacks->models[x];
 
-				sP->destroy();
+				delete sP;
 			}
 
 			nativePacks->models.clear();
@@ -152,7 +152,7 @@ namespace Engine::Assets::Storage
 			{
 				auto tP = nativePacks->textures2d[x];
 
-				tP->destroy();
+				delete tP;
 			}
 
 			nativePacks->textures2d.clear();

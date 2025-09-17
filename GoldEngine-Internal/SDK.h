@@ -19,6 +19,7 @@
 #include "Object/ViewSpace.h"
 #include "Object/Vector3.h"
 #include "Object/Quaternion.h"
+#include "Object/Matrix.h"
 #include "Object/Material.h"
 #include "Object/Transform.h"
 #include "Object/GameObject.h"

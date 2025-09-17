@@ -20,10 +20,37 @@ public:
 	}
 
 private:
+	static bool IsManagedAssembly(System::String^ fileName)
+	{
+		try
+		{
+			System::IO::FileStream^ fs = System::IO::File::OpenRead(fileName);
+			System::Reflection::PortableExecutable::PEReader^ reader = gcnew System::Reflection::PortableExecutable::PEReader(fs);
+
+			return (reader->HasMetadata && System::Reflection::Metadata::PEReaderExtensions::GetMetadataReader(reader)->IsAssembly);
+		}
+		catch (System::Exception^ ex)
+		{
+			return false;
+		}
+	}
+
+	static System::Reflection::Assembly^ LoadAssembly(System::String^ fileName)
+	{
+		try
+		{
+			return System::Reflection::Assembly::LoadFrom(fileName);
+		}
+		catch (System::BadImageFormatException^)
+		{
+			// Not a managed assembly
+			return nullptr;
+		}
+
+	}
+
 	void LoadAssemblyFromFile(System::String^ fileName)
 	{
-		print("[Assembly Loader] ", "Loading Assembly: " + fileName);
-
 		bool assemblyLoaded = false;
 
 		for each (auto assembly in System::AppDomain::CurrentDomain->GetAssemblies())
@@ -38,25 +65,19 @@ private:
 		if (assemblyLoaded)
 			return;
 
-		try
-		{
-			loadedAssembly = loadedAssembly->LoadFile(fileName);
-			Engine::Reflectable::ReflectableManager::assemblies->Add(loadedAssembly);
-		}
-		catch (System::BadImageFormatException^ ex)
-		{
-			WinAPI::LoadLib(CastStringToNative(fileName).c_str());
-			loadedAssembly = nullptr;
-			return;
-		}
-		catch (System::Exception^ exception)
-		{
-			printError("Assembly " + fileName + " Failed to load.");
-			printError(exception->Message);
-			loadedAssembly = nullptr;
-			return;
-		}
+		System::Reflection::Assembly^ assembly = LoadAssembly(fileName);
 
+		if (assembly != nullptr)
+		{
+			print("[Assembly Loader] ", "Loading Managed Assembly: " + fileName);
+			Engine::Reflectable::ReflectableManager::assemblies->Add(assembly);
+			loadedAssembly = assembly;
+		}
+		else
+		{
+			print("[Assembly Loader] ", "Loading Unmanaged Assembly: " + fileName);
+			WinAPI::LoadLib(CastStringToNative(fileName).c_str());
+		}
 	}
 	
 	void LoadAssemblyFromRawAssembly(System::Reflection::Assembly^ assembly)
@@ -105,20 +126,6 @@ public:
 			if ((type->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || type->IsSubclassOf(Engine::Internal::Components::GameObject::typeid)) && !type->IsAbstract)
 			{
 				Console::WriteLine("Type Found: " + type->FullName);
-			}
-			/*
-			if (!type->Namespace->IsNullOrEmpty(type->Namespace))
-			*/
-			{
-
-				/*
-#if !PRODUCTION_BUILD
-					if (type->Namespace->Contains("EditorScripts"))
-					{
-						Console::WriteLine("Type Found: " + type->FullName);
-					}
-#endif
-*/
 			}
 		}
 
@@ -261,8 +268,6 @@ public:
 
 				return (System::Object^)mInfo->Invoke(object, nullptr);
 			}
-
-			//return (System::Object^)Convert::ChangeType((System::Object^)object, storedType);
 		}
 
 		return (System::Object^)object;
@@ -287,7 +292,6 @@ public:
 	}
 
 #if !defined(PRODUCTION_BUILD)
-
 	System::Collections::Generic::List<System::Type^>^ getEditorPlugins()
 	{
 		System::Collections::Generic::List<System::Type^>^ types = gcnew System::Collections::Generic::List<System::Type^>();
@@ -305,7 +309,6 @@ public:
 
 		return types;
 	}
-
 #endif
 
 	auto CreateSimple(Type^ targetType)
@@ -334,9 +337,9 @@ public:
 			}
 
 			auto transform = gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(1, 1, 1),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(1, 1, 1),
 				nullptr
 			);
 
@@ -386,9 +389,9 @@ public:
 			}
 
 			auto transform = gcnew Engine::Internal::Components::Transform(
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(0, 0, 0),
-				gcnew Engine::Components::Vector3(1, 1, 1),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Vector3(1, 1, 1),
 				nullptr
 			);
 

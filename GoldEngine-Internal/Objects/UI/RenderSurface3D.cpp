@@ -37,17 +37,15 @@ void RenderSurface3D::Start()
 	if (!this->tintColor)
 		this->tintColor = gcnew Engine::Components::Color(0xFFFFFFFF);
 
-	if (!this->viewportSize)
-		this->viewportSize = gcnew Engine::Components::Vector2(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
+	this->viewportSize = Engine::Components::Vector2(Engine::Scripting::Screen::Width, Engine::Scripting::Screen::Height);
+	this->texturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize.x, viewportSize.y), onChanged, onChanged);
 
-	this->texturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize->x, viewportSize->y), onChanged, onChanged);
-
-	RAYLIB::Mesh planeMesh = GenMeshPlane(transform->scale->x, transform->scale->y, 1, 1);
+	RAYLIB::Mesh planeMesh = GenMeshPlane(transform->scale.x, transform->scale.y, 1, 1);
 	material = new Engine::Native::EnginePtr<RAYLIB::Material>(LoadMaterialDefault(), onMaterialUnloaded, onMaterialUnloaded);
 	model = new Engine::Native::EnginePtr<RAYLIB::Model>(LoadModelFromMesh(planeMesh), onModelUnloaded, onModelUnloaded);
-	viewport = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize->x, viewportSize->y), onChanged, onChanged);
+	viewport = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize.x, viewportSize.y), onChanged, onChanged);
 	
-	this->attributes->getAttribute("viewportSize")->onPropertyChanged->connect(gcnew Action<Engine::Components::Vector2^, Engine::Components::Vector2^>(this, &RenderSurface3D::onViewportSizeChanged));
+	this->attributes->getAttribute("viewportSize")->onPropertyChanged->connect(gcnew Action<Engine::Components::Vector2, Engine::Components::Vector2>(this, &RenderSurface3D::onViewportSizeChanged));
 }
 
 void RenderSurface3D::Update()
@@ -85,8 +83,8 @@ void RenderSurface3D::Update()
 
 		outRectangle.x = 0;
 		outRectangle.y = 0;
-		outRectangle.width = viewport->getInstance().texture.width * transform->scale->x;
-		outRectangle.height = viewport->getInstance().texture.height * transform->scale->y;
+		outRectangle.width = viewport->getInstance().texture.width * transform->scale.x;
+		outRectangle.height = viewport->getInstance().texture.height * transform->scale.y;
 
 		DrawTexturePro(
 			viewport->getInstance().texture,
@@ -109,8 +107,8 @@ void RenderSurface3D::Draw()
 	if (this->texturePtr == nullptr)
 		return;
 
-	RAYLIB::Vector3 position = this->transform->position->toNative();
-	RAYLIB::Vector2 scale = this->transform->scale->toVector2()->toNative();
+	RAYLIB::Vector3 position = this->transform->position.toNative();
+	RAYLIB::Vector2 scale = this->transform->scale.toVector2().toNative();
 	RAYLIB::Texture texture = this->texturePtr->getInstance().texture;
 
 	RAYLIB::Rectangle inRectangle;
@@ -138,12 +136,12 @@ void RenderSurface3D::Draw()
 
 	model->getInstance().materials[0] = material->getInstance();
 	model->getInstance().transform = MatrixRotateXYZ({
-		transform->rotation->x * DEG2RAD,
-		transform->rotation->y * DEG2RAD,
-		transform->rotation->z * DEG2RAD
+		transform->rotation.x * DEG2RAD,
+		transform->rotation.y * DEG2RAD,
+		transform->rotation.z * DEG2RAD
 	});
 
-	RAYLIB::DrawModelEx(model->getInstance(), transform->position->toNative(), {}, 0, transform->scale->toNative(), tintColor->toNative());
+	RAYLIB::DrawModelEx(model->getInstance(), transform->position.toNative(), {}, 0, transform->scale.toNative(), tintColor->toNative());
 }
 
 void RenderSurface3D::Destroy()
@@ -156,11 +154,11 @@ void RenderSurface3D::Destroy()
 	this->model->destroy();
 }
 
-void RenderSurface3D::onViewportSizeChanged(Engine::Components::Vector2^ newSize, Engine::Components::Vector2^ oldSize)
+void RenderSurface3D::onViewportSizeChanged(Engine::Components::Vector2 newSize, Engine::Components::Vector2 oldSize)
 {
-	if (newSize->x == oldSize->x && newSize->y == oldSize->y) return;
+	if (newSize.Equals(oldSize)) return;
 
-	RAYLIB::RenderTexture2D viewport = RAYLIB::LoadRenderTexture(viewportSize->x, viewportSize->y);
+	RAYLIB::RenderTexture2D viewport = RAYLIB::LoadRenderTexture(newSize.x, newSize.y);
 
 	this->texturePtr->setInstanceRef(viewport);
 }

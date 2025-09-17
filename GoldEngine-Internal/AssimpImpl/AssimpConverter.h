@@ -17,6 +17,7 @@ private:
 	std::string FileName;
 	RAYLIB::Mesh* temporalMesh;
 	const aiScene* scene;
+	unsigned int meshCount;
 
 	aiScene objectScene;
 

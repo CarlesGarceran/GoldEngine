@@ -4,8 +4,47 @@
 #include "../SDK.h"
 #include "Window.h"
 #include <Windows.h>
+#include "imnotifications/ImNotify.h"
+#include "imgui/Fonts/fa_solid_900.h"
 
 using namespace Engine;
+
+void Engine::Window::OpenWindow(int width, int height, const char* name)
+{
+	EngineState::glInitialized = true;
+
+	InitWindow(width, height, name);
+	InitAudioDevice();
+
+	RAYLIB::SetMasterVolume(1.0f);
+
+	RLGL::rlglInit(width, height);
+	RLGL::rlEnableDepthTest();
+
+	InitializeExtensions();
+
+	rlImGuiSetup(true);
+	ImNodes::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+	io.IniFilename = "Cfg/gui.cfg";
+
+	{
+		float baseFontSize = 16.0f;
+		float iconFontSize = baseFontSize * 2.0f / 3.0f;
+
+		static constexpr ImWchar iconsRanges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+		ImFontConfig iconsConfig;
+		iconsConfig.MergeMode = true;
+		iconsConfig.PixelSnapH = true;
+		iconsConfig.GlyphMinAdvanceX = iconFontSize;
+		io.Fonts->AddFontFromMemoryCompressedTTF(fa_solid_900_compressed_data, fa_solid_900_compressed_size, iconFontSize, &iconsConfig, iconsRanges);
+	}
+}
 
 void Window::InitializeExtensions()
 {

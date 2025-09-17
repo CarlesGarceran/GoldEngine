@@ -4,18 +4,20 @@
 
 namespace Engine::EngineObjects::Physics::Enums
 {
-	public enum class CollisionType
-	{
-		Concave,
-		Convex,
-		BoundingBox
-	};
-
 	public enum class ColliderShape
 	{
 		Box,
 		Sphere,
-		Mesh
+		Mesh,
+		Capsule,
+		Cylinder,
+		Cone
+	};
+
+	public enum class MeshCollisionType
+	{
+		Concave,
+		Convex
 	};
 
 	public enum class ColliderType

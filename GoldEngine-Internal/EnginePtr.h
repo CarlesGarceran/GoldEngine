@@ -12,7 +12,7 @@ namespace Engine::Native
 		std::function<void(T)> onObjectDeleted;
 		std::function<void(T)> onObjectChanged;
 		bool loaded = true;
-
+		
 	public:
 		EnginePtr()
 		{
@@ -50,7 +50,7 @@ namespace Engine::Native
 		void setInstance(T instance)
 		{
 			if (onObjectChanged != nullptr)
-				onObjectChanged(this->ptrInstance);
+				onObjectChanged(ptrInstance);
 
 			if ((&instance) != NULL)
 				this->loaded = true;
@@ -63,39 +63,33 @@ namespace Engine::Native
 		void setInstanceRef(T& instance)
 		{
 			if(onObjectChanged != nullptr)
-				onObjectChanged(this->ptrInstance);
+				onObjectChanged(ptrInstance);
 
 			this->loaded = true;
-
 			this->ptrInstance = instance;
+		}
+
+		void free()
+		{
+			this->loaded = false;
+
+			if (onObjectDeleted != nullptr)
+				onObjectDeleted(ptrInstance);
+
+			this->ptrInstance = T();
+		}
+
+		T& release()
+		{
+			this->loaded = false;
+			T inst = this->ptrInstance;
+			this->ptrInstance = nullptr;
+			return inst;
 		}
 
 		void destroy() 
 		{
 			delete this;
 		}
-
-		/*
-		EnginePtr(EnginePtr&& other) noexcept
-			: ptrInstance(std::move(other.ptrInstance)), onObjectDeleted(std::move(other.onObjectDeleted)), onObjectChanged(std::move(other.onObjectChanged)) {
-			other.ptrInstance = nullptr;
-		}
-
-		EnginePtr& operator=(EnginePtr&& other) noexcept {
-			if (this != &other) {
-				ptrInstance = std::move(other.ptrInstance);
-				onObjectDeleted = std::move(other.onObjectDeleted);
-				onObjectChanged = std::move(other.onObjectChanged);
-
-
-				if (onObjectDeleted && ptrInstance) {
-					onObjectDeleted(ptrInstance);
-				}
-
-				other.ptrInstance = T();
-			}
-			return *this;
-		}
-		*/
 	};
 }

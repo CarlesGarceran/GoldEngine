@@ -60,7 +60,7 @@ namespace Engine::EngineObjects
 		unsigned int lightColor;
 		float intensity;
 		unsigned int shaderId;
-		Engine::Components::Vector3^ target;
+		Engine::Components::Vector3 target;
 		rPBR::LightType lightType;
 		bool enabled;
 		float lightPower;
@@ -71,7 +71,7 @@ namespace Engine::EngineObjects
 		unsigned int oldShaderId;
 
 	public:
-		LightSource(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int lightColor, int lightType, Engine::Components::Vector3^ target, float intensity, unsigned int shader) : Engine::Internal::Components::GameObject(name, transform, Engine::Internal::Components::ObjectType::LightSource, this->tag, Engine::Scripting::LayerManager::GetLayerFromId(1))
+		LightSource(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int lightColor, int lightType, Engine::Components::Vector3 target, float intensity, unsigned int shader) : Engine::Internal::Components::GameObject(name, transform, Engine::Internal::Components::ObjectType::LightSource, this->tag, Engine::Scripting::LayerManager::GetLayerFromId(1))
 		{
 			this->lightType = (rPBR::LightType)lightType;
 			this->lightColor = lightColor;
@@ -85,7 +85,7 @@ namespace Engine::EngineObjects
 				this->lightPower = 10000;
 		}
 
-		void Init(unsigned int lightColor, float intensity, Engine::Components::Vector3^ target, int lightType, unsigned int shaderId) override
+		void Init(unsigned int lightColor, float intensity, Engine::Components::Vector3 target, int lightType, unsigned int shaderId) override
 		{
 			/*
 			this->lightColor = lightColor;
@@ -103,7 +103,7 @@ namespace Engine::EngineObjects
 			Shader& s = DataPacks::singleton().GetShader(this->shaderId);
 			nativeLightSource = new Native::NativeLightSource(
 				this->lightType,
-				getTransform()->position->toNative(),
+				getTransform()->position.toNative(),
 				this->target->toNative(),
 				GetColor(this->lightColor),
 				this->intensity,
@@ -128,7 +128,7 @@ namespace Engine::EngineObjects
 
 			nativeLightSource = new Native::NativeLightSource(
 				this->lightType,
-				getTransform()->position->toNative(),
+				getTransform()->position.toNative(),
 				{ 0,0,0 },
 				GetColor(this->lightColor),
 				this->intensity,
@@ -152,7 +152,7 @@ namespace Engine::EngineObjects
 		{
 			nativeLightSource->SetLightEnabled(enabled);
 			nativeLightSource->SetIntensity(intensity);
-			nativeLightSource->SetPosition(getTransform()->position->toNative());
+			nativeLightSource->SetPosition(getTransform()->position.toNative());
 			nativeLightSource->SetTarget(Engine::Components::Vector3::zero()->toNative());
 
 			float red = static_cast<float>((lightColor >> 0) & 0xFF) * lightPower;
@@ -197,31 +197,31 @@ namespace Engine::EngineObjects
 			{
 				if (this->GetLight().enabled)
 				{
-					DrawSphereWires(lightTransform->position->toNative(), this->intensity, 8, 8, c);
+					DrawSphereWires(lightTransform->position.toNative(), this->intensity, 8, 8, c);
 				}
 				else
 				{
-					DrawSphereWires(lightTransform->position->toNative(), this->intensity, 8, 8, { c.r, c.g, c.b, 128 });
+					DrawSphereWires(lightTransform->position.toNative(), this->intensity, 8, 8, { c.r, c.g, c.b, 128 });
 				}
 			}
 			else if (lightType == rPBR::LIGHT_DIRECTIONAL)
 			{
 				if (this->GetLight().enabled)
 				{
-					DrawLine3D(lightTransform->position->toNative(), this->target->toNative(), c);
+					DrawLine3D(lightTransform->position.toNative(), this->target->toNative(), c);
 				}
 				else
 				{
-					DrawLine3D(lightTransform->position->toNative(), this->target->toNative(), { c.r, c.g, c.b, 128 });
+					DrawLine3D(lightTransform->position.toNative(), this->target->toNative(), { c.r, c.g, c.b, 128 });
 				}
 			}
 			else if (lightType == rPBR::LIGHT_SPOT)
 			{
-				DrawCylinderWiresEx(lightTransform->position->toNative(), this->target->toNative(), cutoff, outerCutoff, 6, c);
+				DrawCylinderWiresEx(lightTransform->position.toNative(), this->target->toNative(), cutoff, outerCutoff, 6, c);
 			}
 			else
 			{
-				DrawSphereWires(lightTransform->position->toNative(), this->intensity, 8, 8, c);
+				DrawSphereWires(lightTransform->position.toNative(), this->intensity, 8, 8, c);
 			}
 		}
 

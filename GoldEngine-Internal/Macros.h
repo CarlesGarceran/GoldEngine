@@ -31,15 +31,29 @@ extern unsigned int passwd;
 #define EDITOR_VERSION "GoldEngine Editor Ver: 0.7a"
 #define RUNTIME_VERSION "GoldEngine Runtime Prev-Ver: 0.3a"
 
+#define UNMANAGED_BEGIN \
+	__pragma(managed(push, off))
+
+#define UNMANAGED_END \
+	__pragma(managed(pop))
+
 // ENGINE FEATURES
 
 #define USE_BULLET_PHYS // ENABLE BULLET PHYSICS ENGINE
 #define USE_ASSIMP // ENABLE ASSIMP
 //#define USE_ILLUMINA // ENABLE ILLUMINA LIGHTING SYSTEM
 
-// PHYSICS SYSTEM
+// Editor Info
+
+#define EDITOR_NAME "Standard GoldEngine Editor"
+#define INNER_VERSION "0.8c"
+#define BUILD_NAME "Standard_GoldEditor_0.8c"
+#define VERSION 0.8
+#define VERSION_INFO "DEV"
 
 #ifdef _WIN64
+
+#define ARCHITECTURE "x64"
 
 #pragma comment(lib, "../Libs/x64/GFXLib.dll")
 #pragma comment(lib, "../Libs/x64/GFXLib.lib")
@@ -69,6 +83,7 @@ extern unsigned int passwd;
 
 #else
 
+#define ARCHITECTURE "x86"
 #pragma comment(lib, "../Libs/x86/GFXLib.dll")
 #pragma comment(lib, "../Libs/x86/GFXLib.lib")
 

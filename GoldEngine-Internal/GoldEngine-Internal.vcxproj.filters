@@ -80,9 +80,6 @@
     <Filter Include="Source\Engine\EngineObjects">
       <UniqueIdentifier>{51b6938c-f7b4-4ebc-b8c9-b7db1c25a7b8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\ModelRenderer">
-      <UniqueIdentifier>{92b2e4ff-c689-440a-b479-e71dc85ba637}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines">
       <UniqueIdentifier>{8cd565ea-b573-41fb-ac22-1833499cbb34}</UniqueIdentifier>
     </Filter>
@@ -95,12 +92,6 @@
     <Filter Include="Source\Engine\EngineObjects\Renderer Pipelines\Pipelines">
       <UniqueIdentifier>{6829fe7f-948b-4d4f-81bf-af4135be0757}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\BasicGeometry">
-      <UniqueIdentifier>{386a6d34-ef1f-4138-a991-277bd5a30896}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\EngineObjects\BasicGeometry\Bounding">
-      <UniqueIdentifier>{543f12c8-fedf-4946-9e1f-3190a4b5974c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Lighting">
       <UniqueIdentifier>{d66d5953-30f7-41ef-a9b8-2c3af8bab6d3}</UniqueIdentifier>
     </Filter>
@@ -109,12 +100,6 @@
     </Filter>
     <Filter Include="Source\Engine\Windows">
       <UniqueIdentifier>{eaefb023-df10-41a1-a6b8-7316371dfeaf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI">
-      <UniqueIdentifier>{62ca2674-a016-44ad-88bd-ee0cd47abe5f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Lua">
-      <UniqueIdentifier>{3eeb32de-0fc6-4579-b348-f8ef91848f9b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\Preload">
       <UniqueIdentifier>{01657b83-b3e8-46b8-b76f-01e55e991879}</UniqueIdentifier>
@@ -125,10 +110,6 @@
     <Filter Include="Source\EngineTools">
       <UniqueIdentifier>{6d13b602-baec-4651-bcfb-eea23e4403db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\2D">
       <UniqueIdentifier>{3d889251-e8ef-4e90-afb5-0daa528c9c5e}</UniqueIdentifier>
     </Filter>
@@ -136,20 +117,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Managers">
-      <UniqueIdentifier>{3d99b295-e380-45fe-a44a-3bde6f6f4c9a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Wrappers">
-      <UniqueIdentifier>{53a433c9-19f7-4f5e-99c5-ea01fef1a667}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Wrappers\GraphicsWrapper">
-      <UniqueIdentifier>{5dd1dd43-b8d3-48fe-b378-b8c0d3012447}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\GarbageCollector">
       <UniqueIdentifier>{f5c83e96-8249-4400-b93f-73ba01f9601e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Editor">
-      <UniqueIdentifier>{fc964e2e-ab08-40fc-a673-cdb4b39fa34d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\EngineObjects\UI">
       <UniqueIdentifier>{1eefa2aa-1563-41e2-a423-92fadf8d55ea}</UniqueIdentifier>
@@ -163,50 +132,8 @@
     <Filter Include="Source\Engine\Reflection">
       <UniqueIdentifier>{b2e9df82-1d73-4a53-88e0-75579e196b3c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses">
-      <UniqueIdentifier>{7dca31b4-1ebf-4b9f-b911-b098e5b157c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses\Screen">
-      <UniqueIdentifier>{c7afbfd0-d5cd-4dee-a35f-f85baf8b5bad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses\Time">
-      <UniqueIdentifier>{88128305-5072-464d-be0b-575a0d18f476}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine\ScriptingAPI\Attributes">
-      <UniqueIdentifier>{c7ee0e17-eba7-497a-a7c5-322d573d1ab3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Physics">
       <UniqueIdentifier>{0497ec21-bd47-4929-b935-ad976c75acd3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine">
-      <UniqueIdentifier>{622cf0b0-fb65-4fc7-ac4f-35c9168f869d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\EngineTools">
-      <UniqueIdentifier>{b0a90909-7708-461a-b459-33803617ab1a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\EngineTools\Editor">
-      <UniqueIdentifier>{cece738d-5c6c-45c6-8864-dc8bb4a6fa3b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Marshaller">
-      <UniqueIdentifier>{5c96b5c1-565f-40ae-9b54-ab7a966a92ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Configuration">
-      <UniqueIdentifier>{78181d98-4386-464f-b45b-ef5e74468c87}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Encryption">
-      <UniqueIdentifier>{7cc418b0-5231-4f9b-a467-cf98afcde18b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\GarbageCollector">
-      <UniqueIdentifier>{39f7a3e1-3b6c-4f52-b551-83f4a0ec688b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Events">
-      <UniqueIdentifier>{641fdbb7-fe95-4284-b0dd-cb0b16a984c1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Object">
-      <UniqueIdentifier>{a38a6141-e458-4e68-9edc-c25bfccdf004}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\EngineTools\ModelWrapper">
-      <UniqueIdentifier>{fe5f4bf5-4400-4fe9-ad0d-60416510b66b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\EngineTools\ModelWrapper">
       <UniqueIdentifier>{64c9efd4-8681-465f-84c1-a32bf1d6ee2e}</UniqueIdentifier>
@@ -295,14 +222,8 @@
     <Filter Include="Deps\Assimp\port\AndroidJNI">
       <UniqueIdentifier>{10b2f070-5f4f-48c4-826f-599865e0b753}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\Reflection">
-      <UniqueIdentifier>{bd38ae50-e0af-48a8-bc06-7bb84642bce9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\EngineObjects\Physics\Native">
       <UniqueIdentifier>{00c92128-a556-4cfd-8de4-e41559b93c0f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Native">
-      <UniqueIdentifier>{d98459a2-0104-414a-9c53-3eeb44b25aac}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\EngineObjects\Script">
       <UniqueIdentifier>{baa9c9f2-4cbd-485c-aac6-39300e73a3c5}</UniqueIdentifier>
@@ -310,32 +231,8 @@
     <Filter Include="Source\Engine\EngineObjects\Audio">
       <UniqueIdentifier>{6134285a-5948-4a83-ab47-b2245e5d2086}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\ScriptingAPI">
-      <UniqueIdentifier>{ecc8131f-793c-4b76-80f8-796e51ebf4a1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Object\Locs">
-      <UniqueIdentifier>{ba5b5e88-e735-4526-830c-c876cbc2ac6e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\Object\Locs">
       <UniqueIdentifier>{ecdc7834-35a5-4ef7-913f-7d2339912ad9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\ObjectManagement">
-      <UniqueIdentifier>{ecd2e752-4e15-4e4d-9a74-c83d9f5905be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Signals">
-      <UniqueIdentifier>{741a851b-feff-416d-a254-c447b15545d4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Utils">
-      <UniqueIdentifier>{1394687c-b10e-48e6-8430-d5caf21711a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\Engine\Windows">
-      <UniqueIdentifier>{8d6c0b1b-183f-4d2e-b8fe-9499ed1a7240}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\BuiltIn">
-      <UniqueIdentifier>{8bc42e77-3f65-448d-b744-b2c149e0fbd8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers\BuiltIn\Effects">
-      <UniqueIdentifier>{c5f2ef93-39b7-4984-b446-424acacffcd0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\BuiltIn">
       <UniqueIdentifier>{76cda915-4375-4f3e-b12f-e83424b61748}</UniqueIdentifier>
@@ -367,6 +264,124 @@
     <Filter Include="Deps\GUI\cimnodes">
       <UniqueIdentifier>{98e9d364-3cbe-4a40-945e-8051037e3f6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Surfaces">
+      <UniqueIdentifier>{122bd44d-9ef3-4655-baf3-13559c22dbcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Colliders">
+      <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Abstract">
+      <UniqueIdentifier>{cbe87ade-a5bd-4e5a-ba01-359106503408}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI">
+      <UniqueIdentifier>{62ca2674-a016-44ad-88bd-ee0cd47abe5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Lua">
+      <UniqueIdentifier>{3eeb32de-0fc6-4579-b348-f8ef91848f9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Managers">
+      <UniqueIdentifier>{3d99b295-e380-45fe-a44a-3bde6f6f4c9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Wrappers">
+      <UniqueIdentifier>{53a433c9-19f7-4f5e-99c5-ea01fef1a667}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Wrappers\GraphicsWrapper">
+      <UniqueIdentifier>{5dd1dd43-b8d3-48fe-b378-b8c0d3012447}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses">
+      <UniqueIdentifier>{7dca31b4-1ebf-4b9f-b911-b098e5b157c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses\Screen">
+      <UniqueIdentifier>{c7afbfd0-d5cd-4dee-a35f-f85baf8b5bad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\EngineClasses\Time">
+      <UniqueIdentifier>{88128305-5072-464d-be0b-575a0d18f476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Attributes">
+      <UniqueIdentifier>{c7ee0e17-eba7-497a-a7c5-322d573d1ab3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Particle">
+      <UniqueIdentifier>{e8c7d2d0-c1d1-425d-8995-4e980fb2176e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ScriptingAPI\Lua\VM">
+      <UniqueIdentifier>{a83eeead-c9fb-4d4c-a9fb-6f637d0c5bd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Deps\GUI\ImNotifications">
+      <UniqueIdentifier>{f7ae7e4b-85d8-4ee4-8738-9f05be1f2fba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Deps\GUI\ImFileDialog">
+      <UniqueIdentifier>{f3692c45-f439-457d-a874-22f8d326b353}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Geometry">
+      <UniqueIdentifier>{d0c26873-69f4-47ae-a4f6-0873925c252b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Geometry\BasicGeometry">
+      <UniqueIdentifier>{386a6d34-ef1f-4138-a991-277bd5a30896}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Geometry\BasicGeometry\Bounding">
+      <UniqueIdentifier>{543f12c8-fedf-4946-9e1f-3190a4b5974c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Geometry\MeshRenderer">
+      <UniqueIdentifier>{b99703a4-63a0-4e37-8e54-60ec1faed1ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Geometry\ModelRenderer">
+      <UniqueIdentifier>{92b2e4ff-c689-440a-b479-e71dc85ba637}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Headers\Engine">
+      <UniqueIdentifier>{622cf0b0-fb65-4fc7-ac4f-35c9168f869d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Marshaller">
+      <UniqueIdentifier>{5c96b5c1-565f-40ae-9b54-ab7a966a92ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Configuration">
+      <UniqueIdentifier>{78181d98-4386-464f-b45b-ef5e74468c87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Encryption">
+      <UniqueIdentifier>{7cc418b0-5231-4f9b-a467-cf98afcde18b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\GarbageCollector">
+      <UniqueIdentifier>{39f7a3e1-3b6c-4f52-b551-83f4a0ec688b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Events">
+      <UniqueIdentifier>{641fdbb7-fe95-4284-b0dd-cb0b16a984c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Object">
+      <UniqueIdentifier>{a38a6141-e458-4e68-9edc-c25bfccdf004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Object\Locs">
+      <UniqueIdentifier>{ba5b5e88-e735-4526-830c-c876cbc2ac6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Reflection">
+      <UniqueIdentifier>{bd38ae50-e0af-48a8-bc06-7bb84642bce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Native">
+      <UniqueIdentifier>{d98459a2-0104-414a-9c53-3eeb44b25aac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\ScriptingAPI">
+      <UniqueIdentifier>{ecc8131f-793c-4b76-80f8-796e51ebf4a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\ScriptingAPI\Lua">
+      <UniqueIdentifier>{e3b69515-12fe-4c8e-96a5-4bb29b69c555}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\ScriptingAPI\Lua\VM">
+      <UniqueIdentifier>{3e2c4f0a-a187-4063-b89c-78be465bf5e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\ObjectManagement">
+      <UniqueIdentifier>{ecd2e752-4e15-4e4d-9a74-c83d9f5905be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Signals">
+      <UniqueIdentifier>{741a851b-feff-416d-a254-c447b15545d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Utils">
+      <UniqueIdentifier>{1394687c-b10e-48e6-8430-d5caf21711a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\Windows">
+      <UniqueIdentifier>{8d6c0b1b-183f-4d2e-b8fe-9499ed1a7240}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Headers\Engine\EngineObjects">
       <UniqueIdentifier>{566652fa-329c-484b-97d4-4aedff0086dc}</UniqueIdentifier>
     </Filter>
@@ -382,11 +397,14 @@
     <Filter Include="Headers\Engine\EngineObjects\Physics\Native">
       <UniqueIdentifier>{a405c1d8-c617-475a-86f5-ad5974bb120b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\Audio">
-      <UniqueIdentifier>{f55d612c-db0e-407c-aaf3-fd6bdbf48288}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Physics\Service">
       <UniqueIdentifier>{6ba555a8-9e71-47dc-9357-370a87f4482f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Colliders">
+      <UniqueIdentifier>{816d79d0-80ec-4ce8-a696-56cdb7441798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Audio">
+      <UniqueIdentifier>{f55d612c-db0e-407c-aaf3-fd6bdbf48288}</UniqueIdentifier>
     </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Private">
       <UniqueIdentifier>{f27cd3d5-0dff-493d-a792-4d6fd823820a}</UniqueIdentifier>
@@ -397,26 +415,41 @@
     <Filter Include="Headers\Engine\EngineObjects\Renderer Pipelines\Scriptable">
       <UniqueIdentifier>{b30bb5ae-dfc6-42d1-ac96-51be1ccb69f8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Surfaces">
-      <UniqueIdentifier>{122bd44d-9ef3-4655-baf3-13559c22dbcf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\Engine\EngineObjects\Surfaces">
       <UniqueIdentifier>{81b5e249-40d5-406a-aabd-b74876fb3a3f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\MeshRenderer">
-      <UniqueIdentifier>{b99703a4-63a0-4e37-8e54-60ec1faed1ef}</UniqueIdentifier>
+    <Filter Include="Headers\Engine\EngineObjects\Particle">
+      <UniqueIdentifier>{84e12e49-6826-43ba-8a30-f0fdae85f42f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\MeshRenderer">
+    <Filter Include="Headers\Engine\EngineObjects\Geometry">
+      <UniqueIdentifier>{db5c07a7-8c47-4252-a8e5-775df49b7c64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Geometry\ModelRenderer">
+      <UniqueIdentifier>{ef7c848d-cbf2-4100-a0d2-8b8162bd3241}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Geometry\MeshRenderer">
       <UniqueIdentifier>{a5e13549-0055-48d7-b97c-9695ed2f3be5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\EngineObjects\Physics\Colliders">
-      <UniqueIdentifier>{9df26f81-bf57-46bc-89f3-b81b711a37f1}</UniqueIdentifier>
+    <Filter Include="Headers\Engine\BuiltIn">
+      <UniqueIdentifier>{8bc42e77-3f65-448d-b744-b2c149e0fbd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\Physics\Colliders">
-      <UniqueIdentifier>{816d79d0-80ec-4ce8-a696-56cdb7441798}</UniqueIdentifier>
+    <Filter Include="Headers\Engine\BuiltIn\Effects">
+      <UniqueIdentifier>{c5f2ef93-39b7-4984-b446-424acacffcd0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headers\Engine\EngineObjects\ModelRenderer">
-      <UniqueIdentifier>{ef7c848d-cbf2-4100-a0d2-8b8162bd3241}</UniqueIdentifier>
+    <Filter Include="Headers\EngineTools">
+      <UniqueIdentifier>{b0a90909-7708-461a-b459-33803617ab1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\EngineTools\Editor">
+      <UniqueIdentifier>{cece738d-5c6c-45c6-8864-dc8bb4a6fa3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\EngineTools\ModelWrapper">
+      <UniqueIdentifier>{fe5f4bf5-4400-4fe9-ad0d-60416510b66b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Editor">
+      <UniqueIdentifier>{5039bdfc-8146-42e3-98f9-c127b4bdad0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Editor">
+      <UniqueIdentifier>{fc964e2e-ab08-40fc-a673-cdb4b39fa34d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -460,13 +493,13 @@
       <Filter>Source\Engine\Preload</Filter>
     </ClInclude>
     <ClInclude Include="Objects\BoundingBoxRenderer.h">
-      <Filter>Source\Engine\EngineObjects\BasicGeometry\Bounding</Filter>
+      <Filter>Source\Engine\EngineObjects\Geometry\BasicGeometry\Bounding</Filter>
     </ClInclude>
     <ClInclude Include="Objects\GridRenderer.h">
-      <Filter>Source\Engine\EngineObjects\BasicGeometry</Filter>
+      <Filter>Source\Engine\EngineObjects\Geometry\BasicGeometry</Filter>
     </ClInclude>
     <ClInclude Include="Objects\CubeRenderer.h">
-      <Filter>Source\Engine\EngineObjects\BasicGeometry</Filter>
+      <Filter>Source\Engine\EngineObjects\Geometry\BasicGeometry</Filter>
     </ClInclude>
     <ClInclude Include="Objects\LightDm.h">
       <Filter>Source\Engine\EngineObjects\Lighting</Filter>
@@ -483,9 +516,6 @@
     <ClInclude Include="imgui\TextEditor\TextEditor.h">
       <Filter>Deps\GUI\ImGui\TextEditor</Filter>
     </ClInclude>
-    <ClInclude Include="LuaVM.h">
-      <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\FileExplorer\filedialog.h">
       <Filter>Deps\GUI\ImGui\FileExplorer</Filter>
     </ClInclude>
@@ -494,9 +524,6 @@
     </ClInclude>
     <ClInclude Include="imgui\Fonts\IconsFontAwesome4.h">
       <Filter>Deps\GUI\ImGui\Fonts</Filter>
-    </ClInclude>
-    <ClInclude Include="Attribute.h">
-      <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
     </ClInclude>
     <ClInclude Include="AttributeManager.h">
       <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
@@ -587,12 +614,6 @@
     </ClInclude>
     <ClInclude Include="Time.h">
       <Filter>Source\Engine\ScriptingAPI\EngineClasses\Time</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\EditorCamera.h">
-      <Filter>Source\Engine\EngineObjects\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Objects\EditorPlugin.h">
-      <Filter>Source\Engine\EngineObjects\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Objects\UI\Button.h">
       <Filter>Source\Engine\EngineObjects\UI</Filter>
@@ -981,9 +1002,6 @@
     <ClInclude Include="EditorTools\CodeEditor.h">
       <Filter>Headers\EngineTools\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="VMWrapper.h">
-      <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
-    </ClInclude>
     <ClInclude Include="Object\Prefab.h">
       <Filter>Headers\Engine\Object</Filter>
     </ClInclude>
@@ -1024,7 +1042,7 @@
       <Filter>Headers\Engine\Windows</Filter>
     </ClInclude>
     <ClInclude Include="BuiltIn\Effects\ACES_Tonemapper.h">
-      <Filter>Headers\BuiltIn\Effects</Filter>
+      <Filter>Headers\Engine\BuiltIn\Effects</Filter>
     </ClInclude>
     <ClInclude Include="Native\miniaudio.h">
       <Filter>Headers\Engine\Native</Filter>
@@ -1090,7 +1108,7 @@
       <Filter>Headers\Engine\Object\Locs</Filter>
     </ClInclude>
     <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h">
-      <Filter>Headers\Engine\EngineObjects\MeshRenderer</Filter>
+      <Filter>Headers\Engine\EngineObjects\Geometry\MeshRenderer</Filter>
     </ClInclude>
     <ClInclude Include="AnimationStruct.h">
       <Filter>Headers\Engine\ObjectManagement</Filter>
@@ -1099,7 +1117,61 @@
       <Filter>Headers\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClInclude>
     <ClInclude Include="Objects\ModelRenderer\ModelRenderer.hpp">
-      <Filter>Headers\Engine\EngineObjects\ModelRenderer</Filter>
+      <Filter>Headers\Engine\EngineObjects\Geometry\ModelRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\Matrix.h">
+      <Filter>Headers\Engine\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Abstract\Renderer.h">
+      <Filter>Source\Engine\EngineObjects\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="GameWindow.h">
+      <Filter>Headers\EngineTools</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Particles\ParticleEmitter.h">
+      <Filter>Headers\Engine\EngineObjects\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaVM.h">
+      <Filter>Headers\Engine\ScriptingAPI\Lua\VM</Filter>
+    </ClInclude>
+    <ClInclude Include="Attribute.h">
+      <Filter>Headers\Engine\ScriptingAPI\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="VMWrapper.h">
+      <Filter>Headers\Engine\ScriptingAPI\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\Colliders\MeshCollider.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="imnotifications\ImNotify.h">
+      <Filter>Deps\GUI\ImNotifications</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Fonts\fa_solid_900.h">
+      <Filter>Deps\GUI\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Fonts\font_awesome_5.h">
+      <Filter>Deps\GUI\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="imnotifications\ImNotifyWrapper.h">
+      <Filter>Deps\GUI\ImNotifications</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\Fonts\IconsFontAwesome6.h">
+      <Filter>Deps\GUI\ImGui\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="imfiledialog\ImFileDialog.h">
+      <Filter>Deps\GUI\ImFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\CapsuleRenderer.h">
+      <Filter>Headers\Engine\EngineObjects\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Physics\Colliders\CapsuleCollider.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\EditorCamera.h">
+      <Filter>Headers\Engine\EngineObjects\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\EditorPlugin.h">
+      <Filter>Headers\Engine\EngineObjects\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1220,9 +1292,6 @@
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp">
       <Filter>Source\Engine\EngineObjects\Physics\Native</Filter>
     </ClCompile>
-    <ClCompile Include="LuaVM.cpp">
-      <Filter>Source\Engine\ScriptingAPI\Lua</Filter>
-    </ClCompile>
     <ClCompile Include="native\CollisionShape.cpp">
       <Filter>Source\Engine\Native</Filter>
     </ClCompile>
@@ -1305,13 +1374,43 @@
       <Filter>Source\Engine\Object\Locs</Filter>
     </ClCompile>
     <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp">
-      <Filter>Source\Engine\EngineObjects\MeshRenderer</Filter>
+      <Filter>Source\Engine\EngineObjects\Geometry\MeshRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Objects\Physics\Colliders\BoxCollider.cpp">
       <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClCompile>
     <ClCompile Include="Objects\ModelRenderer\ModelRenderer.cpp">
-      <Filter>Source\Engine\EngineObjects\ModelRenderer</Filter>
+      <Filter>Source\Engine\EngineObjects\Geometry\ModelRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Matrix.cpp">
+      <Filter>Source\Engine\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Abstract\Renderer.cpp">
+      <Filter>Source\Engine\EngineObjects\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="GameWindow.cpp">
+      <Filter>Source\EngineTools</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Particles\ParticleEmitter.cpp">
+      <Filter>Source\Engine\EngineObjects\Particle</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaVM.cpp">
+      <Filter>Source\Engine\ScriptingAPI\Lua\VM</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\Colliders\MeshCollider.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="imnotifications\ImNotifyWrapper.cpp">
+      <Filter>Deps\GUI\ImNotifications</Filter>
+    </ClCompile>
+    <ClCompile Include="imfiledialog\ImFileDialog.cpp">
+      <Filter>Deps\GUI\ImFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\CapsuleRenderer.cpp">
+      <Filter>Source\Engine\EngineObjects\Geometry\BasicGeometry</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\Colliders\CapsuleCollider.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

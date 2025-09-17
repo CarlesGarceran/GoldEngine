@@ -34,7 +34,7 @@ namespace Engine::EngineObjects::Daemons
 			if (camera == nullptr)
 				return;
 
-			float cameraPos[3] = { camera->getTransform()->position->x, camera->getTransform()->position->y, camera->getTransform()->position->z };
+			float cameraPos[3] = { camera->getTransform()->position.x, camera->getTransform()->position.y, camera->getTransform()->position.z };
 			lightM->UpdateCameraPosition(cameraPos);
 		}
 

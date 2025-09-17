@@ -4,6 +4,8 @@
 
 namespace Engine::EngineObjects::Physics
 {
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Collider abstract : Engine::EngineObjects::Script
 	{
 	protected:
@@ -11,36 +13,45 @@ namespace Engine::EngineObjects::Physics
 		Enums::ColliderShape colliderShape;
 		bool registered = false;
 
+		GameObject^ root;
+
 	public:
-		[Engine::Scripting::PropertyAttribute]
-		Engine::Components::Color^ wireColor;
+		[Engine::Scripting::PropertyAttribute] Engine::Components::Vector3 origin = Engine::Components::Vector3::Zero();
+		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ wireColor;
+		[Engine::Scripting::PropertyAttribute] bool renderWires = false;
+		[Engine::Scripting::PropertyAttribute] Enums::ColliderType collisionType;
 
-		[Engine::Scripting::PropertyAttribute]
-		bool renderWires = false;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		Engine::Scripting::Events::Event^ HitBegin = Engine::Scripting::Events::Event::New();
 
-		[Engine::Scripting::PropertyAttribute]
-		Enums::ColliderType collisionType;
-		/*
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
-		unsigned int modelId;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		Engine::Scripting::Events::Event^ Hit = Engine::Scripting::Events::Event::New();
 
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
-		unsigned int meshIndex;
-		*/
-	private:
-		/*
-		Engine::Native::EnginePtr<RAYLIB::Model>* modelInstance = nullptr;
-		Engine::Native::EnginePtr<RAYLIB::Mesh>* meshInstance = nullptr;
-		*/
-	private:
-		void onColliderShapeChanged(Enums::ColliderShape newShape, Enums::ColliderShape oldShape);
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		Engine::Scripting::Events::Event^ HitEnded = Engine::Scripting::Events::Event::New();
 
 	public:
 		Collider(String^ name, Engine::Internal::Components::Transform^ transform);
+		Collider();
 
 		virtual void Start() override;
 		virtual void DrawGizmo() override;
-		[Engine::Attributes::ExecuteInEditModeAttribute] void Update() override;
+		[Engine::Attributes::ExecuteInEditModeAttribute] virtual void Update() override;
+
+
+		virtual bool ClaimOwnership(GameObject^ instance) = 0;
+		virtual void Disown() = 0;
+		virtual bool IsOwned() = 0;
+		virtual void CreateShape() = 0;
+
+		virtual void OnCollisionEnter(GameObject^ instance) override;
+		virtual void OnCollisionStay(GameObject^ instance) override;
+		virtual void OnCollisionExit(GameObject^ instance) override;
+		virtual void OnCollided(GameObject^ instance) override;
+
+	protected:
+		virtual void OnCollisionTypeChanged(Enums::ColliderType newType, Enums::ColliderType oldType) = 0;
+		virtual void OnOriginChanged(Engine::Components::Vector3 newValue, Engine::Components::Vector3 oldValue) = 0;
 	};
 }
 

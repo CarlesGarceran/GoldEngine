@@ -162,6 +162,21 @@ namespace Engine::Scripting
     public ref class InputManager
     {
     public:
+        static bool IsAnyKeyPressed()
+        {
+            return (RAYLIB::GetKeyPressed() != 0);
+        }
+
+        static int GetKey()
+        {
+            return RAYLIB::GetKeyPressed();
+        }
+
+        static System::String^ GetKeyName(int keyId)
+        {
+            return gcnew System::String(RAYLIB::GetKeyName(keyId));
+        }
+
         static bool IsKeyPressed(int key_id)
         {
             return RAYLIB::IsKeyPressed(key_id);
@@ -169,7 +184,6 @@ namespace Engine::Scripting
 
         static bool IsKeyDown(int key_id)
         {
-
             return RAYLIB::IsKeyDown(key_id);
         }
 
@@ -198,13 +212,13 @@ namespace Engine::Scripting
             return RAYLIB::IsMouseButtonPressed(button_press);
         }
 
-        static Engine::Components::Vector2^ GetMouseDelta()
+        static Engine::Components::Vector2 GetMouseDelta()
         {
             auto mdelta = RAYLIB::GetMouseDelta();
-            return gcnew Engine::Components::Vector2(mdelta.x, mdelta.y);
+            return Engine::Components::Vector2(mdelta.x, mdelta.y);
         }
 
-        static Engine::Components::Vector2^ GetMousePosition()
+        static Engine::Components::Vector2 GetMousePosition()
         {
 #if !PRODUCTION_BUILD
             if (!EngineState::PlayMode)
@@ -224,12 +238,12 @@ namespace Engine::Scripting
                 localMousePos.x = std::clamp(localMousePos.x, 0.0f, viewportSize.x);
                 localMousePos.y = std::clamp(localMousePos.y, 0.0f, viewportSize.y);
 
-                return gcnew Engine::Components::Vector2(localMousePos.x, localMousePos.y);
+                return Engine::Components::Vector2(localMousePos.x, localMousePos.y);
             }
             else
-                return gcnew Engine::Components::Vector2(RAYLIB::GetMousePosition().x, RAYLIB::GetMousePosition().y);
+                return Engine::Components::Vector2(RAYLIB::GetMousePosition().x, RAYLIB::GetMousePosition().y);
 #else
-            return gcnew Engine::Components::Vector2(RAYLIB::GetMousePosition().x, RAYLIB::GetMousePosition().y);
+            return Engine::Components::Vector2(RAYLIB::GetMousePosition().x, RAYLIB::GetMousePosition().y);
 #endif
         }
 

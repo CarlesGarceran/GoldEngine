@@ -3,7 +3,8 @@
 namespace Engine::EngineObjects
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-		public ref class LuaScript : public Engine::EngineObjects::Script
+	[Engine::Attributes::LuaAPIAttribute]
+	public ref class LuaScript : public Engine::EngineObjects::Script
 	{
 	private:
 		String^ luaSource = "";
@@ -118,7 +119,7 @@ namespace Engine::EngineObjects
 			}
 		}
 
-		void Start() override
+		void Awake() override
 		{
 			if (!Engine::Management::Scene::getLoadedScene()->sceneLoaded())
 			{
@@ -130,7 +131,19 @@ namespace Engine::EngineObjects
 				initVM();
 
 			if (virtualMachine != nullptr)
-				virtualMachine->InvokeFunction("Start");
+				virtualMachine->InvokeFunctionCo("Awake");
+		}
+
+		void Start() override
+		{
+			if (!Engine::Management::Scene::getLoadedScene()->sceneLoaded())
+				return;
+
+			if (virtualMachine == nullptr)
+				initVM();
+
+			if (virtualMachine != nullptr)
+				virtualMachine->InvokeFunctionCo("Start");
 		}
 
 		void Draw() override
@@ -154,7 +167,7 @@ namespace Engine::EngineObjects
 				initVM();
 
 			if (virtualMachine != nullptr)
-				virtualMachine->InvokeFunction("Update");
+				virtualMachine->InvokeFunctionCo("Update");
 		}
 
 		void PhysicsUpdate() override
@@ -166,7 +179,7 @@ namespace Engine::EngineObjects
 				initVM();
 
 			if (virtualMachine != nullptr)
-				virtualMachine->InvokeFunction("PhysicsUpdate");
+				virtualMachine->InvokeFunctionCo("PhysicsUpdate");
 		}
 
 		void DrawGizmo() override

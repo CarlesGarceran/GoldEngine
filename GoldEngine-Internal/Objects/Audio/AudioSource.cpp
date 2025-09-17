@@ -6,7 +6,9 @@ using namespace Engine::EngineObjects;
 #pragma managed(push, off)
 void onUnloaded(AudioData sound)
 {
-	// do nothing lol, no need to unload resources (unmanaged btw, we're working with native structs)
+	// do nothing lol, the resources are comming from the datapacks, no need to free them unless we want to corrupt the game.
+	sound.music = {};
+	sound.sound = {};
 
 	return;
 }
@@ -29,6 +31,18 @@ void AudioSource::onSoundChanged(unsigned int newId, unsigned int oldId)
 	soundPtr->setInstanceRef(
 		data
 	);
+}
+
+RAYLIB::AudioStream Engine::EngineObjects::AudioSource::GetAudioStream()
+{
+	if (resourceType == ResourceType::Music)
+		return soundPtr->getInstance().music.stream;
+
+	if (resourceType == ResourceType::Sound)
+		return soundPtr->getInstance().sound.stream;
+
+
+	return { };
 }
 
 void AudioSource::Start()
@@ -76,18 +90,23 @@ void AudioSource::Update()
 		}
 		else if (resourceType == ResourceType::Sound)
 		{
-			RAYLIB::SetSoundVolume(soundPtr->getInstance().sound, volume);
-			RAYLIB::SetSoundPan(soundPtr->getInstance().sound, panning);
-			RAYLIB::SetSoundPitch(soundPtr->getInstance().sound, pitch);
+			RAYLIB::SetAudioStreamVolume(soundPtr->getInstance().sound.stream, volume);
+			RAYLIB::SetAudioStreamPan(soundPtr->getInstance().sound.stream, panning);
+			RAYLIB::SetAudioStreamPitch(soundPtr->getInstance().sound.stream, pitch);
 		}
 
 		if (!wasPlaying)
 		{
-			if (resourceType == ResourceType::Sound)
+			if (resourceType == ResourceType::Sound && !IsSoundPlaying(soundPtr->getInstance().sound))
 			{
-				RAYLIB::PlaySound(soundPtr->getInstance().sound);
+				if (!IsSoundValid(soundPtr->getInstance().sound))
+				{
+					print("[AudioSource]", "Sound is INVALID, cannot play!");
+				}
+
+				RAYLIB::PlayAudioStream(soundPtr->getInstance().sound.stream);
 			}
-			else if (resourceType == ResourceType::Music)
+			else if (resourceType == ResourceType::Music && !IsMusicStreamPlaying(soundPtr->getInstance().music))
 			{
 				RAYLIB::PlayMusicStream(soundPtr->getInstance().music);
 			}
@@ -102,7 +121,7 @@ void AudioSource::Update()
 		}
 		else if (resourceType == ResourceType::Sound)
 		{
-			if (RAYLIB::IsSoundPlaying(soundPtr->getInstance().sound) && !isLooped)
+			if (RAYLIB::IsAudioStreamPlaying(soundPtr->getInstance().sound.stream) && !isLooped)
 				isPlaying = false;
 			else
 				wasPlaying = false;
@@ -113,7 +132,7 @@ void AudioSource::Update()
 		if (wasPlaying)
 		{
 			if (resourceType == ResourceType::Sound)
-				RAYLIB::StopSound(soundPtr->getInstance().sound);
+				RAYLIB::StopAudioStream(soundPtr->getInstance().sound.stream);
 			else if (resourceType == ResourceType::Music)
 				RAYLIB::StopMusicStream(soundPtr->getInstance().music);
 
@@ -127,7 +146,7 @@ void AudioSource::Destroy()
 	if (wasPlaying)
 	{
 		if (resourceType == ResourceType::Sound)
-			RAYLIB::StopSound(soundPtr->getInstance().sound);
+			RAYLIB::StopAudioStream(soundPtr->getInstance().sound.stream);
 		else if (resourceType == ResourceType::Music)
 			RAYLIB::StopMusicStream(soundPtr->getInstance().music);
 

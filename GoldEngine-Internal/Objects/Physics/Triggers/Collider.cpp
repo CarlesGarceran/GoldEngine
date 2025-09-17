@@ -6,6 +6,8 @@
 #include "../RigidBody.h"
 #include "../PhysicsService.h"
 
+#include "../../Abstract/Renderer.h"
+
 #ifdef USE_BULLET_PHYS
 
 #pragma managed(push, off)
@@ -23,66 +25,102 @@ void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 using namespace Engine::EngineObjects::Physics;
 using namespace Engine::EngineObjects::Physics::Enums;
 
-void Collider::onColliderShapeChanged(ColliderShape newShape, ColliderShape oldShape)
+Collider::Collider(String^ name, Engine::Internal::Components::Transform^ transform)
+	: Engine::EngineObjects::Script(name, transform)
 {
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-
-	if (collisionShape->getCollisonObject() != nullptr && (newShape == oldShape))
-		return;
-
-	GameObject^ object = collisionShape->getGameObject();
-
-	float sX = object->transform->scale->x;
-	float sY = object->transform->scale->y;
-	float sZ = object->transform->scale->z;
-
-	switch (newShape)
-	{
-	case ColliderShape::Box:
-		{
-			btCollisionShape* cs = Singleton<PhysicsService^>::Instance->getNativePhysicsService()->getCollisionShapeForBox(sX, sY, sZ);
-			collisionShape->createCollisionShape(cs);
-			break;
-		}
-	}
-
-	collisionShape->createBulletObject();
+	this->wireColor = gcnew Engine::Components::Color(0xFF00FF00);
+	this->renderWires = true;
 }
 
-Collider::Collider(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
+Engine::EngineObjects::Physics::Collider::Collider()
+	: Engine::EngineObjects::Script()
 {
-	this->wireColor = gcnew Engine::Components::Color(0xFFFFFFFF);
+	this->wireColor = gcnew Engine::Components::Color(0xFF00FF00);
 	this->renderWires = true;
 }
 
 void Collider::Start()
 {
-	onColliderShapeChanged(colliderShape, colliderShape);
-	this->attributes->getAttribute("colliderShape")->onPropertyChanged->connect(gcnew Action<ColliderShape, ColliderShape>(this, &Collider::onColliderShapeChanged));
-
-	if (Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	if (Parent != nullptr && Parent->IsA<Engine::EngineObjects::Geometry::Abstract::Renderer^>() && FindFirstSibling<Collider^>() != this)
 	{
-		Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-		Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->AddCollisionObject(collisionShape->getCollisonObject());
-		registered = true;
+		Destroy(this);
+		printError("A renderer cannot have multiple instances of a collider");
+		return;
 	}
 }
 
 void Collider::Update()
 {
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-
-	if (!registered && Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	if (Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
 	{
-		Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->AddCollisionObject(collisionShape->getCollisonObject());
-		registered = true;
-	}
+		Engine::EngineObjects::Physics::PhysicsService^ physService = Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance;
 
-	if (colliderShape == ColliderShape::Box)
-	{
-		float size[3] = { transform->scale->x, transform->scale->y, transform->scale->z };
-		UpdateSizeExtents((btBoxShape*)collisionShape->getCollisionShape(), size);
+		Engine::Native::CollisionShape* collisionShape =
+			(root != nullptr) ? (Engine::Native::CollisionShape*)root->getCollisionShape()
+			: (Engine::Native::CollisionShape*)this->getCollisionShape();
+
+		if (collisionShape->hasCollisionObject())
+		{
+			btBroadphaseProxy* proxy = collisionShape->getCollisionObject()->getBroadphaseHandle();
+			if (proxy != nullptr)
+			{
+				std::lock_guard(physService->RequestMutex());
+
+				proxy->m_collisionFilterGroup = physService->GetCollisionGroup(this->layerMask);
+				proxy->m_collisionFilterMask = physService->GetCollisionMask(this->layerMask);
+			}
+		}
+
 	}
+}
+
+void Engine::EngineObjects::Physics::Collider::OnCollisionEnter(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	if (this->collisionType == ColliderType::Trigger)
+		Parent->OnTriggerEnter(instance);
+	else
+		Parent->OnCollisionEnter(instance);
+
+	HitBegin->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnCollisionStay(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	if (this->collisionType == ColliderType::Trigger)
+		Parent->OnTriggerStay(instance);
+	else
+		Parent->OnCollisionStay(instance);
+
+	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnCollisionExit(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	if (this->collisionType == ColliderType::Trigger)
+		Parent->OnTriggerExit(instance);
+	else
+		Parent->OnCollisionExit(instance);
+
+
+	HitEnded->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnCollided(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	if (this->collisionType == ColliderType::Trigger)
+		Parent->OnTriggered(instance);
+	else
+		Parent->OnCollided(instance);
+
+	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
 }
 
 void Collider::DrawGizmo()

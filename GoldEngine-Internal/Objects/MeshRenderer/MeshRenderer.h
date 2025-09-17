@@ -4,7 +4,7 @@ namespace Engine::EngineObjects::Geometry
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
-	public ref class MeshRenderer : Engine::EngineObjects::Script
+		public ref class MeshRenderer : Engine::EngineObjects::Geometry::Abstract::Renderer
 	{
 	private:
 		Engine::Native::EnginePtr<RAYLIB::Model>* modelInstance = nullptr;
@@ -29,5 +29,8 @@ namespace Engine::EngineObjects::Geometry
 		void Draw() override;
 	
 		void Destroy() override;
+
+
+		RAYLIB::Model& GetModel() override;
 	};
 }

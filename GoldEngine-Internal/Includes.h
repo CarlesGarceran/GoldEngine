@@ -28,6 +28,7 @@
 #include "imguizmo/GraphEditor.h"
 #include "imguizmo/ImZoomSlider.h"
 #include "imnodes/imnodes_internal.h"
+#include "imnotifications/ImNotify.h"
 #pragma managed(pop)
 
 #include "ManagedIncludes.h"

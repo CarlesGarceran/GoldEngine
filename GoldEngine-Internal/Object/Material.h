@@ -66,16 +66,19 @@ namespace Engine::Components::Locs::Generic
 
 namespace Engine::Components
 {
-	typedef enum MaterialLocations
+	namespace Enums
 	{
-		ColorLoc = 0,
-		TextureLoc = 1,
-		FloatLoc = 2,
-		StructLoc = 3,
-		Vector2Loc = 4,
-		Vector3Loc = 5,
-		Vector4Loc = 6
-	};
+		typedef enum MaterialLocations
+		{
+			ColorLoc = 0,
+			TextureLoc = 1,
+			FloatLoc = 2,
+			StructLoc = 3,
+			Vector2Loc = 4,
+			Vector3Loc = 5,
+			Vector4Loc = 6
+		};
+	}
 
 	public value struct TextureId
 	{

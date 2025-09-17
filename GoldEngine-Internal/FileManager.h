@@ -57,7 +57,7 @@ public
 
 				  public : static void WriteToCustomFile(String ^ fileName, String ^ password, array<String ^> ^ inFile)
 		{
-			auto file = File::Open(fileName, FileMode::OpenOrCreate);
+			auto file = gcnew FileStream(fileName, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
 
 			auto stream = gcnew BinaryWriter(file);
 			stream->Flush();
@@ -150,7 +150,7 @@ public
 						unsigned long length = stream->ReadInt32();
 						auto fC = stream->ReadBytes(length);
 						Directory::CreateDirectory(Path::GetDirectoryName("Data/unpacked/" + fN));
-						auto fS = File::Open("Data/unpacked/" + fN, FileMode::OpenOrCreate);
+						auto fS = gcnew FileStream("Data/unpacked/" + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
 						auto bW = gcnew BinaryWriter(fS);
 
 						bW->Write(
@@ -210,7 +210,7 @@ public
 							unsigned long length = stream->ReadInt32();
 							auto fC = stream->ReadBytes(length);
 							Directory::CreateDirectory(Path::GetDirectoryName("Data/unpacked/" + fN));
-							auto fS = File::Open("Data/unpacked/" + fN, FileMode::OpenOrCreate);
+							auto fS = gcnew FileStream("Data/unpacked/" + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
 							auto bW = gcnew BinaryWriter(fS);
 
 							bW->Write(

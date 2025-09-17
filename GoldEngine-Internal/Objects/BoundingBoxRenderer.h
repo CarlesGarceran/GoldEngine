@@ -20,8 +20,8 @@ namespace Engine::EngineObjects
 
 		void Draw() override
 		{
-			auto v3 = getTransform()->scale->toNative();
-			RAYLIB::DrawCubeWires(getTransform()->position->toNative(), (float)v3.x, (float)v3.y, (float)v3.z, GetColor(color));
+			auto v3 = getTransform()->scale.toNative();
+			RAYLIB::DrawCubeWires(getTransform()->position.toNative(), (float)v3.x, (float)v3.y, (float)v3.z, GetColor(color));
 		}
 	};
 }

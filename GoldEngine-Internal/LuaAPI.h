@@ -2,7 +2,7 @@
 
 namespace Engine::Attributes
 {
-	[System::AttributeUsageAttribute(System::AttributeTargets::Class)]
+	[System::AttributeUsageAttribute(System::AttributeTargets::Class | System::AttributeTargets::Struct)]
 	public ref class LuaAPIAttribute : System::Attribute
 	{
 	public:

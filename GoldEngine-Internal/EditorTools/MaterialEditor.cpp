@@ -11,6 +11,7 @@
 
 using namespace Engine::Scripting;
 using namespace Engine::Components;
+using namespace Engine::Components::Enums;
 
 #include "../Objects/Pipeline/ScriptableRenderPipeline.hpp"
 #include "CodeEditor.h"
@@ -38,7 +39,7 @@ const char* materialLocations[] =
 	"Struct",
 	"Vector 2",
 	"Vector 3",
-	"Vector 4",
+	"Vector 4"
 };
 
 void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Components::Locs::Generic::MaterialLoc^ locref)
@@ -67,7 +68,7 @@ void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Com
 		ImGui::SameLine();
 		if (ImGui::ColorPicker4(CastStringToNative("###TINT_EDITOR_" + location->locName).c_str(), rawData))
 		{
-			colorLoc->color->setHex(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
+			colorLoc->color->setRGBA(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3])));
 		}
 		break;
 	}
@@ -105,37 +106,37 @@ void locEdit(Engine::Components::Locs::Generic::ShaderLoc^ location, Engine::Com
 	case MaterialLocations::Vector2Loc:
 	{
 		Engine::Components::Locs::Vector2Loc^ texLoc = (Engine::Components::Locs::Vector2Loc^)locref;
-		Engine::Components::Vector2^ ptr = texLoc->value;
+		Engine::Components::Vector2 ptr = texLoc->value;
 		ImGui::Text("Value:");
 		ImGui::SameLine();
 
 		float data[2] = {
-			ptr->x,
-			ptr->y
+			ptr.x,
+			ptr.y
 		};
 
 		if (ImGui::DragFloat2(CastStringToNative("###VEC3_LOC_" + location->locName).c_str(), data))
 		{
-			texLoc->value = gcnew Engine::Components::Vector2(data[0], data[1]);
+			texLoc->value = Engine::Components::Vector2(data[0], data[1]);
 		}
 		break;
 	}
 	case MaterialLocations::Vector3Loc:
 	{
 		Engine::Components::Locs::Vector3Loc^ texLoc = (Engine::Components::Locs::Vector3Loc^)locref;
-		Engine::Components::Vector3^ ptr = texLoc->value;
+		Engine::Components::Vector3 ptr = texLoc->value;
 		ImGui::Text("Value:");
 		ImGui::SameLine();
 
 		float data[3] = {
-			ptr->x,
-			ptr->y,
-			ptr->z
+			ptr.x,
+			ptr.y,
+			ptr.z
 		};
 
 		if (ImGui::DragFloat3(CastStringToNative("###VEC3_LOC_" + location->locName).c_str(), data))
 		{
-			texLoc->value = gcnew Engine::Components::Vector3(data[0], data[1], data[2]);
+			texLoc->value = Engine::Components::Vector3(data[0], data[1], data[2]);
 		}
 		break;
 	}
@@ -195,6 +196,7 @@ void MaterialEditor::LoadMaterial(unsigned int id)
 
 void MaterialEditor::GUI()
 {
+#if(!PRODUCTION_BUILD)
 	materialEditorOpen = _materialEditorOpen;
 
 	if (materialEditorOpen)
@@ -406,10 +408,10 @@ void MaterialEditor::GUI()
 							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::StructLoc(nullptr));
 							break;
 						case MaterialLocations::Vector2Loc:
-							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector2Loc(gcnew Engine::Components::Vector2()));
+							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector2Loc(Engine::Components::Vector2()));
 							break;
 						case MaterialLocations::Vector3Loc:
-							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector3Loc(gcnew Engine::Components::Vector3()));
+							this->selectedMaterial->AddProperty(gcnew String(locName.c_str()), gcnew Engine::Components::Locs::Vector3Loc(Engine::Components::Vector3()));
 							break;
 						case MaterialLocations::Vector4Loc:
 
@@ -427,6 +429,7 @@ void MaterialEditor::GUI()
 		}
 		ImGui::End();
 	}
+#endif
 }
 
 void MaterialEditor::SetMaterial(Engine::Components::Material^ material)

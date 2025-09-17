@@ -51,9 +51,9 @@ namespace Engine::Config
 		}
 
 	public:
-		std::string getPassword()
+		String^ getPassword()
 		{
-			return CastStringToNative(encryptionPassword);
+			return encryptionPassword;
 		}
 
 		static EngineSecrets^ singleton()
@@ -61,12 +61,20 @@ namespace Engine::Config
 			return self;
 		}
 
+		void setEncryptionPassword(String^ password)
+		{
+			this->encryptionPassword = password;
+		}
+
 		void ExportSecrets(System::String^ fN)
 		{
 			File::WriteAllText(fN, Convert::ToBase64String(
 				Encoding::UTF8->GetBytes
 				(
-					Engine::Encryption::CypherLib::EncryptString(encryptionPassword, convertToInt(File::ReadAllText("./Data/Keys/map.iv")))
+					Engine::Encryption::CypherLib::EncryptString(
+						encryptionPassword, 
+						convertToInt(File::ReadAllText("./Data/Keys/map.iv"))
+					)
 				)
 			)
 			);
@@ -79,9 +87,9 @@ namespace Engine::Config
 				String^ encodedData = File::ReadAllText(fN);
 				String^ decodedData = Encoding::UTF8->GetString(Convert::FromBase64String(encodedData));
 
-				String^ password = Engine::Encryption::CypherLib::DecryptString(decodedData, convertToInt(File::ReadAllText("./Data/Keys/map.iv")));
+				String^ _password = Engine::Encryption::CypherLib::DecryptString(decodedData, convertToInt(File::ReadAllText("./Data/Keys/map.iv")));
 
-				self = gcnew EngineSecrets(password);
+				self = gcnew EngineSecrets(_password);
 				return self;
 			}
 
@@ -166,17 +174,18 @@ namespace Engine::Config
 		String^ logPath;
 		Resolution^ resolution;
 		unsigned int windowFlags;
+		int targetFPS;
 		WinFlags^ _windowFlags;
 
 	private:
 		static EngineConfiguration^ self;
 
 	public:
-		initonly static EngineConfiguration^ defaultConfiguration = gcnew EngineConfiguration("Gold Engine Window", gcnew Resolution(0, 0, 1280, 720), "GoldEngine/", 0, gcnew WinFlags());
+		initonly static EngineConfiguration^ defaultConfiguration = gcnew EngineConfiguration("Gold Engine Window", gcnew Resolution(0, 0, 1280, 720), "GoldEngine/", 0, gcnew WinFlags(), 60);
 
 	public:
 		[[JsonConstructorAttribute]]
-		EngineConfiguration(String^ windowName, Resolution^ resolution, String^ logPath, unsigned int flags, WinFlags^ _flags)
+		EngineConfiguration(String^ windowName, Resolution^ resolution, String^ logPath, unsigned int flags, WinFlags^ _flags, int targetFPS)
 		{
 			self = this;
 			this->resolution = resolution;
@@ -184,6 +193,7 @@ namespace Engine::Config
 			this->logPath = logPath;
 			this->windowFlags = flags;
 			this->_windowFlags = _flags;
+			this->targetFPS = targetFPS;
 		}
 
 		EngineConfiguration()
@@ -194,6 +204,7 @@ namespace Engine::Config
 			this->resolution = defaultConfiguration->resolution;
 			this->windowFlags = defaultConfiguration->windowFlags;
 			this->_windowFlags = defaultConfiguration->_windowFlags;
+			this->targetFPS = defaultConfiguration->targetFPS;
 		}
 
 		std::string getWindowName()
@@ -226,7 +237,7 @@ namespace Engine::Config
 		}
 
 	public:
-		static EngineConfiguration^ ImportConfig(System::String^ fN)
+		static EngineConfiguration^ ImportConfig(System::String^ fN, unsigned int passwd)
 		{
 			if (File::Exists(fN))
 			{

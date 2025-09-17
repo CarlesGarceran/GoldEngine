@@ -6,7 +6,3 @@ function Update()
 		script.GetTransform().parent.position.x = script.GetTransform().parent.position.x + (moveSpeed * smooth);
 	end
 end
-
-
-
-

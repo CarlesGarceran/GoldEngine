@@ -1,3 +1,5 @@
+#ifdef _NULL
+
 #pragma once
 
 namespace Engine::Internal
@@ -96,7 +98,7 @@ namespace Engine::Internal
             }
         };
 
-        public value struct Matrix 
+        public value struct Matrix
         {
         public:
             float m0, m4, m8, m12;
@@ -153,7 +155,7 @@ namespace Engine::Internal
             }
         };
 
-        public value struct Mesh 
+        public value struct Mesh
         {
             int vertexCount;        // Number of vertices stored in arrays
             int triangleCount;      // Number of triangles stored (indexed or not)
@@ -224,11 +226,11 @@ namespace Engine::Internal
             }
         };
 
-        public value struct Shader 
+        public value struct Shader
         {
         public:
-            unsigned int id;        
-            int* locs;              
+            unsigned int id;
+            int* locs;
 
             static rlWrapper::Shader FromUnmanaged(RAYLIB::Shader unmanagedTexture)
             {
@@ -263,7 +265,7 @@ namespace Engine::Internal
             int boneCount;
         };
 
-        public value struct RenderTexture 
+        public value struct RenderTexture
         {
         public:
             unsigned int id;
@@ -345,22 +347,22 @@ namespace Engine::Internal
         };
 
         public enum class BlendMode {
-            BLEND_ALPHA = 0,                
-            BLEND_ADDITIVE,                 
-            BLEND_MULTIPLIED,               
-            BLEND_ADD_COLORS,               
-            BLEND_SUBTRACT_COLORS,          
-            BLEND_ALPHA_PREMULTIPLY,        
-            BLEND_CUSTOM,                   
-            BLEND_CUSTOM_SEPARATE           
+            BLEND_ALPHA = 0,
+            BLEND_ADDITIVE,
+            BLEND_MULTIPLIED,
+            BLEND_ADD_COLORS,
+            BLEND_SUBTRACT_COLORS,
+            BLEND_ALPHA_PREMULTIPLY,
+            BLEND_CUSTOM,
+            BLEND_CUSTOM_SEPARATE
         };
 
-        public value struct Material 
+        public value struct Material
         {
         public:
-            Shader shader;          
-            MaterialMap* maps;      
-            float* params;        
+            Shader shader;
+            MaterialMap* maps;
+            float* params;
 
             static rlWrapper::Material FromUnmanaged(RAYLIB::Material unmanagedRef)
             {
@@ -376,72 +378,74 @@ namespace Engine::Internal
     }
 
 
-	/// <summary>
-	/// This class its not memory safe.
+    /// <summary>
+    /// This class its not memory safe.
     /// All the methods are raw and the user is expected to manage the memory by its own. Allocating and deallocating resources when needed.
-	/// </summary>
+    /// </summary>
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
-	public ref class GraphicsWrapper abstract
-	{
-	public:
-        
+    public ref class GraphicsWrapper abstract
+    {
+    public:
+
         /* -- SETTERS -- */
 
-		static void GL_SetShaderValue(RAYLIB::Shader&, int, void*, rlWrapper::UniformType);
-        static void GL_SetShaderValue(RAYLIB::Shader&, rlWrapper::ShaderLocs, void*, rlWrapper::UniformType);
+static void GL_SetShaderValue(RAYLIB::Shader&, int, void*, rlWrapper::UniformType);
+static void GL_SetShaderValue(RAYLIB::Shader&, rlWrapper::ShaderLocs, void*, rlWrapper::UniformType);
 
-        /*-- MODES --*/
+/*-- MODES --*/
 
-        static void GL_BeginDrawing();
-        static void GL_BeginTextureMode(RAYLIB::RenderTexture);
-        static void GL_BeginShaderMode(RAYLIB::Shader);
-        static void GL_BeginBlendMode(rlWrapper::BlendMode);
+static void GL_BeginDrawing();
+static void GL_BeginTextureMode(RAYLIB::RenderTexture);
+static void GL_BeginShaderMode(RAYLIB::Shader);
+static void GL_BeginBlendMode(rlWrapper::BlendMode);
 
-        static void GL_EndTextureMode();
-        static void GL_EndShaderMode();
-        static void GL_EndDrawing();
-        static void GL_EndBlendMode();
+static void GL_EndTextureMode();
+static void GL_EndShaderMode();
+static void GL_EndDrawing();
+static void GL_EndBlendMode();
 
-        /* -- LOADERS -- */
+/* -- LOADERS -- */
 
-        static RAYLIB::Model& GL_LoadModel(String^);
-        static RAYLIB::RenderTexture& GL_LoadRenderTexture(int, int);
-        static RAYLIB::Texture& GL_LoadTexture(String^);
-        static RAYLIB::Shader& GL_LoadShader(String^, String^);
-        static RAYLIB::Shader& GL_LoadShaderFromMemory(String^, String^);
-        static void GL_LoadDepthTexture(RAYLIB::RenderTexture&, int, int, bool);
+static RAYLIB::Model& GL_LoadModel(String^);
+static RAYLIB::RenderTexture& GL_LoadRenderTexture(int, int);
+static RAYLIB::Texture& GL_LoadTexture(String^);
+static RAYLIB::Shader& GL_LoadShader(String^, String^);
+static RAYLIB::Shader& GL_LoadShaderFromMemory(String^, String^);
+static void GL_LoadDepthTexture(RAYLIB::RenderTexture&, int, int, bool);
 
-        /* -- GETTERS -- */
+/* -- GETTERS -- */
 
-        static int  GL_GetShaderLoc(RAYLIB::Shader&, const char*);
-        static RAYLIB::RenderTexture& GL_GetDepthTexture(int, int);
+static int  GL_GetShaderLoc(RAYLIB::Shader&, const char*);
+static RAYLIB::RenderTexture& GL_GetDepthTexture(int, int);
 
-        /* -- GRAPHICS -- */
+/* -- GRAPHICS -- */
 
-        static void GL_DrawLine(Engine::Components::Vector2^, Engine::Components::Vector2^, Engine::Components::Color^);
-        static void GL_DrawRectangleLines(Engine::Components::Vector2^, Engine::Components::Vector2^, Engine::Components::Color^);
-        static void GL_DrawRectangle(int, int, int, int, Engine::Components::Color^);
-        static void GL_DrawRectangleV(Engine::Components::Vector2^, Engine::Components::Vector2^, Engine::Components::Color^);
-        static void GL_ClearBackground(Engine::Components::Color^);
-        static void GL_DrawModel(RAYLIB::Model&, Engine::Components::Vector3^, float, Engine::Components::Color^);
-        static void GL_DrawTexture(RAYLIB::Texture&, Engine::Components::Vector2^, Engine::Components::Color^);
-        static void GL_DrawFPS(Engine::Components::Vector2^);
+static void GL_DrawLine(Engine::Components::Vector2, Engine::Components::Vector2, Engine::Components::Color^);
+static void GL_DrawRectangleLines(Engine::Components::Vector2, Engine::Components::Vector2, Engine::Components::Color^);
+static void GL_DrawRectangle(int, int, int, int, Engine::Components::Color^);
+static void GL_DrawRectangleV(Engine::Components::Vector2, Engine::Components::Vector2, Engine::Components::Color^);
+static void GL_ClearBackground(Engine::Components::Color^);
+static void GL_DrawModel(RAYLIB::Model&, Engine::Components::Vector3, float, Engine::Components::Color^);
+static void GL_DrawTexture(RAYLIB::Texture&, Engine::Components::Vector2, Engine::Components::Color^);
+static void GL_DrawFPS(Engine::Components::Vector2);
 
-        /* -- UNLOADERS -- */
-        static void GL_UnloadTexture(RAYLIB::Texture&);
-        static void GL_UnloadModel(RAYLIB::Model&);
-        static void GL_UnloadRenderTexture(RAYLIB::RenderTexture&);
+/* -- UNLOADERS -- */
+static void GL_UnloadTexture(RAYLIB::Texture&);
+static void GL_UnloadModel(RAYLIB::Model&);
+static void GL_UnloadRenderTexture(RAYLIB::RenderTexture&);
 
 
-        static GLWrapper::Texture2D ConvertTexture2D(RAYLIB::Texture2D& texture);
-        static GLWrapper::RenderTexture2D ConvertRenderTexture2D(RAYLIB::RenderTexture2D& texture);
+static GLWrapper::Texture2D ConvertTexture2D(RAYLIB::Texture2D& texture);
+static GLWrapper::RenderTexture2D ConvertRenderTexture2D(RAYLIB::RenderTexture2D& texture);
 
-        /* -- DATAPACK ENGINE -- */
-        
-        static RAYLIB::Texture2D& GL_GetTexture2D(unsigned int id);
-        static RAYLIB::Music& GL_GetMusic(unsigned int id);
-        static RAYLIB::Sound& GL_GetSound(unsigned int id);
-        static RAYLIB::Model& GL_GetModel(unsigned int id);
-        static RAYLIB::Shader& GL_GetShader(unsigned int id);
-	};
+/* -- DATAPACK ENGINE -- */
+
+static RAYLIB::Texture2D& GL_GetTexture2D(unsigned int id);
+static RAYLIB::Music& GL_GetMusic(unsigned int id);
+static RAYLIB::Sound& GL_GetSound(unsigned int id);
+static RAYLIB::Model& GL_GetModel(unsigned int id);
+static RAYLIB::Shader& GL_GetShader(unsigned int id);
+    };
 }
+
+#endif

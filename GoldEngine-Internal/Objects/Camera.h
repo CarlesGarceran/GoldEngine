@@ -64,6 +64,8 @@ namespace Engine::EngineObjects
 	};
 
 
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Camera abstract : public Engine::EngineObjects::ScriptBehaviour
 	{
 	protected:
@@ -99,16 +101,14 @@ namespace Engine::EngineObjects
 
 		void DrawGizmo() override
 		{
-			Engine::Components::Vector3^ fwd = gcnew Engine::Components::Vector3(0,0,0);
-			fwd->copy(transform->forward);
-			DrawLine3D(transform->position->toNative(), fwd->toNative(), GetColor(0xFF0000FF));
+			DrawLine3D(transform->position.toNative(), transform->forward.toNative(), GetColor(0xFF0000FF));
 		}
 
 	public:
 		CamProjection getProjection() { return cameraProjection; }
 
 	public:
-		virtual void setTarget(Engine::Components::Vector3^ target) abstract;
+		virtual void setTarget(Engine::Components::Vector3 target) abstract;
 		virtual bool is3DCamera() abstract;
 		virtual void* get() abstract;
 

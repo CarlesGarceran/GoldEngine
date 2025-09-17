@@ -25,7 +25,7 @@ namespace Engine::EngineObjects::Surface
 
 	public:
 		[Engine::Scripting::PropertyAttribute]
-		Engine::Components::Vector2^ viewportSize;
+		Engine::Components::Vector2 viewportSize;
 
 		[Engine::Scripting::PropertyAttribute]
 		Engine::Components::Color^ tintColor;
@@ -44,7 +44,7 @@ namespace Engine::EngineObjects::Surface
 		void Destroy() override;
 
 	private:
-		void onViewportSizeChanged(Engine::Components::Vector2^, Engine::Components::Vector2^);
+		void onViewportSizeChanged(Engine::Components::Vector2, Engine::Components::Vector2);
 	};
 }
 

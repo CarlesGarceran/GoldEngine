@@ -156,7 +156,7 @@ namespace Engine::Scripting
 			try 
 			{
 			#ifdef LOGAPI_IMPL
-				printConsole("Converting from " + userData->GetType()->Name + " To -> " + type->Name);
+				//printConsole("Converting from " + userData->GetType()->Name + " To -> " + type->Name);
 			#endif
 				userDataType->SetType(type);
 

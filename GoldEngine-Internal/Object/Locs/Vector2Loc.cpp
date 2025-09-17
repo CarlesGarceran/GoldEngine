@@ -2,7 +2,7 @@
 #include "../Material.h"
 #include "Vector2Loc.h"
 
-Engine::Components::Locs::Vector2Loc::Vector2Loc(Engine::Components::Vector2^ value)
+Engine::Components::Locs::Vector2Loc::Vector2Loc(Engine::Components::Vector2 value)
 {
     this->value = value;
 }

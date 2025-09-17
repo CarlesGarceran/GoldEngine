@@ -85,6 +85,11 @@ namespace Engine::Internal::Components
 #ifdef USE_BULLET_PHYS
 	public:
 		void* getCollisionShape() { return collisionShape; }
+		void setCollisionShape(void* shape) 
+		{
+			collisionShape = shape;
+		}
+
 		void createCollisionShape();
 #endif
 
@@ -98,6 +103,7 @@ namespace Engine::Internal::Components
 		virtual void Setup() {}
 
 		// object methods
+		virtual void Awake();
 		virtual void Start();
 		virtual void PhysicsUpdate() {}
 		virtual void Update() { }
@@ -109,7 +115,17 @@ namespace Engine::Internal::Components
 		virtual void OnActive() {}
 		virtual void OnInactive() {}
 
-		virtual void OnCollisionEnter(GameObject^ other) {}
+		virtual void OnCollided(GameObject^ collider) {}
+		virtual void OnTriggered(GameObject^ collider) {}
+
+		virtual void OnCollisionEnter(GameObject^ collider) {}
+		virtual void OnTriggerEnter(GameObject^ collider) {}
+
+		virtual void OnCollisionStay(GameObject^ collider) {}
+		virtual void OnTriggerStay(GameObject^ collider) {}
+
+		virtual void OnCollisionExit(GameObject^ collider) {}
+		virtual void OnTriggerExit(GameObject^ collider) {}
 
 		// internal methods
 	protected:
@@ -187,6 +203,7 @@ namespace Engine::Internal::Components
 			this->layerMask = layerMask;
 		}
 
+		System::Collections::Generic::List<GameObject^>^ GetDescendants();
 		System::Collections::Generic::List<GameObject^>^ GetChildren();
 		GameObject^ GetChild(int index);
 		GameObject^ GetChild(String^ name);
@@ -195,11 +212,29 @@ namespace Engine::Internal::Components
 
 		void LaunchCoroutine(System::Collections::IEnumerator^ coroutine);
 		void RemoveCoroutine(System::Collections::IEnumerator^ coroutine);
+		void RemoveCoroutine(int index);
 		void CleanCoroutines();
+
+		generic <class T> T as();
+		generic <class T> T As() { return as<T>(); }
+
+		generic <class T> bool isA();
+		generic <class T> bool IsA() { return isA<T>(); }
+		bool isA(System::Type^ type);
+		bool IsA(System::Type^ type) { return isA(type); }
+
+		generic <class T>
+		T FindFirstChild();
+
+		generic <class T>
+		T FindFirstSibling();
 
 		static void Destroy(GameObject^ instance);
 		static GameObject^ Instantiate(GameObject^ instance);
 		static GameObject^ Instantiate(GameObject^ instance, Transform^ parent);
+
+		generic <class T>
+		static T FindFirstObjectOfType();
 
 		/*
 #pragma region IConvertible_Implementation

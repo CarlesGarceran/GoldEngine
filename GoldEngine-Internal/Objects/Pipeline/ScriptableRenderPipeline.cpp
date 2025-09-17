@@ -31,7 +31,9 @@ void Engine::Render::unloadCameraData(cameraData* data)
 
 void Engine::Render::CallImGuizmoRender(Engine::Window^ windowPtr)
 {
+#if(!PRODUCTION_BUILD)
 	((EditorWindow^)windowPtr)->DrawImGuizmo();
+#endif
 }
 
 Engine::Render::ScriptableRenderPipeline::ScriptableRenderPipeline()
@@ -67,6 +69,44 @@ bool Engine::Render::ScriptableRenderPipeline::isInRenderSurface(GameObject^ gam
 			return false;
 		else
 			return isInRenderSurface(gameObject->Parent);
+}
+
+RenderTexture2D Engine::Render::ScriptableRenderPipeline::LoadRenderTextureDepthTex(int width, int height)
+{
+	RenderTexture2D target = { 0 };
+
+	target.id = RLGL::rlLoadFramebuffer(); // Load an empty framebuffer
+
+	if (target.id > 0)
+	{
+		RLGL::rlEnableFramebuffer(target.id);
+
+		// Create color texture (default to RGBA)
+		target.texture.id = RLGL::rlLoadTexture(0, width, height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+		target.texture.width = width;
+		target.texture.height = height;
+		target.texture.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+		target.texture.mipmaps = 1;
+
+		// Create depth texture buffer (instead of raylib default renderbuffer)
+		target.depth.id = RLGL::rlLoadTextureDepth(width, height, false);
+		target.depth.width = width;
+		target.depth.height = height;
+		target.depth.format = PIXELFORMAT_UNCOMPRESSED_R32;
+		target.depth.mipmaps = 1;
+
+		// Attach color texture and depth texture to FBO
+		RLGL::rlFramebufferAttach(target.id, target.texture.id, RLGL::RL_ATTACHMENT_COLOR_CHANNEL0, RLGL::RL_ATTACHMENT_TEXTURE2D, 0);
+		RLGL::rlFramebufferAttach(target.id, target.depth.id, RLGL::RL_ATTACHMENT_DEPTH, RLGL::RL_ATTACHMENT_TEXTURE2D, 0);
+
+		// Check if fbo is complete with attachments (valid)
+		if (RLGL::rlFramebufferComplete(target.id)) TRACELOG(LOG_INFO, "FBO: [ID %i] Framebuffer object created successfully", target.id);
+
+		RLGL::rlDisableFramebuffer();
+	}
+	else TRACELOG(LOG_WARNING, "FBO: Framebuffer object can not be created");
+
+	return target;
 }
 
 void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Window^ windowHandle, Engine::Management::Scene^ scene)
@@ -197,6 +237,14 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 			}
 		}
 
+#ifndef PRODUCTION_BUILD
+		if (windowHandle->GetType() == EditorWindow::typeid && EngineState::PlayMode)
+		{
+			auto viewPort = ImGui::GetMainViewport();
+			ImGui::DockSpaceOverViewport(viewPort->ID, viewPort, ImGuiDockNodeFlags_PassthruCentralNode);
+			((EditorWindow^)windowHandle)->DrawToolbar();
+		}
+#endif
 		//windowHandle->DrawImGui();
 
 		rlImGuiEnd();

@@ -26,21 +26,6 @@
 
 using namespace Engine::Internal::Components;
 
-// UNMANAGED FUNCTIONS \\
-
-#pragma managed(push, off)
-
-#ifdef USE_BULLET_PHYS
-
-btCollisionShape* createBoxShape(std::array<float, 3> bounds)
-{
-	return new btBoxShape({ bounds[0], bounds[1], bounds[2] });
-}
-
-#endif
-
-#pragma managed(pop)
-
 bool activeToggle = false;
 
 #ifdef USE_BULLET_PHYS
@@ -49,7 +34,7 @@ Engine::Native::CollisionShape* getCollider(GameObject^ inst)
 {
 	Engine::Native::CollisionShape* ptr = (Engine::Native::CollisionShape*)inst->getCollisionShape();
 
-	if (ptr == nullptr || ptr == 0)
+	if (ptr == nullptr)
 		inst->createCollisionShape();
 
 	return (Engine::Native::CollisionShape*)inst->getCollisionShape();
@@ -66,7 +51,7 @@ void MoveChildren(GameObject^ root, List<GameObject^>^ childs)
 {
 	for each (GameObject ^ child in childs)
 	{
-		//kchild->transform->position = (root->transform->position - child->transform->localPosition);
+		//child->transform->position = (root->transform->position - child->transform->localPosition);
 	}
 }
 
@@ -182,20 +167,20 @@ void GameObject::OnPropChanged()
 		return;
 	}
 
-	if (!transform->position->Equals(lastTransform->position))
+	if (!transform->position.Equals(lastTransform->position))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "position", transform->position, lastTransform->position });
 		MoveChildren(this, this->childs);
 
 		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
-	else if (!transform->rotation->Equals(lastTransform->rotation))
+	else if (!transform->rotation.Equals(lastTransform->rotation))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "rotation", transform->rotation, lastTransform->rotation });
 
 		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
-	else if (!transform->scale->Equals(lastTransform->scale))
+	else if (!transform->scale.Equals(lastTransform->scale))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "scale", transform->scale, lastTransform->scale });
 
@@ -227,6 +212,10 @@ void fixChilds(GameObject^ root)
 	}
 }
 
+void Engine::Internal::Components::GameObject::Awake()
+{
+}
+
 void GameObject::Start()
 {
 }
@@ -235,15 +224,17 @@ void GameObject::GameUpdate()
 {
 	try
 	{
+		/*
 #ifdef USE_BULLET_PHYS
-		if (!collisionObjectInitialized && getCollider(this)->getCollisonObject() == nullptr)
+		if (!collisionObjectInitialized && !getCollider(this)->hasCollisionObject())
 		{
 			getCollider(this)->createCollisionShape(NativeSingleton<Engine::EngineObjects::Physics::Native::NativePhysicsService*>::Get()->getCollisionShapeForBox(1, 1, 1));
-			getCollider(this)->createBulletObject();
+			getCollider(this)->createBulletObject(false);
 
 			collisionObjectInitialized = true;
 		}
 #endif
+		*/
 
 		OnPropChanged();
 		this->childs = GetChildren();
@@ -270,12 +261,12 @@ void GameObject::GameUpdate()
 
 		if (coroutinesCpy->Length > 0)
 		{
-			for (int x = coroutinesCpy->Length; x >= 0; x--)
+			for (int x = coroutinesCpy->Length; x > 0; x--)
 			{
-				auto coroutine = coroutinesCpy[x];
+				auto coroutine = coroutinesCpy[x-1];
 
 				if (!coroutine->MoveNext())
-					coroutines->RemoveAt(x);
+					coroutines->RemoveAt(x-1);
 			}
 		}
 
@@ -349,6 +340,54 @@ T GameObject::ToObjectType()
 }
 
 generic <class T>
+T Engine::Internal::Components::GameObject::as()
+{
+	if (this->IsA<T>())
+		return (T)this;
+	else
+		return T();
+}
+
+generic <class T>
+bool Engine::Internal::Components::GameObject::isA()
+{
+	return (this->GetType() == T::typeid || this->GetType()->IsSubclassOf(T::typeid));
+}
+
+generic <class T>
+T Engine::Internal::Components::GameObject::FindFirstChild()
+{
+	for each (GameObject^ child in this->GetChildren())
+	{
+		if (child->IsA<T>())
+			return (T)child;
+	}
+
+	return T();
+}
+
+generic <class T>
+T Engine::Internal::Components::GameObject::FindFirstSibling()
+{
+	if (Parent == nullptr)
+		return T();
+
+	for each (GameObject ^ child in this->Parent->GetChildren())
+	{
+		if (child->IsA<T>())
+			return (T)child;
+	}
+
+	return T();
+}
+
+generic <class T>
+T Engine::Internal::Components::GameObject::FindFirstObjectOfType()
+{
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetFirstObjectOfType<T>();
+}
+
+generic <class T>
 T GameObject::ToGenericType()
 {
 	return (T)this;
@@ -388,6 +427,11 @@ void Engine::Internal::Components::GameObject::Destroy()
 #endif
 }
 
+
+System::Collections::Generic::List<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendants()
+{
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDescendantsOf(this);
+}
 
 System::Collections::Generic::List<GameObject^>^ GameObject::GetChildren()
 {
@@ -437,9 +481,19 @@ void Engine::Internal::Components::GameObject::RemoveCoroutine(System::Collectio
 	this->coroutines->Remove(coroutine);
 }
 
+void Engine::Internal::Components::GameObject::RemoveCoroutine(int index)
+{
+	this->coroutines->RemoveAt(index);
+}
+
 void Engine::Internal::Components::GameObject::CleanCoroutines()
 {
 	this->coroutines->Clear();
+}
+
+bool Engine::Internal::Components::GameObject::isA(System::Type^ type)
+{
+	return (this->GetType() == type || this->GetType()->IsSubclassOf(type));
 }
 
 void Engine::Internal::Components::GameObject::Destroy(GameObject^ instance)

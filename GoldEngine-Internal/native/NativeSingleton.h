@@ -27,7 +27,7 @@ public:
 
 	inline static T& free()
 	{
-		const T& arg = ((T&)instance);
+		T& arg = ((T&)instance);
 		instance = nullptr;
 		allocated = false;
 
@@ -38,5 +38,5 @@ public:
 	static T Get() { return get(); }
 	static void Create(T& arg) { create(arg); }
 	static void Create(const T& arg) { create(arg); }
-	static T Free() { return free(); }
+	static T& Free() { return free(); }
 };

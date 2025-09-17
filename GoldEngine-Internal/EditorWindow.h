@@ -4,6 +4,7 @@
 
 public ref class EditorWindow : Engine::Window 
 {
+#if (!PRODUCTION_BUILD)
 private:
 	CodeEditor^ codeEditor;
 	MaterialEditor^ materialEditor;
@@ -13,7 +14,7 @@ private:
 #if USE_ILLUMINA
 	Engine::EngineObjects::LightManager^ lightManager;
 #endif
-	Engine::Components::Vector3^ cameraPosition;
+	Engine::Components::Vector3 cameraPosition;
 	Engine::Internal::Components::GameObject^ selectedObject;
 	int selectedObjectIndex;
 	bool selectionLock = false;
@@ -37,7 +38,6 @@ public:
 
 	EditorWindow();
 
-
 private:
 	void PackData(String^ convertedData);
 	void DrawConsole();
@@ -53,6 +53,7 @@ private:
 	void SpecializedPropertyEditor(Engine::Internal::Components::GameObject^ object);
 
 public:
+	void DrawToolbar();
 	void DrawImGuizmo();
 
 	void Start() override;
@@ -62,4 +63,5 @@ public:
 	void Init() override;
 	void Preload() override;
 	void Update() override;
+#endif
 };

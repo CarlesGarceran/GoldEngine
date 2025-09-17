@@ -27,58 +27,78 @@ namespace Engine::Internal::Components
 		Engine::Internal::Components::Transform^ parent;
 		// worldspace
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-		property Engine::Components::Vector3^ position
+		property Engine::Components::Vector3 position
 		{
-			Engine::Components::Vector3 ^ get();
-			void set(Engine::Components::Vector3^ position);
+			Engine::Components::Vector3 get();
+			void set(Engine::Components::Vector3 position);
 		}
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-		property Engine::Components::Vector3^ rotation
+		property Engine::Components::Vector3 rotation
 		{
-			Engine::Components::Vector3 ^ get();
-			void set(Engine::Components::Vector3^ position);
+			Engine::Components::Vector3 get();
+			void set(Engine::Components::Vector3 position);
 		}
 
 		// localspace
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-		property Engine::Components::Vector3^ localPosition
+		property Engine::Components::Vector3 localPosition
 		{
-			Engine::Components::Vector3 ^ get();
-			void set(Engine::Components::Vector3^ position);
+			Engine::Components::Vector3 get();
+			void set(Engine::Components::Vector3 position);
 		}
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-		property Engine::Components::Vector3^ localRotation
+		property Engine::Components::Vector3 localRotation
 		{
-			Engine::Components::Vector3 ^ get();
-			void set(Engine::Components::Vector3^ position);
+			Engine::Components::Vector3 get();
+			void set(Engine::Components::Vector3 position);
 		}
 
-		Engine::Components::Vector3^ scale;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+			property Engine::Components::Vector3 forward
+		{
+			Engine::Components::Vector3 get();
+		}
+
+
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+			property Engine::Components::Vector3 right
+		{
+			Engine::Components::Vector3 get();
+		}
+
+
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+			property Engine::Components::Vector3 up
+		{
+			Engine::Components::Vector3 get();
+		}
+
+		Engine::Components::Vector3 scale;
 
 		// CONSTANT VECTORS
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ forward = gcnew Engine::Components::Vector3(0, 0, 1);
+			const Engine::Components::Vector3 FRONT = Engine::Components::Vector3(0, 0, 1);
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ top = gcnew Engine::Components::Vector3(0, 1, 0);
+			const Engine::Components::Vector3 TOP = Engine::Components::Vector3(0, 1, 0);
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ right = gcnew Engine::Components::Vector3(1, 0, 0);
+			const Engine::Components::Vector3 RIGHT = Engine::Components::Vector3(-1, 0, 0);
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ backward = gcnew Engine::Components::Vector3(0, 0, -1);
+			const Engine::Components::Vector3 BACK = Engine::Components::Vector3(0, 0, -1);
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ bottom = gcnew Engine::Components::Vector3(0, -1, 0);
+			const Engine::Components::Vector3 BOTTOM = Engine::Components::Vector3(0, -1, 0);
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			const Engine::Components::Vector3^ left = gcnew Engine::Components::Vector3(-1, 0, 0);
+			const Engine::Components::Vector3 LEFT = Engine::Components::Vector3(1, 0, 0);
 
 	private:
 		[Newtonsoft::Json::JsonPropertyAttribute]
-		Engine::Components::Vector3^ worldPosition = Engine::Components::Vector3::Zero();
+		Engine::Components::Vector3 worldPosition = Engine::Components::Vector3::Zero();
 		[Newtonsoft::Json::JsonPropertyAttribute]
-		Engine::Components::Vector3^ worldRotation = Engine::Components::Vector3::Zero();
+		Engine::Components::Vector3 worldRotation = Engine::Components::Vector3::Zero();
 
 	public:
-		Transform(Engine::Components::Vector3^ position, Engine::Components::Vector3^ rotation, Engine::Components::Vector3^ scale, Transform^ parent);
+		Transform(Engine::Components::Vector3 position, Engine::Components::Vector3 rotation, Engine::Components::Vector3 scale, Transform^ parent);
 
 	public:
 		String^ GetUID();

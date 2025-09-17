@@ -49,7 +49,7 @@ namespace Engine::EngineObjects::UI
 				attributes->addAttribute(Engine::Scripting::Attribute::New(Engine::Scripting::AccessLevel::Public, "button_text_rotation", 0.0f, Single::typeid));
 
 			if (!attributes->hasAttribute("button_text_origin"))
-				attributes->addAttribute(Engine::Scripting::Attribute::New(Engine::Scripting::AccessLevel::Public, "button_text_origin", gcnew Engine::Components::Vector2(), Engine::Components::Vector2::typeid));
+				attributes->addAttribute(Engine::Scripting::Attribute::New(Engine::Scripting::AccessLevel::Public, "button_text_origin", gcnew Engine::Components::Vector2(0,0), Engine::Components::Vector2::typeid));
 		}
 
 	public:
@@ -57,27 +57,27 @@ namespace Engine::EngineObjects::UI
 		{
 			RAYLIB::BeginBlendMode(RAYLIB::BlendMode::BLEND_ALPHA);
 
-			auto posV2 = this->transform->position->toVector2();
-			auto sizV2 = this->transform->scale->toVector2();
+			auto posV2 = this->transform->position.toVector2();
+			auto sizV2 = this->transform->scale.toVector2();
 			auto color = attributes->getAttribute("button_color")->getValueAs<Engine::Components::Color^>();
 			auto text = CastStringToNative(attributes->getAttribute("button_text")->getValueAs<String^>());
 			auto textSize = (int)attributes->getAttribute("button_text_size")->getValueAs<int>();
 			auto textColor = attributes->getAttribute("button_text_color")->getValueAs<Engine::Components::Color^>();
 			auto textSpacing = (float)attributes->getAttribute("button_text_spacing")->getValueAs<float>();
 			auto textRotation = (float)attributes->getAttribute("button_text_rotation")->getValueAs<float>();
-			auto textOrigin = attributes->getAttribute("button_text_origin")->getValueAs<Engine::Components::Vector2^>();
+			auto textOrigin = attributes->getAttribute("button_text_origin")->getValueAs<Engine::Components::Vector2>();
 			RAYLIB::Font font = RAYLIB::GetFontDefault();
-			RAYLIB::Vector2 positionV2 = { posV2->x, posV2->y };
+			RAYLIB::Vector2 positionV2 = posV2.toNative();
 
 			RAYLIB::Rectangle rectangle;
 
-			rectangle.x = posV2->x;
-			rectangle.y = posV2->y;
-			rectangle.width = sizV2->x;
-			rectangle.height = sizV2->y;
+			rectangle.x = positionV2.x;
+			rectangle.y = positionV2.y;
+			rectangle.width = sizV2.x;
+			rectangle.height = sizV2.y;
 
 			DrawRectangleRec(rectangle, color->toNative());
-			DrawTextPro(font, text.c_str(), positionV2, textOrigin->toNative(), textRotation, textSize, textSpacing, textColor->toNative());
+			DrawTextPro(font, text.c_str(), positionV2, textOrigin.toNative(), textRotation, textSize, textSpacing, textColor->toNative());
 
 			RAYLIB::EndBlendMode();
 		}
@@ -86,17 +86,17 @@ namespace Engine::EngineObjects::UI
 		void Update() override
 		{
 			auto mousePosition = Engine::Scripting::InputManager::GetMousePosition();
-			auto posV2 = this->transform->position->toVector2();
-			auto sizV2 = this->transform->scale->toVector2();
+			auto posV2 = this->transform->position.toVector2();
+			auto sizV2 = this->transform->scale.toVector2();
 
 			RAYLIB::Rectangle rectangle;
 
-			rectangle.x = posV2->x;
-			rectangle.y = posV2->y;
-			rectangle.width = sizV2->x;
-			rectangle.height = sizV2->y;
+			rectangle.x = posV2.x;
+			rectangle.y = posV2.y;
+			rectangle.width = sizV2.x;
+			rectangle.height = sizV2.y;
 			
-			if (RAYLIB::CheckCollisionPointRec(mousePosition->toNative(), rectangle))
+			if (RAYLIB::CheckCollisionPointRec(mousePosition.toNative(), rectangle))
 			{
 				if (RAYLIB::IsMouseButtonDown(RAYLIB::MOUSE_BUTTON_LEFT))
 					onMouseButton1Down->raiseExecution();
