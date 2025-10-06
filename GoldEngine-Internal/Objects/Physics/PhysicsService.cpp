@@ -1002,8 +1002,8 @@ void Engine::EngineObjects::Physics::PhysicsService::AddLayer(Engine::Components
 		auto existingLayer = kvp.Key;
 		auto existingDict = kvp.Value;
 
-		existingDict[newLayer->layerMask] = false;
-		newDict[existingLayer] = false;
+		existingDict[newLayer->layerMask] = true;
+		newDict[existingLayer] = true;
 	}
 
 	newDict[newLayer->layerMask] = true;
