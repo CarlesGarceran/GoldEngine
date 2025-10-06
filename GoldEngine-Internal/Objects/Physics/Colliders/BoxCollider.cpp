@@ -173,7 +173,7 @@ void Engine::EngineObjects::Physics::BoxCollider::Awake()
 	SetCollisionShape(this, extents, origin);
 
 	this->cachedModel = new Engine::Native::EnginePtr<RAYLIB::Model>(
-		{ 0 },
+		{ },
 		&SafeUnloadModel,
 		&SafeUnloadModel
 	);
@@ -520,10 +520,14 @@ void Engine::EngineObjects::Physics::BoxCollider::OnOriginChanged(Engine::Compon
 
 void Engine::EngineObjects::Physics::BoxCollider::Update()
 {
+	Collider::Update();
+
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 
 	if (renderWires)
 	{
+		if (this->cachedModel == nullptr) return;
+
 		if (!this->cachedModel->isLoaded() && !RAYLIB::IsModelValid(this->cachedModel->getInstance()))
 		{
 			auto nPhys = Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance->getNativePhysicsService();

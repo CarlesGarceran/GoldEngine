@@ -273,6 +273,7 @@ bool consoleVisible = true;
 bool scenevpVisible = true;
 msclr::gcroot<String^> jsonData = "";
 msclr::gcroot<String^> sceneSnapshot = "";
+msclr::gcroot<Engine::Editor::Gui::onFileSelected^> _callback = nullptr;
 
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
@@ -694,13 +695,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						}
 						else if (attrib->getValueType()->Equals(UInt32::typeid))
 						{
-							int value = (unsigned int)attrib->getValue();
-
-							if (ImGui::InputInt(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 1, 1))
-							{
-								attrib->setValue(gcnew UInt32(value), false);
-								attrib->setType(UInt32::typeid);
-							}
+							UnsignedIntEditor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(Int32::typeid))
 						{
@@ -708,39 +703,15 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						}
 						else if (attrib->getValueType()->Equals(Int64::typeid))
 						{
-							long long tmp = (Int64)attrib->getValue();
-
-							int value = (int)tmp;
-
-							if (ImGui::InputInt(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 1, 1))
-							{
-								attrib->setValue(gcnew Int64(value), false);
-								attrib->setType(Int64::typeid);
-							}
+							LongEditor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(float::typeid))
 						{
-							float tmp = (float)attrib->getValue();
-
-							float value = (float)tmp;
-
-							if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
-							{
-								attrib->setValue(value, false);
-								attrib->setType(float::typeid);
-							}
+							FloatEditor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(Single::typeid))
 						{
-							float tmp = (float)attrib->getValue();
-
-							float value = (float)tmp;
-
-							if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
-							{
-								attrib->setValue(value, false);
-								attrib->setType(float::typeid);
-							}
+							SingleEditor(attrib);
 						}
 						else if (attrib->getValueType()->Equals(Engine::Internal::Components::GameObject::typeid) || attrib->getValueType()->IsSubclassOf(Engine::Internal::Components::GameObject::typeid) || attrib->getValueType()->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || attrib->getValueType()->IsSubclassOf(Engine::EngineObjects::Script::typeid))
 						{
@@ -813,12 +784,23 @@ Engine::Lua::VM::LuaVM^ EditorWindow::getLuaVM()
 }
 void EditorWindow::OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback)
 {
-	fileExplorer->SetWindowName(name);
-	fileExplorer->setExplorerMode(mode);
-	fileExplorer->Open();
-
-	fileExplorer->OnCompleted(callback);
+	OpenFileExplorer(name, mode, callback, "All Files (*.*),.*");
 }
+
+void EditorWindow::OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback, std::string format)
+{
+	if (mode == Engine::Editor::Gui::explorerMode::Open)
+	{
+		ifd::FileDialog::Instance().Open("FileDialog", name, format, false);
+	}
+	else
+	{
+		ifd::FileDialog::Instance().Save("FileDialog", name, format);
+	}
+
+	_callback = callback;
+}
+
 void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engine::Internal::Components::GameObject^ parent, int depth)
 {
 	for (int x = 0; x < scene->GetRenderQueue()->Count; x++)
@@ -2280,7 +2262,7 @@ void EditorWindow::DrawProperties()
 					if (ImGui::MenuItem("Export Prefab"))
 					{
 						jsonData = Serialize(gcnew Prefab(selectedObject));
-						OpenFileExplorer("Save Prefab", Engine::Editor::Gui::explorerMode::Save, gcnew Engine::Editor::Gui::onFileSelected(&SaveToFile));
+						OpenFileExplorer("Save Prefab", Engine::Editor::Gui::explorerMode::Save, gcnew Engine::Editor::Gui::onFileSelected(&SaveToFile), "Prefabs (.prefab){.prefab,.json},.prefab");
 					}
 
 					ImGui::EndMenu();
@@ -2313,6 +2295,13 @@ void EditorWindow::DrawProperties()
 			std::string objectName = CastStringToNative(selectedObject->name);
 
 
+			float step = 1.0f;
+
+			if (Engine::Scripting::InputManager::IsKeyDown(Engine::Scripting::KeyCodes::KEY_LEFT_SHIFT))
+				step *= 5;
+			else if (Engine::Scripting::InputManager::IsKeyDown(Engine::Scripting::KeyCodes::KEY_LEFT_CONTROL))
+				step /= 10;
+
 			if (ImGui::InputText("Name", &objectName, ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 			{
 				selectedObject->name = gcnew String(objectName.c_str());
@@ -2333,7 +2322,7 @@ void EditorWindow::DrawProperties()
 						selectedObject->getTransform()->position.z
 					};
 
-					if (ImGui::DragFloat3("Position", pos, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					if (ImGui::DragFloat3("Position", pos, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
 						selectedObject->getTransform()->position = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
 					}
@@ -2347,24 +2336,39 @@ void EditorWindow::DrawProperties()
 						selectedObject->getTransform()->localPosition.z
 					};
 
-					if (ImGui::DragFloat3("Local Position", pos, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					if (ImGui::DragFloat3("Local Position", pos, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
 						selectedObject->getTransform()->localPosition = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
 					}
 				}
 
-				// rotation
-				float rot[3] = {
-					selectedObject->getTransform()->rotation.x,
-					selectedObject->getTransform()->rotation.y,
-					selectedObject->getTransform()->rotation.z
-				};
-
-				if (ImGui::DragFloat3("Rotation", rot, 5.0f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+				if (positionSelector == 0)
 				{
-					selectedObject->getTransform()->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
-				}
+					// rotation
+					float rot[3] = {
+						selectedObject->getTransform()->rotation.x,
+						selectedObject->getTransform()->rotation.y,
+						selectedObject->getTransform()->rotation.z
+					};
 
+					if (ImGui::DragFloat3("Rotation", rot, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					{
+						selectedObject->getTransform()->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+					}
+				}
+				else
+				{
+					float rot[3] = {
+						selectedObject->getTransform()->localRotation.x,
+						selectedObject->getTransform()->localRotation.y,
+						selectedObject->getTransform()->localRotation.z
+					};
+
+					if (ImGui::DragFloat3("Local Rotation", rot, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					{
+						selectedObject->getTransform()->localRotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+					}
+				}
 				// scale
 
 				float scale[3] = {
@@ -2373,7 +2377,7 @@ void EditorWindow::DrawProperties()
 					selectedObject->getTransform()->scale.z
 				};
 
-				if (ImGui::DragFloat3("Scale", scale, 0.01f, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+				if (ImGui::DragFloat3("Scale", scale, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 				{
 					selectedObject->getTransform()->scale = Engine::Components::Vector3(scale[0], scale[1], scale[2]);
 				}
@@ -2617,12 +2621,13 @@ void EditorWindow::DrawImGui()
 
 	DrawAssets();
 
-	if (ifd::FileDialog::Instance().IsDone("TestFileDialog"))
+	if (ifd::FileDialog::Instance().IsDone("FileDialog"))
 	{
 		if (ifd::FileDialog::Instance().HasResult())
 		{
 			std::string res = ifd::FileDialog::Instance().GetResult().u8string();
-			printf("DIRECTORY[%s]\n", res.c_str());
+			if (_callback)
+				_callback->Invoke(gcnew String(res.c_str()));
 		}
 
 		ifd::FileDialog::Instance().Close();
@@ -2759,7 +2764,7 @@ void EditorWindow::DrawImGui()
 
 	// popups
 
-	if (ImGui::BeginPopupModal("Pack Setup", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
+	if (ImGui::BeginPopupModal("Pack Setup", &b5, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
 	{
 		for (int x = 0; x < loadedAssets->Count; x++)
 		{
@@ -2928,28 +2933,59 @@ void EditorWindow::DrawImGui()
 		ImGui::EndPopup();
 	}
 
-	if (ImGui::BeginPopupModal("Layer Editor", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
+	if (ImGui::BeginPopupModal("Layer Editor", &b8, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
 	{
 		if (ImGui::BeginListBox("###LAYER_LIST"))
 		{
-			auto% layers = LayerManager::GetLayers();
+			Engine::EngineObjects::Private::Scene^ sceneObj = scene->GetObjectByNameFromDrawQueue("workspace")->Parent->As< Engine::EngineObjects::Private::Scene^>();
+			auto% layers = sceneObj->layerMasks;
+			Engine::Components::Layer^ layerToRemove = nullptr;
+
+			int rmvIdx = -1;
 
 			for (int x = 0; x < layers->Count; x++)
 			{
 				Layer^ layer = layers[x];
+				ImGui::Text("%d", layer->layerMask);
+				ImGui::SameLine();
+				std::string data = CastStringToNative(layer->layerName);
+				if (ImGui::InputText((std::string("###INPUT_LAYER_NAME_") + std::to_string(layer->layerMask)).c_str(), &data))
+				{
+					layer->layerName = gcnew String(data.c_str());
+				}
 
 
+				// Layer blend mode.
+
+				ImGui::SameLine();
+
+				if (ImGui::Button((std::string("-###_") + std::to_string(x)).c_str()))
+				{
+					rmvIdx = x;
+					layerToRemove = layer;
+				}
+			}
+			ImGui::Button("+");
+
+			if (rmvIdx != -1 && layerToRemove != nullptr)
+			{
+				Engine::Scripting::LayerManager::RemoveLayer(layerToRemove);
+				layers->RemoveAt(rmvIdx);
 			}
 
-
-
 			ImGui::EndListBox();
+
+			if (ImGui::Button("Close"))
+			{
+				b8 = false;
+				ImGui::CloseCurrentPopup();
+			}
 		}
 
 		ImGui::EndPopup();
 	}
 
-	if (ImGui::BeginPopupModal("Save/Load Style", (bool*)false, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
+	if (ImGui::BeginPopupModal("Save/Load Style", &b7, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
 	{
 		std::string tmp = styleFN;
 

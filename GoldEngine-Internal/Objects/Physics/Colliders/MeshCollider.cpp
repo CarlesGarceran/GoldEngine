@@ -297,6 +297,8 @@ void Engine::EngineObjects::Physics::MeshCollider::OnMeshCollisionTypeChanged(En
 
 void Engine::EngineObjects::Physics::MeshCollider::Update()
 {
+	Collider::Update();
+
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 
 	if (root != nullptr && root->IsA<RigidBody^>() && !root->As<RigidBody^>()->Kinematic && meshCollisionType == Enums::MeshCollisionType::Concave)

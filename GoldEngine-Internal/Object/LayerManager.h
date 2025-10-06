@@ -17,10 +17,7 @@ namespace Engine::Scripting
 	private:
 		static Layer^ CreateLayer(unsigned int layerId, System::String^ layerName, unsigned int layerFlags)
 		{
-			Layer^ createdLayer = gcnew Layer(layerId, layerName);
-			createdLayer->setLayerBlendFlags(layerFlags);
-
-			return createdLayer;
+			return gcnew Layer(layerId, layerName, layerFlags);
 		}
 
 	public:
@@ -32,13 +29,13 @@ namespace Engine::Scripting
 		{
 			layers = gcnew System::Collections::Generic::List<Layer^>();
 
-			AddLayer(CreateLayer(0, "EngineRoot", RAYLIB::BLEND_ADDITIVE));
-			AddLayer(CreateLayer(1, "Geometry", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(0, "EngineRoot", RAYLIB::BLEND_ALPHA));
+			AddLayer(CreateLayer(1, "Geometry", RAYLIB::BLEND_ALPHA));
 			AddLayer(CreateLayer(2, "Transparent", RAYLIB::BLEND_ALPHA));
-			AddLayer(CreateLayer(3, "PostFX", RAYLIB::BLEND_ADDITIVE));
-			AddLayer(CreateLayer(4, "Triggers", RAYLIB::BLEND_ADDITIVE));
-			AddLayer(CreateLayer(5, "Colliders", RAYLIB::BLEND_ADDITIVE));
-			AddLayer(CreateLayer(6, "PhysicsWorld", RAYLIB::BLEND_ADDITIVE));
+			AddLayer(CreateLayer(3, "PostFX", RAYLIB::BLEND_ALPHA));
+			AddLayer(CreateLayer(4, "Triggers", RAYLIB::BLEND_ALPHA));
+			AddLayer(CreateLayer(5, "Colliders", RAYLIB::BLEND_ALPHA));
+			AddLayer(CreateLayer(6, "PhysicsWorld", RAYLIB::BLEND_ALPHA));
 		}
 
 		static void ClearLayers()

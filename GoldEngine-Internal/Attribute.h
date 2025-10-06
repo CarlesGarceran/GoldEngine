@@ -178,7 +178,7 @@ namespace Engine::Scripting
 					return;
 
 #ifdef LOGAPI_IMPL
-				printConsole("Converting from " + userData->GetType()->Name + " To -> " + userDataType->getTypeReference()->Name);
+				//printConsole("Converting from " + userData->GetType()->Name + " To -> " + userDataType->getTypeReference()->Name);
 #endif
 				userData = System::Convert::ChangeType(userData, userDataType->getTypeReference());
 			}

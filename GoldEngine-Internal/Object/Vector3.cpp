@@ -64,6 +64,17 @@ Engine::Components::Vector3 Engine::Components::Vector3::sub(Vector3 origin)
 	return *this - origin;
 }
 
+float Engine::Components::Vector3::angle(Vector3 left, Vector3 right)
+{
+	return RAYMATH::Vector3Angle({ left.x, left.y, left.z }, { right.x, right.y, right.z });
+}
+
+Engine::Components::Vector3 Engine::Components::Vector3::cross(Vector3 left, Vector3 right)
+{
+	RAYLIB::Vector3 product = RAYMATH::Vector3CrossProduct({ left.x, left.y, left.z }, { right.x, right.y, right.z });
+	return Engine::Components::Vector3(product.x, product.y, product.z);
+}
+
 float Engine::Components::Vector3::Dot(Engine::Components::Vector3 left, Engine::Components::Vector3 right)
 {
 	return (RAYMATH::Vector3DotProduct(left.toNative(), right.toNative()));

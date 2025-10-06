@@ -198,11 +198,11 @@ void SendPhysicsUpdateCallback()
 
 msclr::gcroot<GameObject^> GetObjectFromPointer(const btCollisionObject* collisionObject)
 {
-	if (collisionObject == nullptr) return nullptr;
+	if (collisionObject == nullptr) return msclr::gcroot<GameObject^>(nullptr);
 
 	void* userPointer = collisionObject->getUserPointer();
 
-	if (userPointer == nullptr) return nullptr;
+	if (userPointer == nullptr) return msclr::gcroot<GameObject^>(nullptr);
 
 	IntPtr ptr(userPointer);
 	GCHandle handle = GCHandle::FromIntPtr(ptr);
@@ -220,7 +220,7 @@ typedef struct RCHit
 	std::array<float, 3> normal;
 	msclr::gcroot<GameObject^> gameObject;
 	bool hit;
-} RaycastHit;
+} RCHit;
 
 typedef struct HTest
 {
@@ -228,7 +228,7 @@ typedef struct HTest
 	std::array<float, 3> hitNormal;
 	std::array<float, 3> correction;
 	float depth;
-} HitTest;
+} HTest;
 
 inline auto MakePair(const void* a, const void* b)
 {
@@ -393,6 +393,40 @@ inline RCHit spherecast(btDiscreteDynamicsWorld* world, float originX, float ori
 	return result;
 }
 
+inline std::vector<RCHit> raycastAll(btDiscreteDynamicsWorld* world, float originX, float originY, float originZ, float targetX, float targetY, float targetZ, int collisionGroup, int collisionMask)
+{
+	std::vector<RCHit> hits = std::vector<RCHit>();
+
+	world->computeOverlappingPairs();
+
+	btVector3 origin(originX, originY, originZ);
+	btVector3 target(targetX, targetY, targetZ);
+
+	btCollisionWorld::AllHitsRayResultCallback allHitsResult(origin, target);
+
+	allHitsResult.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+	allHitsResult.m_collisionFilterGroup = collisionGroup;
+	allHitsResult.m_collisionFilterMask = collisionMask;
+
+	world->rayTest(origin, target, allHitsResult);
+
+	for (int i = 0; i < allHitsResult.m_collisionObjects.size(); i++)
+	{
+		RCHit hit = {};
+
+		hit.hit = allHitsResult.hasHit();
+		hit.gameObject = GetObjectFromPointer(allHitsResult.m_collisionObjects[i]);
+		hit.position = { allHitsResult.m_hitPointWorld[i].x(), allHitsResult.m_hitPointWorld[i].y(), allHitsResult.m_hitPointWorld[i].z() };
+		hit.normal = { allHitsResult.m_hitNormalWorld[i].x(), allHitsResult.m_hitNormalWorld[i].y(), allHitsResult.m_hitNormalWorld[i].z() };
+
+		hits.push_back(
+			hit
+		);
+	}
+
+	return hits;
+}
+
 inline RCHit raycast(btDiscreteDynamicsWorld* world, float originX, float originY, float originZ, float targetX, float targetY, float targetZ, int collisionGroup, int collisionMask)
 {
 	world->computeOverlappingPairs();
@@ -400,28 +434,26 @@ inline RCHit raycast(btDiscreteDynamicsWorld* world, float originX, float origin
 	btVector3 origin(originX, originY, originZ);
 	btVector3 target(targetX, targetY, targetZ);
 
-	btCollisionWorld::ClosestRayResultCallback closestResults(origin, target);
-	closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-	closestResults.m_collisionFilterGroup = collisionGroup;
-	closestResults.m_collisionFilterMask = collisionMask;
+	btCollisionWorld::ClosestRayResultCallback rayCallback(origin, target);
+	rayCallback.m_collisionFilterGroup = collisionGroup;
+	rayCallback.m_collisionFilterMask = collisionMask;
 
-	world->rayTest(origin, target, closestResults);
-
+	world->rayTest(origin, target, rayCallback);
 
 	return
 	{
 		{ 
-			closestResults.m_hitPointWorld.x(), 
-			closestResults.m_hitPointWorld.y(), 
-			closestResults.m_hitPointWorld.z()
+			rayCallback.m_hitPointWorld.x(),
+			rayCallback.m_hitPointWorld.y(),
+			rayCallback.m_hitPointWorld.z()
 		},
 		{
-			closestResults.m_hitNormalWorld.x(),
-			closestResults.m_hitNormalWorld.y(),
-			closestResults.m_hitNormalWorld.z()
+			rayCallback.m_hitNormalWorld.x(),
+			rayCallback.m_hitNormalWorld.y(),
+			rayCallback.m_hitNormalWorld.z()
 		},
-		GetObjectFromPointer(closestResults.m_collisionObject),
-		closestResults.hasHit()
+		GetObjectFromPointer(rayCallback.m_collisionObject),
+		rayCallback.hasHit()
 	};
 }
 
@@ -448,9 +480,6 @@ inline void testCollision(btDiscreteDynamicsWorld* world)
 		btCollisionObject* obj = objs[i];
 
 		GE_ContactResultCallback result(&thisFramePairs);
-		result.m_collisionFilterGroup = obj->getBroadphaseHandle()->m_collisionFilterGroup;
-		result.m_collisionFilterMask = obj->getBroadphaseHandle()->m_collisionFilterMask;
-
 		world->contactTest(obj, result);
 	}
 
@@ -571,14 +600,7 @@ PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Trans
 	maxSubSteps(10),
 	Gravity(Engine::Components::Vector3(0, -9.81f, 0))
 {
-	auto layers = Engine::Scripting::LayerManager::GetLayers();
-	for each(Engine::Components::Layer ^ layer in layers)
-	{
-		InitializeCollision(layer);
-		AddLayer(layer);
-	}
 
-	RecalculateCollisionGroups();
 }
 
 void PhysicsService::Awake()
@@ -599,8 +621,9 @@ void PhysicsService::Awake()
 
 	if (collisionGroups->Count <= 0)
 	{
-		auto layers = Engine::Scripting::LayerManager::GetLayers();
-		for each (Engine::Components::Layer ^ layer in layers)
+		System::Collections::Generic::List<Engine::Components::Layer^>^ _layers = Engine::Scripting::LayerManager::GetLayers();
+		
+		for each (Engine::Components::Layer ^ layer in _layers)
 		{
 			InitializeCollision(layer);
 			AddLayer(layer);
@@ -789,6 +812,42 @@ bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components:
 	
 	instance = hit;
 	return _hit.hit;
+}
+
+cli::array<RaycastHit>^ Engine::EngineObjects::Physics::PhysicsService::RaycastAll(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer)
+{
+	cli::array<RaycastHit>^ hits;
+
+	std::lock_guard lock(physicsMutex);
+
+	int group = MakeGroup(layer);
+	int mask = 0;
+	auto _collisionMasks = GetLayerCollisionMasks(Engine::Scripting::LayerManager::GetLayerFromId(layer));
+
+	for each (int l in _collisionMasks->Keys)
+	{
+		if (_collisionMasks[l])
+		{
+			mask = AddMask(mask, l);
+		}
+	}
+
+	std::vector<RCHit> raycasts = raycastAll(world, from.x, from.y, from.z, to.x, to.y, to.z, group, mask);
+	
+	hits = gcnew cli::array<RaycastHit>(raycasts.size());
+	
+	for(int x = 0; x < raycasts.size(); x++)
+	{
+		RaycastHit hit = RaycastHit();
+		hit.hit = raycasts[x].hit;
+		hit.gameObject = raycasts[x].gameObject;
+		hit.position = Engine::Components::Vector3(raycasts[x].position[0], raycasts[x].position[1], raycasts[x].position[2]);
+		hit.normal = Engine::Components::Vector3(raycasts[x].normal[0], raycasts[x].normal[1], raycasts[x].normal[2]);
+
+		hits[x] = hit;
+	}
+
+	return hits;
 }
 
 bool Engine::EngineObjects::Physics::PhysicsService::SphereCast(Engine::Components::Vector3 position, float radius, Engine::Components::Vector3 direction, float distance, unsigned int layer)
@@ -992,6 +1051,13 @@ void Engine::EngineObjects::Physics::PhysicsService::RecalculateCollisionGroups(
 
 			obj->getBroadphaseHandle()->m_collisionFilterGroup = group;
 			obj->getBroadphaseHandle()->m_collisionFilterMask = mask;
+
+			world->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
+				obj->getBroadphaseHandle(), 
+				world->getDispatcher()
+			);
+			
+			obj->activate();
 		}
 	}
 }
@@ -1096,6 +1162,7 @@ void Engine::EngineObjects::Physics::PhysicsService::UpdatePhysicsThread()
 					updateAABBs = false;
 					world->updateAabbs();
 				}
+				RecalculateCollisionGroups();
 
 				setGravity(world, this->Gravity.x, this->Gravity.y, this->Gravity.z);
 				world->stepSimulation((1.0f / frameRate), (maxSubSteps > 0 ? maxSubSteps : 1));

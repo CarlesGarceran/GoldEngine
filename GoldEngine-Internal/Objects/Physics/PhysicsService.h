@@ -104,6 +104,8 @@ namespace Engine::EngineObjects::Physics
 		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer);
 		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer, [System::Runtime::InteropServices::OutAttribute] RaycastHit% instance);
 
+		cli::array<RaycastHit>^ RaycastAll(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer);
+
 		bool SphereCast(Engine::Components::Vector3 position, float radius, Engine::Components::Vector3 direction, float distance, unsigned int layer);
 		bool SphereCast(Engine::Components::Vector3 position, float radius, Engine::Components::Vector3 direction, float distance, unsigned int layer, [System::Runtime::InteropServices::OutAttribute] RaycastHit% instance);
 

@@ -41,7 +41,7 @@ void RenderSurface3D::Start()
 	this->texturePtr = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize.x, viewportSize.y), onChanged, onChanged);
 
 	RAYLIB::Mesh planeMesh = GenMeshPlane(transform->scale.x, transform->scale.y, 1, 1);
-	material = new Engine::Native::EnginePtr<RAYLIB::Material>(LoadMaterialDefault(), onMaterialUnloaded, onMaterialUnloaded);
+	material = new Engine::Native::EnginePtr<RAYLIB::Material>(LoadMaterialDefault(), nullptr, onMaterialUnloaded);
 	model = new Engine::Native::EnginePtr<RAYLIB::Model>(LoadModelFromMesh(planeMesh), onModelUnloaded, onModelUnloaded);
 	viewport = new Engine::Native::EnginePtr<RAYLIB::RenderTexture2D>(RAYLIB::LoadRenderTexture(viewportSize.x, viewportSize.y), onChanged, onChanged);
 	
@@ -148,10 +148,10 @@ void RenderSurface3D::Destroy()
 {
 	failsafe = true;
 
-	this->texturePtr->destroy();
-	this->viewport->destroy();
-	this->material->destroy();
-	this->model->destroy();
+	delete model;
+	delete texturePtr;
+	delete viewport;
+	delete material;
 }
 
 void RenderSurface3D::onViewportSizeChanged(Engine::Components::Vector2 newSize, Engine::Components::Vector2 oldSize)

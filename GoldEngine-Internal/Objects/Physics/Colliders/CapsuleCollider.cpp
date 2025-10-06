@@ -157,6 +157,8 @@ void Engine::EngineObjects::Physics::CapsuleCollider::Start()
 
 void Engine::EngineObjects::Physics::CapsuleCollider::Update()
 {
+	Collider::Update();
+
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 
 	if (root)

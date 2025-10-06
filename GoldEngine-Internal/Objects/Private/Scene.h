@@ -16,9 +16,12 @@ namespace Engine::EngineObjects::Private
 		[Engine::Scripting::PropertyAttribute]
 		Engine::Components::Color^ skyColor;
 
+		System::Collections::Generic::List<Engine::Components::Layer^>^ layerMasks;
+
 	public:
 		Scene(String^ name, Engine::Internal::Components::Transform^ transform);
 
+		void Awake() override;
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override;

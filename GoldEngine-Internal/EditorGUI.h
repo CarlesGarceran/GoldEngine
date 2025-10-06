@@ -138,9 +138,59 @@ void EnumEditor(Engine::Scripting::Attribute^ attrib)
 	}
 }
 
+void LongEditor(Engine::Scripting::Attribute^ attrib)
+{
+	long long tmp = (Int64)attrib->getValue();
+
+	int value = (int)tmp;
+
+	if (ImGui::InputInt(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 1, 1))
+	{
+		attrib->setValue(gcnew Int64(value), false);
+		attrib->setType(Int64::typeid);
+	}
+}
+
+void FloatEditor(Engine::Scripting::Attribute^ attrib)
+{
+	float tmp = (float)attrib->getValue();
+
+	float value = (float)tmp;
+
+	if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
+	{
+		attrib->setValue(value, false);
+		attrib->setType(float::typeid);
+	}
+}
+
+void SingleEditor(Engine::Scripting::Attribute^ attrib)
+{
+	float tmp = (float)attrib->getValue();
+
+	float value = (float)tmp;
+
+	if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.2f"))
+	{
+		attrib->setValue(value, false);
+		attrib->setType(float::typeid);
+	}
+}
+
+void UnsignedIntEditor(Engine::Scripting::Attribute^ attrib)
+{
+	int value = (unsigned int)attrib->getValue();
+
+	if (ImGui::InputInt(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 1, 1))
+	{
+		attrib->setValue(gcnew UInt32(value), false);
+		attrib->setType(UInt32::typeid);
+	}
+}
+
 void ListEditor(Engine::Scripting::Attribute^ attrib)
 {
-
+	System::Collections::Generic::List<Object^>^ list = attrib->getValueAs< System::Collections::Generic::List<Object^>^>();
 }
 
 void EnableFBXConverter(std::string fbxFilePath)

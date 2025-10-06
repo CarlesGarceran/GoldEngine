@@ -34,6 +34,7 @@ public:
 
 public:
 	void OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback);
+	void OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback, std::string format);
 	Engine::Lua::VM::LuaVM^ getLuaVM();
 
 	EditorWindow();

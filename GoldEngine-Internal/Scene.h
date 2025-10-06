@@ -34,12 +34,11 @@ namespace Engine::Management
 		System::Collections::Generic::List<System::String^>^ assetPacks;
 		System::String^ sceneRequirements;
 		unsigned long skyColor;
-		System::Collections::Generic::List<System::String^>^ scene_assemblies;
 		System::Collections::Generic::List<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects; // Managed storage + object parsing.
 
 		// Constructors
 	public:
-		Scene(String^ name, String^ sR, System::Collections::Generic::List<String^>^ assetP, System::Collections::Generic::List<Engine::Management::MiddleLevel::SceneObject^>^ sceneO, unsigned long skyTint, System::Collections::Generic::List<System::String^>^ assemblies)
+		Scene(String^ name, String^ sR, System::Collections::Generic::List<String^>^ assetP, System::Collections::Generic::List<Engine::Management::MiddleLevel::SceneObject^>^ sceneO, unsigned long skyTint)
 		{
 			Singleton<Scene^>::Create(this);
 
@@ -50,7 +49,6 @@ namespace Engine::Management
 			this->sceneRequirements = sR;
 			this->sceneObjects = sceneO;
 			this->skyColor = skyTint;
-			scene_assemblies = assemblies;
 			this->sceneDatapack = gcnew DataPack(sceneRequirements);
 			this->sceneFinishedLoading = false;
 		}
@@ -403,12 +401,6 @@ namespace Engine::Management
 		virtual void Preload(List<EngineAssembly^>^ asms)
 		{
 			assemblies = asms;
-
-			for each (auto t in scene_assemblies)
-			{
-				auto newAssembly = gcnew EngineAssembly(t);
-				assemblies->Add(newAssembly);
-			}
 
 			for each (EngineAssembly ^ assm in assemblies)
 			{

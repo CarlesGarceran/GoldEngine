@@ -7,10 +7,30 @@ Scene::Scene(String^ name, Engine::Internal::Components::Transform^ transform) :
 	Engine::EngineObjects::Script(name, transform),
 	scenePtr(Engine::Management::Scene::getLoadedScene()),
 	sceneName(scenePtr->sceneName),
-	skyColor(gcnew Engine::Components::Color(scenePtr->skyColor))
+	skyColor(gcnew Engine::Components::Color(scenePtr->skyColor)),
+	layerMasks(gcnew System::Collections::Generic::List<Engine::Components::Layer^>())
 {
 	protectMember();
 	this->name = "game";
+}
+
+void Engine::EngineObjects::Private::Scene::Awake()
+{
+	if(layerMasks == nullptr)
+	{
+		layerMasks = Engine::Scripting::LayerManager::GetLayers();
+	}
+	else
+	{
+		if (layerMasks->Count > 0) 
+		{
+			Engine::Scripting::LayerManager::LoadLayers(layerMasks);
+		}
+		else
+		{
+			layerMasks = Engine::Scripting::LayerManager::GetLayers();
+		}
+	}
 }
 
 GameObject^ Engine::EngineObjects::Private::Scene::GetService(System::String^ serviceName)
@@ -25,4 +45,5 @@ void Scene::Update()
 
 	Engine::Management::Scene::getLoadedScene()->sceneName = sceneName;
 	Engine::Management::Scene::getLoadedScene()->skyColor = this->skyColor->toHex();
+	layerMasks = Engine::Scripting::LayerManager::GetLayers();
 }

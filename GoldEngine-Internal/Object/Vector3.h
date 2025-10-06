@@ -91,6 +91,23 @@ namespace Engine::Components
 			return sub(x, x, x);
 		}
 
+		// ANGLE \\
+
+		static float angle(Vector3 left, Vector3 right);
+		static float Angle(Vector3 left, Vector3 right) { return angle(left, right); }
+
+		inline float Angle(Vector3 right) { return angle(*this, right); }
+
+		// CROSS PRODUCT \\
+
+		static Vector3 cross(Vector3 left, Vector3 right);
+		static Vector3 Cross(Vector3 left, Vector3 right) { return cross(left, right); }
+
+		inline Engine::Components::Vector3 cross(Vector3 target) { return cross(*this, target); }
+		inline Engine::Components::Vector3 Cross(Vector3 target) { return cross(*this, target); }
+
+		// LERP \\
+
 		static Vector3 lerp(Vector3 origin, Vector3 target, float interpolate)
 		{
 			auto newX = RAYMATH::Lerp(origin.x, target.x, interpolate);
@@ -99,11 +116,10 @@ namespace Engine::Components
 
 			return Vector3(newX, newY, newZ);
 		}
-
 		static Vector3 Lerp(Vector3 origin, Vector3 target, float interpolate) { return lerp(origin, target, interpolate); }
 
-		Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
-		Engine::Components::Vector3 Lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
+		inline Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
+		inline Engine::Components::Vector3 Lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
 
 		static Vector3 zero()
 		{

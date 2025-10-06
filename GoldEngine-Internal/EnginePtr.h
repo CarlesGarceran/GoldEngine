@@ -40,7 +40,7 @@ namespace Engine::Native
 				onObjectDeleted(ptrInstance);
 		}
 
-		bool isLoaded() { return this->loaded; }
+		bool isLoaded() { if (this == nullptr) return false; return this->loaded; }
 
 		T& getInstance()
 		{
@@ -49,6 +49,8 @@ namespace Engine::Native
 
 		void setInstance(T instance)
 		{
+			if (this == nullptr) return;
+
 			if (onObjectChanged != nullptr)
 				onObjectChanged(ptrInstance);
 
@@ -62,6 +64,8 @@ namespace Engine::Native
 
 		void setInstanceRef(T& instance)
 		{
+			if (this == nullptr) return;
+
 			if(onObjectChanged != nullptr)
 				onObjectChanged(ptrInstance);
 
@@ -71,6 +75,8 @@ namespace Engine::Native
 
 		void free()
 		{
+			if (this == nullptr) return;
+
 			this->loaded = false;
 
 			if (onObjectDeleted != nullptr)
@@ -81,6 +87,8 @@ namespace Engine::Native
 
 		T& release()
 		{
+			if (this == nullptr) return T();
+
 			this->loaded = false;
 			T inst = this->ptrInstance;
 			this->ptrInstance = nullptr;
@@ -89,6 +97,8 @@ namespace Engine::Native
 
 		void destroy() 
 		{
+			if (this == nullptr) return;
+
 			delete this;
 		}
 	};

@@ -77,6 +77,9 @@ GameObject::GameObject()
 	this->collisionShape = new Engine::Native::CollisionShape(this);
 #endif
 
+	if(layerMask != nullptr)
+		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerMask->layerMask);
+
 	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
 	this->onChildAdded = gcnew Engine::Scripting::Events::Event();
 	this->onChildRemoved = gcnew Engine::Scripting::Events::Event();
@@ -235,6 +238,8 @@ void GameObject::GameUpdate()
 		}
 #endif
 		*/
+
+		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerMask->layerMask);
 
 		OnPropChanged();
 		this->childs = GetChildren();

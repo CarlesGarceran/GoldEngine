@@ -57,7 +57,10 @@ void ModelRenderer::Draw()
 		DEG2RAD * this->transform->rotation.z
 	});
 
-	meshOnlyModel.materials[0].shader = shader;
+	for (int x = 0; x < meshOnlyModel.materialCount; x++)
+	{
+		meshOnlyModel.materials[x].shader = shader;
+	}
 	
 	material->ApplyToShader(shader);
 	
@@ -91,6 +94,12 @@ void Engine::EngineObjects::Geometry::ModelRenderer::onModelUpdated(unsigned int
 	{
 		this->model = new EnginePtr<RAYLIB::Model>(model);
 		return;
+	}
+
+	for (int x = 0; x < model.materialCount; x++)
+	{
+		RAYLIB::Material defaultMaterial = RAYLIB::LoadMaterialDefault();
+		model.materials[x] = defaultMaterial;
 	}
 
 	this->model->setInstance(model);
