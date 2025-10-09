@@ -432,6 +432,7 @@ void Engine::EngineObjects::Physics::RigidBody::Draw()
 					transform->scale.z
 				}
 			);
+			_clearForces(rigidBody);
 		}
 	}
 
