@@ -115,9 +115,9 @@ inline std::array<float, 6> getVector(btRigidBody*& rigidBody)
 	btScalar roll, pitch, yaw;
 	btMatrix3x3(q).getEulerYPR(yaw, pitch, roll);
 
-	data[3] = roll * DEG2RAD;
-	data[4] = pitch * DEG2RAD;
-	data[5] = yaw * DEG2RAD;
+	data[3] = roll;
+	data[4] = pitch;
+	data[5] = yaw;
 
 	return data;
 }
@@ -146,7 +146,7 @@ inline void setVector(btRigidBody*& rigidBody, float x, float y, float z, float 
 	//rigidBody->getMotionState()->getWorldTransform(transform);
 
 	btQuaternion identity = btQuaternion::getIdentity();
-	identity.setEuler(yaw * RAD2DEG, pitch * RAD2DEG, roll * RAD2DEG);
+	identity.setEuler(yaw, pitch, roll);
 
 	transform.setRotation(identity);
 	transform.setOrigin(btVector3(x, y, z));
@@ -410,7 +410,8 @@ void Engine::EngineObjects::Physics::RigidBody::Draw()
 		this->angularDamping = rigidBody->getAngularDamping();
 		this->angularVelocity = Engine::Components::Vector3(rigidBody->getAngularVelocity().x(), rigidBody->getAngularVelocity().y(), rigidBody->getAngularVelocity().z());
 	
-		if (!EngineState::PlayMode)
+
+		if (!Parent->transform->position.Equals(transform->position))
 		{
 			_clearForces(rigidBody);
 			Engine::EngineObjects::Physics::Native::updateCollisionObject(
