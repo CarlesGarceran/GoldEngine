@@ -258,7 +258,7 @@ void Engine::EngineObjects::Physics::RigidBody::PropertyChanged(String^ arg, Obj
 {
 	if (arg == "position")
 	{
-		if (!EngineState::PlayMode)
+		if (!_new->Equals(old))
 		{
 			Engine::Components::Vector3 v3 = (Engine::Components::Vector3)_new;
 
@@ -414,6 +414,7 @@ void Engine::EngineObjects::Physics::RigidBody::Draw()
 		if (!Parent->transform->position.Equals(transform->position))
 		{
 			_clearForces(rigidBody);
+			setVector(rigidBody, Parent->transform->position.x, Parent->transform->position.y, Parent->transform->position.z); 
 			Engine::EngineObjects::Physics::Native::updateCollisionObject(
 				rigidBody,
 				{
@@ -432,7 +433,8 @@ void Engine::EngineObjects::Physics::RigidBody::Draw()
 					transform->scale.z
 				}
 			);
-			_clearForces(rigidBody);
+			setVector(rigidBody, Parent->transform->position.x, Parent->transform->position.y, Parent->transform->position.z);
+			ClearForces();
 		}
 	}
 
@@ -503,7 +505,7 @@ void RigidBody::OnActive()
 	}
 }
 
-void Engine::EngineObjects::Physics::RigidBody::clearForces()
+void Engine::EngineObjects::Physics::RigidBody::clearForces() 
 {
 	btRigidBody* rigidBody = getRigidBody();
 
