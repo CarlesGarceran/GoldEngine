@@ -84,7 +84,7 @@ Engine::Components::Vector3 Engine::Components::Vector3::lerp(Vector3 origin, Ve
 	return Vector3(newX, newY, newZ);
 }
 
-inline Engine::Components::Vector3 Engine::Components::Vector3::Lerp(Vector3 target, float interpolate)
+inline void Engine::Components::Vector3::Lerp(Vector3 target, float interpolate)
 {
 	float newX, newY, newZ;
 

@@ -111,8 +111,8 @@ namespace Engine::Components
 		static Vector3 lerp(Vector3 origin, Vector3 target, float interpolate);
 		static Vector3 Lerp(Vector3 origin, Vector3 target, float interpolate) { return lerp(origin, target, interpolate); }
 
-		inline Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return Lerp(target, interpolate); }
-		inline Engine::Components::Vector3 Lerp(Vector3 target, float interpolate);
+		inline void lerp(Vector3 target, float interpolate) { Lerp(target, interpolate); }
+		inline void Lerp(Vector3 target, float interpolate);
 
 		static Vector3 zero()
 		{
