@@ -1384,8 +1384,8 @@ Global
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|ARM64.Build.0 = PlaybackEngine_Release|x64
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|Win32.ActiveCfg = PlaybackEngine_Release|x64
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|Win32.Build.0 = PlaybackEngine_Release|x64
-		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x64.ActiveCfg = PlaybackEngine_Release|x64
-		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x64.Build.0 = PlaybackEngine_Release|x64
+		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x64.ActiveCfg = Release|x64
+		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x64.Build.0 = Release|x64
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x86.ActiveCfg = PlaybackEngine_Release|x64
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.PlaybackEngine_Release|x86.Build.0 = PlaybackEngine_Release|x64
 		{32B999C1-4BC6-3235-B369-6E75F1590F28}.Release.DLL|Any CPU.ActiveCfg = RelWithDebInfo|x64

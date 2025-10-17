@@ -60,12 +60,15 @@ namespace Engine::Scripting
 
 	public:
 
-	#ifndef PRODUCTION_BUILD
 		GameObject^ GetSelectedObject()
 		{
-			return (GameObject^)Singleton<Window^>::Instance->GetSelectedObject();
+			return
+#ifndef PRODUCTION_BUILD
+			(GameObject^)Singleton<Window^>::Instance->GetSelectedObject();
+#else
+			nullptr;
+#endif
 		}
-	#endif
 
 		Engine::Management::Scene^ GetLoadedScene()
 		{
