@@ -226,7 +226,6 @@ Global
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|Win32.ActiveCfg = Release|Win32
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|Win32.Build.0 = Release|Win32
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|x64.ActiveCfg = Release|Win32
-		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|x64.Build.0 = Release|Win32
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|x86.ActiveCfg = Release|Win32
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.PlaybackEngine_Release|x86.Build.0 = Release|Win32
 		{BC9B5EB3-DA41-317C-80C3-02D41EB178F7}.Release.DLL|Any CPU.ActiveCfg = RelWithDebInfo|Win32
@@ -309,7 +308,6 @@ Global
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|Win32.ActiveCfg = Release|Win32
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|Win32.Build.0 = Release|Win32
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|x64.ActiveCfg = Release|Win32
-		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|x64.Build.0 = Release|Win32
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|x86.ActiveCfg = Release|Win32
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.PlaybackEngine_Release|x86.Build.0 = Release|Win32
 		{F9B3C4ED-8979-33EA-BF8F-F8408ABDD508}.Release.DLL|Any CPU.ActiveCfg = RelWithDebInfo|Win32

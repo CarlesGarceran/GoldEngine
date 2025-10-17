@@ -108,18 +108,11 @@ namespace Engine::Components
 
 		// LERP \\
 
-		static Vector3 lerp(Vector3 origin, Vector3 target, float interpolate)
-		{
-			auto newX = RAYMATH::Lerp(origin.x, target.x, interpolate);
-			auto newY = RAYMATH::Lerp(origin.y, target.y, interpolate);
-			auto newZ = RAYMATH::Lerp(origin.z, target.z, interpolate);
-
-			return Vector3(newX, newY, newZ);
-		}
+		static Vector3 lerp(Vector3 origin, Vector3 target, float interpolate);
 		static Vector3 Lerp(Vector3 origin, Vector3 target, float interpolate) { return lerp(origin, target, interpolate); }
 
-		inline Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
-		inline Engine::Components::Vector3 Lerp(Vector3 target, float interpolate) { return lerp(*this, target, interpolate); }
+		inline Engine::Components::Vector3 lerp(Vector3 target, float interpolate) { return Lerp(target, interpolate); }
+		inline Engine::Components::Vector3 Lerp(Vector3 target, float interpolate);
 
 		static Vector3 zero()
 		{

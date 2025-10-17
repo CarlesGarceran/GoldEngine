@@ -75,6 +75,26 @@ Engine::Components::Vector3 Engine::Components::Vector3::cross(Vector3 left, Vec
 	return Engine::Components::Vector3(product.x, product.y, product.z);
 }
 
+Engine::Components::Vector3 Engine::Components::Vector3::lerp(Vector3 origin, Vector3 target, float interpolate)
+{
+	auto newX = RAYMATH::Lerp(origin.x, target.x, interpolate);
+	auto newY = RAYMATH::Lerp(origin.y, target.y, interpolate);
+	auto newZ = RAYMATH::Lerp(origin.z, target.z, interpolate);
+
+	return Vector3(newX, newY, newZ);
+}
+
+inline Engine::Components::Vector3 Engine::Components::Vector3::Lerp(Vector3 target, float interpolate)
+{
+	float newX, newY, newZ;
+
+	newX = RAYMATH::Lerp(x, target.x, interpolate);
+	newY = RAYMATH::Lerp(y, target.y, interpolate);
+	newZ = RAYMATH::Lerp(z, target.z, interpolate);
+
+	this->Set(newX, newY, newZ);
+}
+
 float Engine::Components::Vector3::Dot(Engine::Components::Vector3 left, Engine::Components::Vector3 right)
 {
 	return (RAYMATH::Vector3DotProduct(left.toNative(), right.toNative()));
