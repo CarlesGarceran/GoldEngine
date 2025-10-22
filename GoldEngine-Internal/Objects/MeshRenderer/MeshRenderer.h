@@ -30,7 +30,11 @@ namespace Engine::EngineObjects::Geometry
 	
 		void Destroy() override;
 
-
 		RAYLIB::Model& GetModel() override;
+
+	private:
+		void onModelUpdated(unsigned int newId, unsigned int oldId);
+		void onMaterialUpdated(unsigned int newId, unsigned int oldId);
+		void onMeshIndexUpdated(unsigned int newId, unsigned int oldId);
 	};
 }

@@ -213,10 +213,33 @@ void DoTextureLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine:
 	SetShaderValueTexture(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), texture2D);
 }
 
+void DoFloatLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
+{
+	auto value = ((Engine::Components::Locs::FloatLoc^)genericLoc)->value;
+	SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &value, RAYLIB::SHADER_ATTRIB_FLOAT);
+}
+
 void DoColorLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
 {
 	auto array = ((Engine::Components::Locs::ColorLoc^)genericLoc)->color->toFloat();
 	SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), array.data(), RAYLIB::SHADER_ATTRIB_VEC4);
+}
+
+void ResetTextureLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key)
+{
+	SetShaderValueTexture(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), DataPacks::singleton().GetFallbackTexture());
+}
+
+void ResetFloatLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key)
+{
+	auto value = 0.0f;
+	SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &value, RAYLIB::SHADER_ATTRIB_FLOAT);
+}
+
+void ResetColorLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key)
+{
+	float value = 0xFFFFFFFF;
+	SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &value, RAYLIB::SHADER_ATTRIB_VEC4);
 }
 
 void DoStructLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::Components::Locs::Generic::MaterialLoc^ genericLoc)
@@ -421,6 +444,8 @@ void DoStructLoc(RAYLIB::Shader& shader, Locs::Generic::ShaderLoc^ key, Engine::
 
 void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 {
+	RLGL::rlEnableShader(shader.id);
+
 	for each (auto key in this->MaterialProperties)
 	{
 		Engine::Components::Locs::Generic::MaterialLoc^ genericLoc = key->GetMaterialLocation();
@@ -441,8 +466,7 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 		}
 		case FloatLoc:
 		{
-			auto value = ((Engine::Components::Locs::FloatLoc^)genericLoc)->value;
-			SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &value, RAYLIB::SHADER_ATTRIB_FLOAT);
+			DoFloatLoc(shader, key, genericLoc);
 			break;
 		}
 		case StructLoc:
@@ -458,4 +482,52 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 		}
 		}
 	}
+
+	RLGL::rlDisableShader();
+}
+
+void Engine::Components::Material::ResetShader(RAYLIB::Shader& shader)
+{
+	RLGL::rlEnableShader(shader.id);
+
+	for each (auto key in this->MaterialProperties)
+	{
+		Engine::Components::Locs::Generic::MaterialLoc^ genericLoc = key->GetMaterialLocation();
+
+		int locType = genericLoc->GetLocType();
+
+		switch (locType)
+		{
+		case ColorLoc:
+		{
+			ResetColorLoc(shader, key);
+			break;
+		}
+		case TextureLoc:
+		{
+			ResetTextureLoc(shader, key);
+			break;
+		}
+		case FloatLoc:
+		{
+			ResetFloatLoc(shader, key);
+			break;
+		}
+		/*
+		case StructLoc:
+		{
+			DoStructLoc(shader, key, genericLoc);
+			break;
+		}
+		*/
+		case Vector2Loc:
+		{
+			RAYLIB::Vector2 vec2 = { 0, 0 };
+			SetShaderValue(shader, GetShaderLocation(shader, CastStringToNative(key->locName).c_str()), &vec2, RAYLIB::SHADER_ATTRIB_VEC2);
+			break;
+		}
+		}
+	}
+
+	RLGL::rlDisableShader();
 }

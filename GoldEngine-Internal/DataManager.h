@@ -91,6 +91,7 @@ namespace Engine::Internal
 		inline static void HL_FreeAll()
 		{
 			Engine::Assets::Storage::DataPacks::singleton().FreeAll();
+			Engine::Assets::Storage::DataPacks::singleton().LoadDefaultAssets();
 		}
 
 		inline static void HL_FreeShader(unsigned int shaderId)

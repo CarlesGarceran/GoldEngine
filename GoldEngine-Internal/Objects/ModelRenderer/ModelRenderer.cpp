@@ -49,7 +49,7 @@ void ModelRenderer::Start()
 void ModelRenderer::Draw()
 {
 	RAYLIB::Model meshOnlyModel = this->model->getInstance();
-	RAYLIB::Shader& shader = DataPacks::singleton().GetShader(this->material->shaderId->getInstance());
+	RAYLIB::Shader shader = DataPacks::singleton().GetShader(this->material->shaderId->getInstance());
 
 	meshOnlyModel.transform = RAYMATH::MatrixRotateXYZ({
 		DEG2RAD * this->transform->rotation.x,
@@ -57,13 +57,16 @@ void ModelRenderer::Draw()
 		DEG2RAD * this->transform->rotation.z
 	});
 
+	if (this->material->GetBaseColor() != nullptr && this->material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc)
+		this->tint = ((Engine::Components::Locs::ColorLoc^)this->material->GetBaseColor())->color;
+
+	material->ApplyToShader(shader);
+
 	for (int x = 0; x < meshOnlyModel.materialCount; x++)
 	{
 		meshOnlyModel.materials[x].shader = shader;
 	}
-	
-	material->ApplyToShader(shader);
-	
+
 	DrawModelEx(
 		meshOnlyModel,
 		{ transform->position.x,transform->position.y, transform->position.z },
@@ -72,6 +75,8 @@ void ModelRenderer::Draw()
 		transform->scale.toNative(),
 		tint->toNative()
 	);
+
+	material->ResetShader(shader);
 }
 
 void ModelRenderer::Destroy()
@@ -88,6 +93,8 @@ RAYLIB::Model& Engine::EngineObjects::Geometry::ModelRenderer::GetModel()
 
 void Engine::EngineObjects::Geometry::ModelRenderer::onModelUpdated(unsigned int newId, unsigned int oldId)
 {
+	if (newId == oldId) return;
+
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(newId);
 
 	if (this->model == nullptr)
@@ -107,7 +114,9 @@ void Engine::EngineObjects::Geometry::ModelRenderer::onModelUpdated(unsigned int
 
 void Engine::EngineObjects::Geometry::ModelRenderer::onMaterialUpdated(unsigned int newId, unsigned int oldId)
 {
-	this->material = DataPacks::singleton().GetMaterial(materialId);
+	if (newId == oldId) return;
+
+	this->material = DataPacks::singleton().GetMaterial(newId);
 
 	if (this->tint == nullptr)
 		(this->material->GetBaseColor() != nullptr && this->material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) ? this->tint = ((Engine::Components::Locs::ColorLoc^)this->material->GetBaseColor())->color : this->tint = Engine::Components::Color::New();

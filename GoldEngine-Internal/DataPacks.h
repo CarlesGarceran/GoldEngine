@@ -186,6 +186,9 @@ namespace Engine::Assets::Storage
 			FreeAnimations();
 		}
 
+		RAYLIB::Model& GetFallbackModel();
+		RAYLIB::Texture2D& GetFallbackTexture();
+
 		RAYLIB::Mesh& GetMesh(unsigned int meshId);
 		RAYLIB::Mesh* GetMeshPtr(unsigned int meshId);
 		void AddMesh(unsigned int meshId, RAYLIB::Mesh& mesh);

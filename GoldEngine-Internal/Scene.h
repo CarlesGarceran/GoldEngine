@@ -82,6 +82,8 @@ namespace Engine::Management
 			if (DataPacks::singleton().dataPackHasAssets())
 				DataPacks::singleton().FreeAll(); // free all the assets
 
+			DataPacks::singleton().LoadDefaultAssets();
+
 			for each (auto packRoute in assetPacks)
 			{
 				printConsole("Loading asset -> " + packRoute);
@@ -112,6 +114,7 @@ namespace Engine::Management
 			OnUnload();
 			sceneObjects->Clear();
 			DataPacks::singleton().FreeAll();
+			RLGL::rlReloadTextureUnits();
 			System::GC::Collect();
 		}
 

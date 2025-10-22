@@ -1412,6 +1412,9 @@
     <ClCompile Include="Objects\Physics\Colliders\CapsuleCollider.cpp">
       <Filter>Source\Engine\EngineObjects\Physics\Colliders</Filter>
     </ClCompile>
+    <ClCompile Include="LoggingAPI.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">

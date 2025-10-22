@@ -125,5 +125,6 @@ namespace Engine::Components
 
 
 		void ApplyToShader(RAYLIB::Shader& ref);
+		void ResetShader(RAYLIB::Shader& ref);
 	};
 }

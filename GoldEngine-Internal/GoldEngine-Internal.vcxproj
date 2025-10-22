@@ -526,6 +526,7 @@
     <ClCompile Include="imnodes\ImNodes.cpp" />
     <ClCompile Include="imnotifications\ImNotifyWrapper.cpp" />
     <ClCompile Include="Instantiable.cpp" />
+    <ClCompile Include="LoggingAPI.cpp" />
     <ClCompile Include="LuaVM.cpp" />
     <ClCompile Include="native\CollisionShape.cpp" />
     <ClCompile Include="Native\miniaudio.cpp" />

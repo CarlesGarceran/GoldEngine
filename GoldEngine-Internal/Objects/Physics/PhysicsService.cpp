@@ -17,180 +17,273 @@ using namespace Engine::EngineObjects::Physics::Native;
 using namespace Engine::Internal::Components;
 using namespace System::Runtime::InteropServices;
 
+static bool engineReady = false;
+static uint8_t frameCount = 0;
+const uint8_t targetFrame = 2;
+// We'll make the phys engine throttle at startup to bypass any possible crashes, brilliant ik...
+
 void SendObjectStayCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnCollisionStay(rootObject1);
-	rootObject1->OnCollisionStay(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnCollisionStay(rootObject1);
+		rootObject1->OnCollisionStay(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendTriggerStayCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnTriggerStay(rootObject1);
-	rootObject1->OnTriggerStay(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnTriggerStay(rootObject1);
+		rootObject1->OnTriggerStay(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 
 void SendOnTriggeredCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnTriggered(rootObject1);
-	rootObject1->OnTriggered(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnTriggered(rootObject1);
+		rootObject1->OnTriggered(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendOnCollidedCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnCollided(rootObject1);
-	rootObject1->OnCollided(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnCollided(rootObject1);
+		rootObject1->OnCollided(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendObjectEnterCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
-	
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	rootObject0->OnCollisionEnter(rootObject1);
-	rootObject1->OnCollisionEnter(rootObject0);
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnCollisionEnter(rootObject1);
+		rootObject1->OnCollisionEnter(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendTriggerEnterCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	rootObject0->OnTriggerEnter(rootObject1);
-	rootObject1->OnTriggerEnter(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnTriggerEnter(rootObject1);
+		rootObject1->OnTriggerEnter(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendObjectExitCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnCollisionExit(rootObject1);
-	rootObject1->OnCollisionExit(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnCollisionExit(rootObject1);
+		rootObject1->OnCollisionExit(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendTriggerExitCallback(void* obj0ptr, void* obj1ptr)
 {
-	if (obj0ptr == nullptr || obj1ptr == nullptr)
-		return;
+	try
+	{
+		if (frameCount < targetFrame) return;
 
-	IntPtr intPtr0(obj0ptr);
-	IntPtr intPtr1(obj1ptr);
+		if (obj0ptr == nullptr || obj1ptr == nullptr)
+			return;
 
-	GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
-	GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
+		IntPtr intPtr0(obj0ptr);
+		IntPtr intPtr1(obj1ptr);
 
-	GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
-	GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+		if (intPtr0 == IntPtr::Zero || intPtr1 == IntPtr::Zero) return;
 
-	if (rootObject0 == nullptr || rootObject1 == nullptr)
-		return;
+		GCHandle handle0 = GCHandle::FromIntPtr(intPtr0);
+		GCHandle handle1 = GCHandle::FromIntPtr(intPtr1);
 
-	rootObject0->OnTriggerExit(rootObject1);
-	rootObject1->OnTriggerExit(rootObject0);
+		GameObject^ rootObject0 = safe_cast<GameObject^>(handle0.Target);
+		GameObject^ rootObject1 = safe_cast<GameObject^>(handle1.Target);
+
+		if (rootObject0 == nullptr || rootObject1 == nullptr)
+			return;
+
+		rootObject0->OnTriggerExit(rootObject1);
+		rootObject1->OnTriggerExit(rootObject0);
+	}
+	catch (Exception^ ex)
+	{
+		Engine::Scripting::Logging::LogFatal(ex->Message);
+	}
 }
 
 void SendPhysicsUpdateCallback()
 {
-	for each (GameObject^ object in Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjects())
+	for each (GameObject ^ object in Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjects())
 	{
-		if(object == nullptr) continue;
+		if (object == nullptr) continue;
 
 		object->PhysicsUpdate();
 	}
@@ -244,7 +337,7 @@ public:
 	bool collisionDetected = false;
 
 	GE_SingleContactResultCallback(HTest& hit)
-		: hitTest(hit) 
+		: hitTest(hit)
 	{
 	}
 
@@ -376,16 +469,16 @@ inline RCHit spherecast(btDiscreteDynamicsWorld* world, float originX, float ori
 		result.hit = callback.hasHit();
 		result.gameObject = GetObjectFromPointer(callback.m_hitCollisionObject);
 
-		result.position = { 
-			callback.m_hitPointWorld.getX(), 
-			callback.m_hitPointWorld.getY(), 
+		result.position = {
+			callback.m_hitPointWorld.getX(),
+			callback.m_hitPointWorld.getY(),
 			callback.m_hitPointWorld.getZ()
 		};
 
-		result.normal = { 
-			callback.m_hitNormalWorld.getX(), 
-			callback.m_hitNormalWorld.getY(), 
-			callback.m_hitNormalWorld.getZ() 
+		result.normal = {
+			callback.m_hitNormalWorld.getX(),
+			callback.m_hitNormalWorld.getY(),
+			callback.m_hitNormalWorld.getZ()
 		};
 	}
 
@@ -442,7 +535,7 @@ inline RCHit raycast(btDiscreteDynamicsWorld* world, float originX, float origin
 
 	return
 	{
-		{ 
+		{
 			rayCallback.m_hitPointWorld.x(),
 			rayCallback.m_hitPointWorld.y(),
 			rayCallback.m_hitPointWorld.z()
@@ -466,6 +559,9 @@ inline void setGravity(btDiscreteDynamicsWorld* world, float x, float y, float z
 
 inline void testCollision(btDiscreteDynamicsWorld* world)
 {
+	if (!engineReady) return;
+	if (frameCount < targetFrame) return;
+
 	SendPhysicsUpdateCallback();
 
 	thisFramePairs.clear();
@@ -513,8 +609,8 @@ inline void testCollision(btDiscreteDynamicsWorld* world)
 	{
 		if (prevFramePairs.find(key) == prevFramePairs.end())
 		{
-			 const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
-			 const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
+			const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
+			const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
 
 			void* obj0ptr = objA->getUserPointer();
 			void* obj1ptr = objB->getUserPointer();
@@ -594,7 +690,7 @@ inline int AddMask(int mask, int layerId) {
 
 #pragma managed(pop)
 
-PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform) 
+PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform)
 	: Engine::EngineObjects::Script(name, transform),
 	frameRate(60),
 	maxSubSteps(10),
@@ -607,6 +703,8 @@ void PhysicsService::Awake()
 {
 	this->protectMember();
 
+	engineReady = false;
+	frameCount = 0;
 	collisionConfig = new btDefaultCollisionConfiguration();
 	collisionDispatcher = new btCollisionDispatcher(collisionConfig);
 	bvhInterface = new btDbvtBroadphase();
@@ -622,7 +720,7 @@ void PhysicsService::Awake()
 	if (collisionGroups->Count <= 0)
 	{
 		System::Collections::Generic::List<Engine::Components::Layer^>^ _layers = Engine::Scripting::LayerManager::GetLayers();
-		
+
 		for each (Engine::Components::Layer ^ layer in _layers)
 		{
 			InitializeCollision(layer);
@@ -644,6 +742,8 @@ void PhysicsService::Start()
 
 void PhysicsService::Update()
 {
+	if (frameCount < targetFrame) frameCount++;
+	if (!engineReady) engineReady = true;
 	processingPhysicsStart->Set();
 }
 
@@ -775,7 +875,7 @@ bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components:
 	int mask = 0;
 	auto _collisionMasks = GetLayerCollisionMasks(Engine::Scripting::LayerManager::GetLayerFromId(layer));
 
-	for each(int l in _collisionMasks->Keys)
+	for each (int l in _collisionMasks->Keys)
 	{
 		if (_collisionMasks[l])
 		{
@@ -795,7 +895,7 @@ bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components:
 	int mask = 0;
 	auto _collisionMasks = GetLayerCollisionMasks(Engine::Scripting::LayerManager::GetLayerFromId(layer));
 
-	for each(int l in _collisionMasks->Keys)
+	for each (int l in _collisionMasks->Keys)
 	{
 		if (_collisionMasks[l])
 		{
@@ -809,7 +909,7 @@ bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components:
 	hit.hit = _hit.hit;
 	hit.position = Engine::Components::Vector3(_hit.position[0], _hit.position[1], _hit.position[2]);
 	hit.normal = Engine::Components::Vector3(_hit.normal[0], _hit.normal[1], _hit.normal[2]);
-	
+
 	instance = hit;
 	return _hit.hit;
 }
@@ -833,10 +933,10 @@ cli::array<RaycastHit>^ Engine::EngineObjects::Physics::PhysicsService::RaycastA
 	}
 
 	std::vector<RCHit> raycasts = raycastAll(world, from.x, from.y, from.z, to.x, to.y, to.z, group, mask);
-	
+
 	hits = gcnew cli::array<RaycastHit>(raycasts.size());
-	
-	for(int x = 0; x < raycasts.size(); x++)
+
+	for (int x = 0; x < raycasts.size(); x++)
 	{
 		RaycastHit hit = RaycastHit();
 		hit.hit = raycasts[x].hit;
@@ -858,7 +958,7 @@ bool Engine::EngineObjects::Physics::PhysicsService::SphereCast(Engine::Componen
 	int mask = 0;
 	auto _collisionMasks = GetLayerCollisionMasks(Engine::Scripting::LayerManager::GetLayerFromId(layer));
 
-	for each(int l in _collisionMasks->Keys)
+	for each (int l in _collisionMasks->Keys)
 	{
 		if (_collisionMasks[l])
 		{
@@ -882,7 +982,7 @@ bool Engine::EngineObjects::Physics::PhysicsService::SphereCast(Engine::Componen
 	int mask = 0;
 	auto _collisionMasks = GetLayerCollisionMasks(Engine::Scripting::LayerManager::GetLayerFromId(layer));
 
-	for each(int l in _collisionMasks->Keys)
+	for each (int l in _collisionMasks->Keys)
 	{
 		if (_collisionMasks[l])
 		{
@@ -907,8 +1007,8 @@ bool Engine::EngineObjects::Physics::PhysicsService::SphereCast(Engine::Componen
 }
 
 bool Engine::EngineObjects::Physics::PhysicsService::ContactTest(
-	Engine::Internal::Components::GameObject^ object0, 
-	Engine::Internal::Components::GameObject^ object1, 
+	Engine::Internal::Components::GameObject^ object0,
+	Engine::Internal::Components::GameObject^ object1,
 	[System::Runtime::InteropServices::OutAttribute] HitTest% outNormal)
 {
 	if (object0->getCollisionShape() == nullptr || object1->getCollisionShape() == nullptr)
@@ -1027,7 +1127,7 @@ void Engine::EngineObjects::Physics::PhysicsService::RecalculateCollisionGroups(
 	{
 		auto objs = world->getCollisionObjectArray();
 
-		for (int x = 0; x < objs.size(); x++) 
+		for (int x = 0; x < objs.size(); x++)
 		{
 			auto obj = objs[x];
 
@@ -1041,7 +1141,7 @@ void Engine::EngineObjects::Physics::PhysicsService::RecalculateCollisionGroups(
 			int group = MakeGroup(instance->layerMask->layerMask);
 			int mask = 0;
 
-			for each(int l in _collisionMasks->Keys)
+			for each (int l in _collisionMasks->Keys)
 			{
 				if (_collisionMasks[l])
 				{
@@ -1053,10 +1153,10 @@ void Engine::EngineObjects::Physics::PhysicsService::RecalculateCollisionGroups(
 			obj->getBroadphaseHandle()->m_collisionFilterMask = mask;
 
 			world->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
-				obj->getBroadphaseHandle(), 
+				obj->getBroadphaseHandle(),
 				world->getDispatcher()
 			);
-			
+
 			obj->activate();
 		}
 	}
@@ -1126,7 +1226,7 @@ int Engine::EngineObjects::Physics::PhysicsService::GetCollisionMask(Engine::Com
 		if (_masks[maskId])
 			mask = AddMask(mask, maskId);
 	}
-	
+
 	return mask;
 }
 

@@ -340,6 +340,16 @@ void DataPacks::AddSound(unsigned int soundId, RAYLIB::Sound& sound)
 	}
 }
 
+RAYLIB::Model& Engine::Assets::Storage::DataPacks::GetFallbackModel()
+{
+	return nativePacks->fallbackModel->getInstance();
+}
+
+RAYLIB::Texture2D& Engine::Assets::Storage::DataPacks::GetFallbackTexture()
+{
+	return nativePacks->fallbackTexture->getInstance();
+}
+
 RAYLIB::Mesh& DataPacks::GetMesh(unsigned int musicId)
 {
 	try

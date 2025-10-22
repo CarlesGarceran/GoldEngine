@@ -37,6 +37,10 @@ void MeshRenderer::Start()
 
 	this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(modelCopy.meshes[meshIndex]);
 	this->modelInstance = new Engine::Native::EnginePtr<RAYLIB::Model>(RAYLIB::LoadModelFromMesh(this->meshInstance->getInstance()));
+	
+	this->attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &MeshRenderer::onModelUpdated));
+	this->attributes->getAttribute("meshIndex")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &MeshRenderer::onMeshIndexUpdated));
+	this->attributes->getAttribute("materialId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &MeshRenderer::onMaterialUpdated));
 }
 
 [Engine::Attributes::ExecuteInEditModeAttribute]
@@ -64,8 +68,8 @@ void MeshRenderer::Update()
 
 void MeshRenderer::Draw()
 {
-	RAYLIB::Model& meshOnlyModel = this->modelInstance->getInstance();
-	RAYLIB::Shader& shader = DataPacks::singleton().GetShader(this->materialInstance->shaderId->getInstance());
+	RAYLIB::Model meshOnlyModel = this->modelInstance->getInstance();
+	RAYLIB::Shader shader = DataPacks::singleton().GetShader(this->materialInstance->shaderId->getInstance());
 
 	meshOnlyModel.transform = RAYMATH::MatrixRotateXYZ({
 		DEG2RAD * this->transform->rotation.x,
@@ -76,9 +80,9 @@ void MeshRenderer::Draw()
 	if (this->materialInstance->GetBaseColor() != nullptr && this->materialInstance->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) 
 		this->tint = ((Engine::Components::Locs::ColorLoc^)this->materialInstance->GetBaseColor())->color;
 
-	meshOnlyModel.materials[0].shader = shader;
-
 	materialInstance->ApplyToShader(shader);
+
+	meshOnlyModel.materials[0].shader = shader;
 
 	RAYMATH::Matrix translation = RAYMATH::MatrixTranslate(
 		0,
@@ -116,7 +120,8 @@ void MeshRenderer::Draw()
 		transform->scale.toNative(),
 		tint->toNative()
 	);
-	
+
+	materialInstance->ResetShader(shader);
 }
 
 void MeshRenderer::Destroy()
@@ -130,4 +135,49 @@ void MeshRenderer::Destroy()
 RAYLIB::Model& Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
 {
 	return modelInstance->getInstance();
+}
+
+void Engine::EngineObjects::Geometry::MeshRenderer::onModelUpdated(unsigned int newId, unsigned int oldId)
+{
+	if (newId == oldId) return;
+
+	RAYLIB::Model& model = DataPacks::singleton().GetModel(newId);
+
+	if (this->modelInstance == nullptr)
+	{
+		this->modelInstance = new Engine::Native::EnginePtr<RAYLIB::Model>(model);
+		return;
+	}
+
+	for (int x = 0; x < model.materialCount; x++)
+	{
+		RAYLIB::Material defaultMaterial = RAYLIB::LoadMaterialDefault();
+		model.materials[x] = defaultMaterial;
+	}
+
+	this->modelInstance->setInstance(model);
+}
+
+void Engine::EngineObjects::Geometry::MeshRenderer::onMaterialUpdated(unsigned int newId, unsigned int oldId)
+{
+	if (newId == oldId) return;
+
+	this->materialInstance = DataPacks::singleton().GetMaterial(newId);
+
+	if (this->tint == nullptr)
+		(this->materialInstance->GetBaseColor() != nullptr && this->materialInstance->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) ? this->tint = ((Engine::Components::Locs::ColorLoc^)this->materialInstance->GetBaseColor())->color : this->tint = Engine::Components::Color::New();
+}
+
+void Engine::EngineObjects::Geometry::MeshRenderer::onMeshIndexUpdated(unsigned int newId, unsigned int oldId)
+{
+	if (newId == oldId) return;
+	RAYLIB::Model& model = DataPacks::singleton().GetModel(newId);
+
+	if (this->meshInstance == nullptr)
+	{
+		this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(model.meshes[newId]);
+		return;
+	}
+
+	this->meshInstance->setInstance(model.meshes[newId]);
 }

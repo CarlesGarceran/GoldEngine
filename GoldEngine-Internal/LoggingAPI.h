@@ -35,111 +35,12 @@ namespace Engine::Scripting
 		static List<Log^>^ log = gcnew System::Collections::Generic::List<Engine::Scripting::Log^>();
 
 	public:
-		static void Log(String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				//TraceLog(LOG_INFO, CastStringToNative(message).c_str());
-				Console::WriteLine("[INFO] " + message);
-				log->Add(gcnew Engine::Scripting::Log(LOG_INFO, "[INFO] " + message));
-			}
-			else
-			{
-				Log(message); // recurse call
-			}
-
-			l.release();
-		}
-
-		static void LogCustom(String^ header, String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				Console::WriteLine(header + " " + message);
-				log->Add(gcnew Engine::Scripting::Log(LOG_INFO, header + " " + message));
-			}
-			else
-			{
-				Log(message); // recurse call
-			}
-
-			l.release();
-		}
-
-		static void LogDebug(String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				//TraceLog(LOG_DEBUG, CastStringToNative(message).c_str());
-				Console::WriteLine("[DEBUG] " + message);
-				log->Add(gcnew Engine::Scripting::Log(LOG_DEBUG, "[DEBUG] " + message));
-			}
-			else
-			{
-				LogDebug(message); // recurse call
-			}
-			
-			l.release();
-		}
-
-		static void LogWarning(String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				//TraceLog(LOG_WARNING, CastStringToNative(message).c_str());
-				Console::WriteLine("[WARNING] " + message);
-				log->Add(gcnew Engine::Scripting::Log(LOG_WARNING, "[WARNING] " + message));
-			}
-			else
-			{
-				LogWarning(message); // recurse call
-			}
-
-			l.release();
-		}
-
-		static void LogFatal(String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				log->Add(gcnew Engine::Scripting::Log(LOG_FATAL, "[FATAL] " + message));
-				RAYLIB::TraceLog(LOG_FATAL, CastStringToNative(message).c_str());
-			}
-			else
-			{
-				LogFatal(message); // recurse call
-			}
-
-			l.release();
-		}
-
-		static void LogError(String^ message)
-		{
-			msclr::lock l(log);
-
-			if (l.try_acquire(1000))
-			{
-				//TraceLog(LOG_ERROR, CastStringToNative(message).c_str());
-				Console::WriteLine("[ERROR] " + message);
-				log->Add(gcnew Engine::Scripting::Log(LOG_ERROR, "[ERROR] " + message));
-			}
-			else
-			{
-				LogError(message); // recurse call
-			}
-
-			l.release();
-		}
+		static void Log(String^ message);
+		static void LogCustom(String^ header, String^ message);
+		static void LogDebug(String^ message);
+		static void LogWarning(String^ message);
+		static void LogFatal(String^ message);
+		static void LogError(String^ message);
 
 		static void clearLogs()
 		{
