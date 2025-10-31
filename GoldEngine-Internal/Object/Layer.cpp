@@ -24,6 +24,9 @@ namespace Engine::Components
 
 	bool Layer::IsLayer(Layer^ layerB)
 	{
+		if (this == nullptr) return false;
+		if (layerB == nullptr) return false;
+
 		if ((this->layerName->Equals(layerB->layerName)) && (this->layerMask == layerB->layerMask))
 			return true;
 	

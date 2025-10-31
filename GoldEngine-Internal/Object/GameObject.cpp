@@ -239,7 +239,12 @@ void GameObject::GameUpdate()
 #endif
 		*/
 
-		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerMask->layerMask);
+		int layerId = 0;
+
+		if (this->layerMask != nullptr)
+			layerId = this->layerMask->layerMask;
+
+		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerId);
 
 		OnPropChanged();
 		this->childs = GetChildren();
