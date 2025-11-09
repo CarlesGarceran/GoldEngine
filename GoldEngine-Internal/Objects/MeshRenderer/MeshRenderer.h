@@ -22,7 +22,7 @@ namespace Engine::EngineObjects::Geometry
 		MeshRenderer(String^ name, Engine::Internal::Components::Transform^ transform);
 		MeshRenderer();
 
-		void Start() override;
+		void Setup() override;
 
 		[Engine::Attributes::ExecuteInEditModeAttribute] void Update() override;
 
@@ -30,7 +30,7 @@ namespace Engine::EngineObjects::Geometry
 	
 		void Destroy() override;
 
-		RAYLIB::Model& GetModel() override;
+		RAYLIB::Model* GetModel() override;
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);

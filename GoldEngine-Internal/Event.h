@@ -22,15 +22,28 @@ namespace Engine::Scripting::Events
 		void connect(System::Action^);
 		void connect(MoonSharp::Interpreter::DynValue^);
 
+		void Connect(System::Delegate^ arg) { connect(arg); };
+		void Connect(System::Action^ arg) { connect(arg); };
+		void Connect(MoonSharp::Interpreter::DynValue^ arg) { connect(arg); };
+
 		void disconnect(System::Delegate^);
 		void disconnect(System::Action^);
 		void disconnect(MoonSharp::Interpreter::DynValue^);
 
+		void Disconnect(System::Delegate^ arg) { disconnect(arg); };
+		void Disconnect(System::Action^ arg) { disconnect(arg); };
+		void Disconnect(MoonSharp::Interpreter::DynValue^ arg) { disconnect(arg); };
+
 		void disconnectAll();
+		void DisconnectAll() { disconnectAll(); };
 
 	public:
-		System::Object^ invoke(cli::array<System::Object^>^);
 		System::Object^ invoke();
+		System::Object^ invoke(... cli::array<System::Object^>^ args);
+
+		System::Object^ Invoke() { return invoke(); }
+		System::Object^ Invoke(... cli::array<System::Object^>^ args) { return invoke(args); };
+
 		System::Object^ raiseExecution(cli::array<System::Object^>^);
 		System::Object^ raiseExecution();
 

@@ -19,7 +19,7 @@ MeshRenderer::MeshRenderer()
 
 }
 
-void MeshRenderer::Start()
+void MeshRenderer::Setup()
 {
 	// RESOURCE ALLOCATION
 
@@ -132,9 +132,9 @@ void MeshRenderer::Destroy()
 	materialInstance = nullptr;
 }
 
-RAYLIB::Model& Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
+RAYLIB::Model* Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
 {
-	return modelInstance->getInstance();
+	return &modelInstance->getInstance();
 }
 
 void Engine::EngineObjects::Geometry::MeshRenderer::onModelUpdated(unsigned int newId, unsigned int oldId)

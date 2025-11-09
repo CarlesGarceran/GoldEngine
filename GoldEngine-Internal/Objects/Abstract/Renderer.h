@@ -10,6 +10,6 @@ namespace Engine::EngineObjects::Geometry::Abstract
 
 
 
-		virtual RAYLIB::Model& GetModel() = 0;
+		virtual RAYLIB::Model* GetModel() = 0;
 	};
 }

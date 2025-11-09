@@ -22,13 +22,13 @@ namespace Engine::EngineObjects::Geometry
 		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId);
 		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId, Engine::Components::Color^ tint);
 
-		void Start() override;
+		void Setup() override;
 
 		void Draw() override;
 
 		void Destroy() override;
 
-		RAYLIB::Model& GetModel() override;
+		RAYLIB::Model* GetModel() override;
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);

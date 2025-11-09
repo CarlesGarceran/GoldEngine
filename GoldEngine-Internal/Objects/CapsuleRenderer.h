@@ -17,6 +17,6 @@ namespace Engine::EngineObjects::Geometry
 		void Start() override;
 		void Draw() override;
 
-		RAYLIB::Model& GetModel() override;
+		RAYLIB::Model* GetModel() override;
 	};
 }

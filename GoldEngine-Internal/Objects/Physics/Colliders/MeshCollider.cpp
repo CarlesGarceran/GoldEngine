@@ -69,19 +69,19 @@ void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enu
 		{
 			meshIndex = renderer->As<MeshRenderer^>()->meshIndex;
 
-			if (meshIndex > renderer->As<MeshRenderer^>()->GetModel().meshCount)
+			if (meshIndex > (*renderer->As<MeshRenderer^>()->GetModel()).meshCount)
 				return;
 		}
 		else if (renderer->IsA<ModelRenderer^>())
 		{
 			meshIndex = 0;
 
-			if (meshIndex > renderer->As<ModelRenderer^>()->GetModel().meshCount)
+			if (meshIndex > (*renderer->As<ModelRenderer^>()->GetModel()).meshCount)
 				return;
 		}
 
-		_setCollisionShape(collisionShape, renderer->GetModel().meshes[meshIndex], (int)meshCollisionType);
-		_setCollisionShape(collisionShape2, renderer->GetModel().meshes[meshIndex], (int)meshCollisionType);
+		_setCollisionShape(collisionShape, (*renderer->GetModel()).meshes[meshIndex], (int)meshCollisionType);
+		_setCollisionShape(collisionShape2, (*renderer->GetModel()).meshes[meshIndex], (int)meshCollisionType);
 	}
 }
 
@@ -157,7 +157,7 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 
 		if(meshCollisionType == Enums::MeshCollisionType::Concave)
 		{
-			RAYLIB::Model& model = Parent->As<Renderer^>()->GetModel();
+			RAYLIB::Model& model = *Parent->As<Renderer^>()->GetModel();
 			int meshIndex = 0;
 
 			if (Parent->IsA<MeshRenderer^>())

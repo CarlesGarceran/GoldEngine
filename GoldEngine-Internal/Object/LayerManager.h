@@ -143,8 +143,8 @@ namespace Engine::Scripting
 				{
 					layers->Remove(GetLayerFromId(layer->layerMask));
 				}
-
-				onLayerRemoved->invoke(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
+				
+				onLayerRemoved->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
 			}
 		}
 
@@ -163,7 +163,7 @@ namespace Engine::Scripting
 					layers->Remove(GetLayerFromId(layer->layerMask));
 				}
 
-				onLayerRemoved->invoke(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
+				onLayerRemoved->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
 			}
 		}
 

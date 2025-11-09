@@ -32,7 +32,7 @@ Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer(String^ name, Engi
 	this->tint = tint;
 }
 
-void ModelRenderer::Start()
+void ModelRenderer::Setup()
 {
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
 
@@ -86,9 +86,9 @@ void ModelRenderer::Destroy()
 	material = nullptr;
 }
 
-RAYLIB::Model& Engine::EngineObjects::Geometry::ModelRenderer::GetModel()
+RAYLIB::Model* Engine::EngineObjects::Geometry::ModelRenderer::GetModel()
 {
-	return model->getInstance();
+	return &model->getInstance();
 }
 
 void Engine::EngineObjects::Geometry::ModelRenderer::onModelUpdated(unsigned int newId, unsigned int oldId)

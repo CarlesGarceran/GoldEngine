@@ -209,6 +209,7 @@ namespace Engine::Render
 							catch (Exception^ ex)
 							{
 								print("[Drawing Managed Exception]", "An exception has occurred within the draw loop -> " + ex->Message);
+								print("[Drawing Managed Exception]", ex->StackTrace);
 							}
 							catch (std::exception ex)
 							{

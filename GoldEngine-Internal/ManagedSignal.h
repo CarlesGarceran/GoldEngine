@@ -51,7 +51,7 @@ namespace Engine::Signals
 			return nullptr;
 		}
 
-		System::Object^ Callback(cli::array<System::Object^>^ args)
+		System::Object^ Callback(... cli::array<System::Object^>^ args)
 		{
 			if (bindedSignal != nullptr)
 			{

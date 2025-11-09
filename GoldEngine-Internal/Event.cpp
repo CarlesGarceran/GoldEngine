@@ -111,7 +111,7 @@ System::Object^ Event::invoke()
 	return nullptr;
 }
 
-System::Object^ Event::invoke(cli::array<System::Object^>^ objects)
+System::Object^ Event::invoke(... cli::array<System::Object^>^ objects)
 {
 	try
 	{
