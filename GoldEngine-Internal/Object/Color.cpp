@@ -44,6 +44,15 @@ unsigned int% Engine::Components::Color::toHex()
 	return this->hexColor;
 }
 
+unsigned int% Engine::Components::Color::toRGBA()
+{
+	return
+		((unsigned int)(a & 0xFF) << 0) |
+		((unsigned int)(b & 0xFF) << 8) |
+		((unsigned int)(g & 0xFF) << 16) |
+		((unsigned int)(r & 0xFF) << 24);
+}
+
 unsigned int% Engine::Components::Color::toARGB()
 {
 	return
@@ -178,7 +187,8 @@ int Engine::Components::Color::GetA()
 
 Engine::Components::Color::operator GLWrapper::Color(Engine::Components::Color^ color)
 {
-	return GLWrapper::Color(color->r, color->g, color->b, color->a);
+	RAYLIB::Color rlColor = color->toNative();
+	return GLWrapper::Color(rlColor.r, rlColor.g, rlColor.b, rlColor.a);
 }
 
 Engine::Components::Color::operator Engine::Components::Color ^ (GLWrapper::Color color)

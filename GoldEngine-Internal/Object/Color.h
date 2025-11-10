@@ -31,6 +31,10 @@ namespace Engine::Components
 		RAYLIB::Vector3 toNativeVector3();
 		std::array<float, 4> toFloat();
 		unsigned int% toHex();
+		unsigned int% ToHex() { return toHex(); }
+
+		unsigned int% toRGBA();
+		unsigned int% ToRGBA() { return toRGBA(); }
 
 		unsigned int% toARGB();
 		unsigned int% ToARGB() { return toARGB(); }
