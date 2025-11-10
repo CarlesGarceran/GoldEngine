@@ -175,3 +175,13 @@ int Engine::Components::Color::GetA()
 {
 	return this->a;
 }
+
+Engine::Components::Color::operator GLWrapper::Color(Engine::Components::Color^ color)
+{
+	return GLWrapper::Color(color->r, color->g, color->b, color->a);
+}
+
+Engine::Components::Color::operator Engine::Components::Color ^ (GLWrapper::Color color)
+{
+	return gcnew Engine::Components::Color(color.R, color.G, color.B, color.A);
+}

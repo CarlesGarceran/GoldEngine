@@ -77,5 +77,9 @@ namespace Engine::Components
 		int getG() { return GetG(); }
 		int getB() { return GetB(); }
 		int getA() { return GetA(); }
+
+
+		static operator GLWrapper::Color(Engine::Components::Color^ color);
+		static operator Engine::Components::Color^(GLWrapper::Color color);
 	};
 }

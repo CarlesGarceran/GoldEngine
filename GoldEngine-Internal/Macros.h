@@ -27,8 +27,8 @@
 extern int max_lights;
 extern unsigned int passwd;
 
-#define ENGINE_VERSION "GoldEngine Ver: 0.6c"
-#define EDITOR_VERSION "GoldEngine Editor Ver: 0.7a"
+#define ENGINE_VERSION "GoldEngine Ver: 0.7a"
+#define EDITOR_VERSION "GoldEngine Editor Ver: 0.7b"
 #define RUNTIME_VERSION "GoldEngine Runtime Prev-Ver: 0.3a"
 
 #define UNMANAGED_BEGIN \

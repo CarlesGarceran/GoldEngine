@@ -252,6 +252,9 @@ namespace Engine::Components
 		{
 			return (left.x == right.x && left.y == right.y && left.z == right.z);
 		}
+
+		static operator Engine::Components::Vector3(System::Numerics::Vector3 v3);
+		static operator System::Numerics::Vector3(Engine::Components::Vector3 v3);
 	};
 
 }

@@ -222,6 +222,7 @@ namespace Engine::Components
 			return Vector2::divide(left, right);
 		}
 
-
+		static operator Engine::Components::Vector2(System::Numerics::Vector2 v2);
+		static operator System::Numerics::Vector2(Engine::Components::Vector2 v2);
 	};
 }

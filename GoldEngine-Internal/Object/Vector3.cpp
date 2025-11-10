@@ -129,6 +129,16 @@ float Engine::Components::Vector3::Distance(Vector3 left, Vector3 right)
 	return DistanceScalar(left, right);
 }
 
+Engine::Components::Vector3::operator Engine::Components::Vector3(System::Numerics::Vector3 v3)
+{
+	return Engine::Components::Vector3(v3.X, v3.Y, v3.Z);
+}
+
+Engine::Components::Vector3::operator System::Numerics::Vector3(Engine::Components::Vector3 v3)
+{
+	return System::Numerics::Vector3(v3.x, v3.y, v3.z);
+}
+
 Engine::Components::Vector2 Engine::Components::Vector3::toVector2()
 {
 	return Engine::Components::Vector2(x, y);
