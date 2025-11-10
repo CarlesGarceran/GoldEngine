@@ -451,6 +451,12 @@
     <Filter Include="Source\Engine\EngineObjects\Editor">
       <UniqueIdentifier>{fc964e2e-ab08-40fc-a673-cdb4b39fa34d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Engine\Bridge">
+      <UniqueIdentifier>{bd941008-cda9-427a-b4f7-ac7da10edd19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Bridge">
+      <UniqueIdentifier>{fb7d0282-4e56-45dc-89a0-8d91c8ffd0df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -1173,6 +1179,9 @@
     <ClInclude Include="Objects\EditorPlugin.h">
       <Filter>Headers\Engine\EngineObjects\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Bridge\NAPIBridge.h">
+      <Filter>Headers\Engine\Bridge</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1414,6 +1423,9 @@
     </ClCompile>
     <ClCompile Include="LoggingAPI.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Bridge\NAPIBridge.cpp">
+      <Filter>Source\Engine\Bridge</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

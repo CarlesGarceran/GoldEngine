@@ -161,7 +161,50 @@ System::Object^ Event::invoke(... cli::array<System::Object^>^ objects)
 
 System::Object^ Event::raiseExecution(cli::array<System::Object^>^ objects)
 {
-	return invoke(objects);
+	try
+	{
+		if (this == nullptr)
+			return nullptr;
+
+		if (invokables == nullptr)
+			return nullptr;
+
+		for each (System::Object ^ pInvokable in invokables)
+		{
+			if (isLuaFunction)
+			{
+				MoonSharp::Interpreter::ScriptFunctionDelegate^ delegate = (MoonSharp::Interpreter::ScriptFunctionDelegate^)pInvokable;
+
+				return delegate->Invoke(objects);
+			}
+			else if (isDelegate)
+			{
+				System::Delegate^ delegate = (System::Delegate^)pInvokable;
+
+				return delegate->DynamicInvoke(objects);
+			}
+			else if (isAction)
+			{
+				System::Action^ delegate = (System::Action^)pInvokable;
+
+				return delegate->DynamicInvoke(objects);
+			}
+		}
+	}
+	catch (MoonSharp::Interpreter::ScriptRuntimeException^ exception)
+	{
+		printError(exception->Message);
+		printError(exception->StackTrace);
+		printError("Lua Error Inspector:");
+		printError(exception->DecoratedMessage);
+	}
+	catch (System::Exception^ exception)
+	{
+		printError(exception->Message);
+		printError(exception->StackTrace);
+	}
+
+	return nullptr;
 }
 
 

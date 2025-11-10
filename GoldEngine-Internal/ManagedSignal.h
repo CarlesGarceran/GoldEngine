@@ -162,7 +162,7 @@ namespace Engine::Signals
 			return Callback();
 		}
 
-		System::Object^ Call(cli::array<System::Object^>^ args)
+		System::Object^ Call(... cli::array<System::Object^>^ args)
 		{
 			return Callback(args);
 		}
