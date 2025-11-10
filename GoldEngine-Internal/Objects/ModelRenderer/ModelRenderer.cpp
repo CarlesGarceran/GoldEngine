@@ -34,6 +34,8 @@ Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer(String^ name, Engi
 
 void ModelRenderer::Setup()
 {
+	Engine::EngineObjects::Geometry::Abstract::Renderer::Setup();
+
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
 
 	this->model = new EnginePtr<RAYLIB::Model>(model);
