@@ -29,7 +29,7 @@ Engine::EngineObjects::Surface::RenderSurface3D::RenderSurface3D(String^ name, E
 RenderSurface3D::RenderSurface3D()
 	: RenderSurface()
 {
-
+	
 }
 
 void RenderSurface3D::Start()

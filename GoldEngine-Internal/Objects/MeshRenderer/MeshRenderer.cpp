@@ -22,7 +22,6 @@ MeshRenderer::MeshRenderer()
 void MeshRenderer::Setup()
 {
 	Engine::EngineObjects::Geometry::Abstract::Renderer::Setup();
-	// RESOURCE ALLOCATION
 
 	if (this->tint == nullptr)
 		this->tint = gcnew Engine::Components::Color();

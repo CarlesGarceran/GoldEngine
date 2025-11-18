@@ -12,7 +12,7 @@ namespace Engine::EngineObjects::Physics
 		void* originalCollisionShape;
 
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType = Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType = Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
 
 
 	public:

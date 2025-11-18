@@ -11,8 +11,8 @@ namespace Engine::EngineObjects::Geometry
 		Engine::Components::Material^ material = nullptr;
 
 	public:
-		[Engine::Scripting::PropertyAttribute] unsigned int modelId;
-		[Engine::Scripting::PropertyAttribute] unsigned int materialId;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int materialId;
 
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ tint;
 

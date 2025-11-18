@@ -23,6 +23,8 @@ namespace Engine
 		ArrayList drawList;
 
 	public:
+		Window();
+
 		bool FirstTimeBoot();
 		void Boot();
 

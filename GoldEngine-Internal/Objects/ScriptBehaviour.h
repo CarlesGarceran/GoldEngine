@@ -23,8 +23,8 @@ namespace Engine::EngineObjects
 			{
 				for each (auto prop in GetType()->GetProperties(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attribName = attrib->attributeName;
 
@@ -38,8 +38,8 @@ namespace Engine::EngineObjects
 
 				for each (auto prop in GetType()->GetFields(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attribName = attrib->attributeName;
 
@@ -65,8 +65,8 @@ namespace Engine::EngineObjects
 			{
 				for each (auto prop in GetType()->GetProperties(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attributeName = attrib->attributeName;
 
@@ -99,8 +99,8 @@ namespace Engine::EngineObjects
 
 				for each (auto prop in GetType()->GetFields(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attributeName = attrib->attributeName;
 
@@ -148,8 +148,8 @@ namespace Engine::EngineObjects
 			{
 				for each (auto prop in GetType()->GetProperties(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attributeName = attrib->attributeName;
 
@@ -182,8 +182,8 @@ namespace Engine::EngineObjects
 
 				for each (auto prop in GetType()->GetFields(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::PropertyAttribute::typeid, true);
-					for each (Engine::Scripting::PropertyAttribute ^ attrib in attributes)
+					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
 					{
 						String^ attributeName = attrib->attributeName;
 

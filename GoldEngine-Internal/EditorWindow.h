@@ -17,10 +17,6 @@ private:
 	Engine::Components::Vector3 cameraPosition;
 	Engine::Internal::Components::GameObject^ selectedObject;
 	int selectedObjectIndex;
-	bool selectionLock = false;
-	Engine::Internal::Components::GameObject^ selectionObject;
-
-	
 
 	Engine::Internal::Components::GameObject^ reparentObject;
 	System::Collections::Generic::List<EngineAssembly^>^ assemblies;

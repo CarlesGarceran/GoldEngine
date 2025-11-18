@@ -39,7 +39,7 @@ namespace Engine::EngineObjects
 		};
 
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		unsigned int soundId;
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		float volume = 1.0f;

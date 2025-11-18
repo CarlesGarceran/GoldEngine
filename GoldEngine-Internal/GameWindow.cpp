@@ -123,6 +123,8 @@ GameWindow::GameWindow()
 	WinAPI::FreeCons();
 #endif
 
+	printConsole(RUNTIME_VERSION);
+
 	engine_bootstrap();
 
 	assemblies = gcnew System::Collections::Generic::List<EngineAssembly^>();

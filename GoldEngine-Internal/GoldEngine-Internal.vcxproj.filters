@@ -654,7 +654,7 @@
     <ClInclude Include="cimgui\cimgui.h">
       <Filter>Deps\GUI\cimgui</Filter>
     </ClInclude>
-    <ClInclude Include="PropertyAttribute.h">
+    <ClInclude Include="SerializePropertyAttribute.h">
       <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
     </ClInclude>
     <ClInclude Include="ExecuteInEditModeAttribute.h">
@@ -1182,6 +1182,9 @@
     <ClInclude Include="Bridge\NAPIBridge.h">
       <Filter>Headers\Engine\Bridge</Filter>
     </ClInclude>
+    <ClInclude Include="InstanceReference.h">
+      <Filter>Headers\Engine\ScriptingAPI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1427,6 +1430,9 @@
     <ClCompile Include="Bridge\NAPIBridge.cpp">
       <Filter>Source\Engine\Bridge</Filter>
     </ClCompile>
+    <ClCompile Include="InstanceReference.cpp">
+      <Filter>Source\Engine\ScriptingAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -1557,6 +1563,9 @@
     </None>
     <None Include="Objects\Physics\Native\NativePhysicsService.h">
       <Filter>Headers\Engine\EngineObjects\Physics\Native</Filter>
+    </None>
+    <None Include="PropertyAttribute.h">
+      <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

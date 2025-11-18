@@ -64,6 +64,13 @@ void Window::Boot()
     System::IO::File::Create("./Data/UserData/firstInit.asset")->Close();
 }
 
+Engine::Window::Window()
+{
+	printConsole(" -- | GOLD ENGINE | --");
+	printConsole(ENGINE_VERSION);
+
+}
+
 bool Window::FirstTimeBoot()
 {
     Singleton<Window^>::Create(this);

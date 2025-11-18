@@ -390,6 +390,7 @@
     <ClInclude Include="imnotifications\ImNotifyWrapper.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Instantiable.h" />
+    <ClInclude Include="InstanceReference.h" />
     <ClInclude Include="LogFileReporter.h" />
     <ClInclude Include="LoggingAPI.h" />
     <ClInclude Include="LuaAPI.h" />
@@ -456,7 +457,7 @@
     <ClInclude Include="Object\Vector3.h" />
     <ClInclude Include="Object\ViewSpace.h" />
     <ClInclude Include="PreloadScript.h" />
-    <ClInclude Include="PropertyAttribute.h" />
+    <ClInclude Include="SerializePropertyAttribute.h" />
     <ClInclude Include="Raylib\include\x64\raylib.h" />
     <ClInclude Include="Raylib\include\x64\raymath.h" />
     <ClInclude Include="Raylib\include\x64\rlgl.h" />
@@ -528,6 +529,7 @@
     <ClCompile Include="imnodes\ImNodes.cpp" />
     <ClCompile Include="imnotifications\ImNotifyWrapper.cpp" />
     <ClCompile Include="Instantiable.cpp" />
+    <ClCompile Include="InstanceReference.cpp" />
     <ClCompile Include="LoggingAPI.cpp" />
     <ClCompile Include="LuaVM.cpp" />
     <ClCompile Include="native\CollisionShape.cpp" />
@@ -810,6 +812,7 @@
     <None Include="imgui\misc\debuggers\imgui.gdb" />
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="Objects\Physics\Native\NativePhysicsService.h" />
+    <None Include="PropertyAttribute.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="imgui\misc\README.txt" />

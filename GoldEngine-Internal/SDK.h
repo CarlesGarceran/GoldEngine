@@ -31,6 +31,7 @@
 #include "Object/Locs/Vector2Loc.h"
 #include "Attribute.h"
 #include "PropertyAttribute.h"
+#include "SerializePropertyAttribute.h"
 #include "AttributeManager.h"
 #include "Objects/ScriptBehaviour.h"
 #include "DataPack.h"
@@ -43,3 +44,4 @@
 #include "Objects/Script.h"
 #include "EnginePtr.h"
 #include "native/NativeSingleton.h"
+#include "InstanceReference.h"

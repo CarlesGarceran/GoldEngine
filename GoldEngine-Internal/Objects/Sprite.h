@@ -5,41 +5,18 @@ namespace Engine::EngineObjects
 	public ref class Sprite : Engine::EngineObjects::ScriptBehaviour
 	{
 	public:
+		[Engine::Scripting::PropertyAttribute("Texture ID")] unsigned int TextureId = 0;
+		[Engine::Scripting::PropertyAttribute("Sprite Tint")] Engine::Components::Color^ SpriteTint = gcnew Engine::Components::Color(0xFFFFFFFF);
+
+	public:
 		Sprite(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::ScriptBehaviour(name, transform)
 		{
-			if (!attributes->getAttribute("Texture ID"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Texture ID", gcnew System::UInt32(0), System::UInt32::typeid));
-			}
-
-			if (!attributes->getAttribute("Sprite Tint"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Sprite Tint", gcnew Engine::Components::Color(0xFFFFFFFF)));
-			}
-
-			if (!attributes->getAttribute("Sprite Rotation"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Sprite Rotation", 0.0f, System::Single::typeid));
-			}
 		}
 
 	public:
 		void Start() override
 		{
-			if (!attributes->getAttribute("Texture ID"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Texture ID", gcnew System::UInt32(0), System::UInt32::typeid));
-			}
 
-			if (!attributes->getAttribute("Sprite Tint"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Sprite Tint", gcnew Engine::Components::Color(0xFFFFFFFF)));
-			}
-
-			if (!attributes->getAttribute("Sprite Rotation"))
-			{
-				attributes->addAttribute(Engine::Scripting::Attribute::create(Engine::Scripting::AccessLevel::Public, "Sprite Rotation", 0.0f, System::Single::typeid));
-			}
 		}
 
 		void Update() override
@@ -50,7 +27,7 @@ namespace Engine::EngineObjects
 		void Draw() override
 		{
 			Engine::Components::Vector2 transformedVector = this->transform->position.toVector2();
-			RAYLIB::Texture texture = Engine::Assets::Storage::DataPacks::singleton().GetTexture2D((unsigned int)attributes->getAttribute("Texture ID")->getValueAuto());
+			RAYLIB::Texture texture = Engine::Assets::Storage::DataPacks::singleton().GetTexture2D(TextureId);
 
 			RAYLIB::Rectangle outRectangle;
 
@@ -71,8 +48,8 @@ namespace Engine::EngineObjects
 				inRectangle,
 				outRectangle,
 				transformedVector.toNative(),
-				attributes->getAttribute("Sprite Rotation")->getValue<float>(),
-				attributes->getAttribute("Sprite Tint")->getValue<Engine::Components::Color^>()->toNative()
+				transform->rotation.y,
+				SpriteTint->toNative()
 			);
 		}
 

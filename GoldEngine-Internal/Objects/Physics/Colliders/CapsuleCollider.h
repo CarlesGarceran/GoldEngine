@@ -12,8 +12,8 @@ namespace Engine::EngineObjects::Physics
 		void* originalCollisionShape;
 
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float radius;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float height;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float radius;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float height;
 
 	private:
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float gizmo_slices;

@@ -24,7 +24,7 @@ namespace Engine::EngineObjects::Surface
 		bool failsafe = false;
 
 	public:
-		[Engine::Scripting::PropertyAttribute]
+		[Engine::Scripting::SerializePropertyAttribute]
 		Engine::Components::Vector2 viewportSize;
 
 		[Engine::Scripting::PropertyAttribute]

@@ -8,6 +8,7 @@
 
 #include "Attribute.h"
 #include "PropertyAttribute.h"
+#include "SerializePropertyAttribute.h"
 #include "AttributeManager.h"
 
 // Structures \\

@@ -12,10 +12,10 @@ namespace Engine::EngineObjects::Geometry
 		Engine::Components::Material^ materialInstance = nullptr;
 
 	public:
-		[Engine::Scripting::PropertyAttribute] unsigned int modelId;
-		[Engine::Scripting::PropertyAttribute] unsigned int meshIndex;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int meshIndex;
 
-		[Engine::Scripting::PropertyAttribute] unsigned int materialId;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int materialId;
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ tint;
 
 	public:

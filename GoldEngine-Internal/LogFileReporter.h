@@ -29,7 +29,9 @@ namespace Engine::Utils
 
 			String^ name = GUID->Substring(0, GUID->IndexOf('-'));
 
-			fileStream = File::CreateText(fileName + "/" + name + ".log");
+			String^ currDate = System::DateTimeOffset::Now.ToUnixTimeMilliseconds().ToString();
+
+			fileStream = File::CreateText(fileName + "/GoldEngine-" + currDate + "-" + name + ".log");
 			lifetimeLogs = gcnew System::Collections::Generic::List<Log^>();
 
 			fileStream->Flush();

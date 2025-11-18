@@ -16,10 +16,10 @@ namespace Engine::EngineObjects::Physics
 		GameObject^ root;
 
 	public:
-		[Engine::Scripting::PropertyAttribute] Engine::Components::Vector3 origin = Engine::Components::Vector3::Zero();
+		[Engine::Scripting::SerializePropertyAttribute] Engine::Components::Vector3 origin = Engine::Components::Vector3::Zero();
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ wireColor;
 		[Engine::Scripting::PropertyAttribute] bool renderWires = false;
-		[Engine::Scripting::PropertyAttribute] Enums::ColliderType collisionType;
+		[Engine::Scripting::SerializePropertyAttribute] Enums::ColliderType collisionType;
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 		Engine::Scripting::Events::Event^ HitBegin = Engine::Scripting::Events::Event::New();

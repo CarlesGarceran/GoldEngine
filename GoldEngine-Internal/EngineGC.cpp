@@ -24,7 +24,7 @@ void EngineGC::Update()
 			return;
 		}
 
-		printConsole(gcnew String(TextFormat("GC Memory Exceeded %d/%d!", memRes, GC_SIZE)));
+		printWarning(gcnew String(TextFormat("GC Memory Exceeded %d/%d!", memRes, GC_SIZE)));
 		System::GC::Collect();
 
 		GC_TRIGGERED_LASTFRAME = true;

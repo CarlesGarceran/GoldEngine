@@ -2,11 +2,11 @@
 
 namespace Engine::Scripting
 {
-	public ref class PropertyAttribute : System::Attribute
-	{
-	public:
-		Engine::Scripting::AccessLevel accessLevel;
-		String^ attributeName;
+    public ref class PropertyAttribute : System::Attribute
+    {
+        public:
+            Engine::Scripting::AccessLevel accessLevel;
+            String^ attributeName;
 
 	public:
 		PropertyAttribute(Engine::Scripting::AccessLevel level, String^ name)
@@ -21,10 +21,16 @@ namespace Engine::Scripting
 			this->attributeName = "";
 		}
 
+		PropertyAttribute(String^ name)
+		{
+			this->accessLevel = Engine::Scripting::AccessLevel::Public;
+			this->attributeName = name;
+		}
+
 		PropertyAttribute()
 		{
 			this->accessLevel = Engine::Scripting::AccessLevel::Public;
 			this->attributeName = "";
 		}
-	};
+    };
 }

@@ -16,8 +16,8 @@ namespace Engine::EngineObjects::Physics
 	{
 	public:
 		// RIGIDBODY PROPERTIES
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool Kinematic;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float Mass;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool Kinematic;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float Mass;
 
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] float angularDamping;
 		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] Engine::Components::Vector3 angularVelocity = Engine::Components::Vector3::Zero();

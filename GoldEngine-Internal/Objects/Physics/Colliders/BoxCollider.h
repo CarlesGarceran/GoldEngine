@@ -20,7 +20,7 @@ namespace Engine::EngineObjects::Physics
 		Engine::Native::EnginePtr<RAYLIB::Model>* cachedModel;
 
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 extents = Engine::Components::Vector3::Zero();
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 extents = Engine::Components::Vector3::Zero();
 
 	public:
 		BoxCollider(String^ name, Engine::Internal::Components::Transform^ transform);

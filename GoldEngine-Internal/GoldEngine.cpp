@@ -22,6 +22,7 @@ using namespace Engine::Attributes;
 #include "Object/Material.h"
 #include "Object/Transform.h"
 #include "Object/GameObject.h"
+#include "InstanceReference.h"
 #include "CypherLib.h"
 #include "SceneObject.h"
 #include "Scene.h"
@@ -115,7 +116,6 @@ using namespace Engine::Attributes;
 
 // MiniAudio Init
 #include "native/miniaudio.h"
-
 #include "imfiledialog/ImFileDialog.h"
 
 using namespace Engine;
@@ -131,6 +131,30 @@ using namespace Engine::Scripting;
 DataPacks dataPack;
 unsigned int passwd = 0;
 int max_lights = 4;
+
+void LogCallback(int logLevel, const char* text, va_list args)
+{
+	/*
+	const char* format = RAYLIB::TextFormat(text, args);
+
+	switch (logLevel)
+	{
+	case RAYLIB::LOG_INFO:
+		printConsole(gcnew String(format));
+		break;
+	case RAYLIB::LOG_ERROR:
+		printError(gcnew String(format));
+		break;
+	case RAYLIB::LOG_ALL:
+		print("[GL]: ", gcnew String(format));
+		break;
+
+	default:
+		print("[GL]: ", gcnew String(format));
+		break;
+	}
+	*/
+}
 
 static System::Reflection::Assembly^ ResolveAssembly(System::Object^ sender, System::ResolveEventArgs^ args)
 {
@@ -265,7 +289,7 @@ bool gameViewMode = false;
 char* errorReason;
 
 bool ce1, ce2, ce3, ce4, ce5, ce6;
-
+bool selectionLock;
 bool hierarchyVisible = true;
 bool propertiesVisible = true;
 bool assetsVisible = true;
@@ -274,6 +298,7 @@ bool scenevpVisible = true;
 msclr::gcroot<String^> jsonData = "";
 msclr::gcroot<String^> sceneSnapshot = "";
 msclr::gcroot<Engine::Editor::Gui::onFileSelected^> _callback = nullptr;
+msclr::gcroot<Engine::Internal::Components::GameObject^> selectionObject = nullptr;
 
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
@@ -431,6 +456,7 @@ String^ GetParentRoute(Engine::Internal::Components::Transform^ transform)
 	else
 		return "World";
 }
+
 String^ GetAccessRoute(Engine::Internal::Components::GameObject^ object)
 {
 	return GetParentRoute(object->transform) + "/" + object->name;
@@ -460,6 +486,8 @@ EditorWindow::EditorWindow()
 #if HIDE_CONSOLE == true
 	WinAPI::FreeCons();
 #endif
+
+	printConsole(EDITOR_VERSION);
 
 	codeEditor = gcnew CodeEditor(this);
 	materialEditor = gcnew MaterialEditor(this);
@@ -498,10 +526,139 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 {
 	if (object != nullptr)
 	{
-		auto type = object->GetObjectType();
+		auto objectType = object->GetObjectType();
+		System::Type^ type = object->GetType();
 
-		switch (type)
+		auto fields = type->GetFields(System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Public);
+		auto properties = type->GetProperties(System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Public);
+
+		ImGui::SeparatorText("Properties");
+		ImGui::BeginListBox("###PROPERTIES_LISTBOX", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() - 240 });
+		
+		for each (auto field in fields)
 		{
+			bool isPrivate = true;
+			auto attributes = field->GetCustomAttributes(true);
+
+			String^ fieldName = field->Name;
+
+			for each (auto attrib in attributes)
+			{
+				if (attrib->GetType()->Equals(Engine::Scripting::PropertyAttribute::typeid))
+				{
+					isPrivate = false;
+
+					PropertyAttribute^ propAttribute = (PropertyAttribute^)attrib;
+					if (propAttribute->attributeName != "") fieldName = propAttribute->attributeName;
+					continue;
+				}
+				if (attrib->GetType()->Equals(Engine::Scripting::SerializePropertyAttribute::typeid))
+				{
+					isPrivate = true;
+					continue;
+				}
+			}
+
+			if (isPrivate) continue;
+
+			auto fieldType = field->FieldType;
+			Type^ instRefDef = Engine::Scripting::InstanceReference<Engine::Internal::Components::GameObject^>::typeid->GetGenericTypeDefinition();
+
+			if (fieldType->Equals(int::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				IntegerEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Double::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				DoubleEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Vector3::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				Vector3Editor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Vector2::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				Vector2Editor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Enum::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				EnumEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::UInt32::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				UnsignedIntEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Int64::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				LongEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(float::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				FloatEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(bool::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				BoolEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::String::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				StringEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Color::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				ColorEditor(object, field);
+				continue;
+			}
+			if (
+				fieldType->Equals(Engine::Internal::Components::GameObject::typeid) ||
+				fieldType->IsSubclassOf(Engine::Internal::Components::GameObject::typeid) || 
+				fieldType->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) || 
+				fieldType->IsSubclassOf(Engine::EngineObjects::Script::typeid) ||
+				fieldType->IsAssignableFrom(Engine::Internal::Components::GameObject::typeid)
+			)
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				GameObjectEditor(object, field);
+				continue;
+			}
+			if (fieldType->IsGenericType &&
+				fieldType->GetGenericTypeDefinition()->Equals(instRefDef))
+			{
+				Type^ innerType = fieldType->GetGenericArguments()[0];
+
+				if (Engine::Internal::Components::GameObject::typeid->IsAssignableFrom(innerType))
+				{
+					ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+					InstanceReferenceEditor(object, field);
+					continue;
+				}
+			}
+		}
+
+		switch (objectType)
+		{
+			/*
 		case ObjectType::CubeRenderer:
 		{
 			Engine::EngineObjects::CubeRenderer^ renderer = Cast::Dynamic<Engine::EngineObjects::CubeRenderer^>(object);
@@ -635,7 +792,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 #endif
 		}
 		break;
-
+		*/
 		case ObjectType::Script:
 		{
 			Engine::EngineObjects::ScriptBehaviour^ script = (Engine::EngineObjects::ScriptBehaviour^)object;
@@ -651,12 +808,9 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 
 				std::string nativePath = CastStringToNative(scr->luaFilePath);
 
-				char* data = nativePath.data();
-
-				if (ImGui::InputText("###LUA_LINKEDSOURCE",
-					data, scr->luaFilePath->Length + (8 * 32), ImGuiInputTextFlags_EnterReturnsTrue))
+				if (ImGui::InputText("###LUA_LINKEDSOURCE", &nativePath, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					scr->luaFilePath = gcnew String(data);
+					scr->luaFilePath = gcnew String(nativePath.c_str());
 				}
 
 				if (ImGui::Button("Reload lua source"))
@@ -665,8 +819,6 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 				}
 			}
 
-			ImGui::SeparatorText("Attributes");
-			if (ImGui::BeginListBox("###ATTRIBUTE_LISTBOX", { ImGui::GetWindowWidth() - 20, ImGui::GetWindowHeight() - 240 }))
 			{
 				int idx = 0;
 				for each (Engine::Scripting::Attribute ^ attrib in script->attributes->attributes)
@@ -676,7 +828,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						if (attrib->getValueType() == nullptr)
 							continue;
 
-						ImGui::Text(CastStringToNative(attrib->accessLevel.ToString() + " | " + attrib->name + " (" + attrib->getValueType()->Name + ")").c_str());
+						ImGui::Text(CastStringToNative("[Attribute]" + " | " + attrib->accessLevel.ToString() + " | " + attrib->name + " (" + attrib->getValueType()->Name + ")").c_str());
 						if (attrib->getValueType()->Equals(String::typeid))
 						{
 							StringEditor(attrib);
@@ -768,14 +920,15 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						ImGui::Separator();
 					}
 				}
-
-				ImGui::EndListBox();
 			}
 		}
 
 		break;
 
 		}
+
+
+		ImGui::EndListBox();
 	}
 }
 Engine::Lua::VM::LuaVM^ EditorWindow::getLuaVM()
@@ -1126,7 +1279,7 @@ void EditorWindow::DrawConsole()
 				switch (log->logType)
 				{
 				case TraceLogLevel::LOG_INFO:
-					ImGui::TextColored({ 1.0f,1.0f, 1.0f, 1.0f }, CastStringToNative(log->message).c_str());
+					ImGui::Text(CastStringToNative(log->message).c_str());
 					break;
 				case TraceLogLevel::LOG_DEBUG:
 					ImGui::TextColored({ 0.141f, 0.851f, 0.929f, 1.0f }, CastStringToNative(log->message).c_str());
@@ -1197,6 +1350,8 @@ void EditorWindow::PackData(String^ convertedData)
 }
 void EditorWindow::Start()
 {
+	//RAYLIB::SetTraceLogCallback(LogCallback);
+
 	SetTraceLogLevel(LOG_DEBUG);
 	SetWindowFlags(FLAG_INTERLACED_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_ALWAYS_RUN);
 	OpenWindow(1280, 720, (const char*)EDITOR_VERSION);
@@ -1696,7 +1851,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3(0, 0, 0),
 							Engine::Components::Vector3(0, 0, 0),
 							Engine::Components::Vector3(1, 1, 1),
-							nullptr
+							parent
 						)
 					);
 
@@ -1793,7 +1948,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(1, 1, 1),
-							scene->GetDatamodelMember("gui")->getTransform()
+							parent
 						));
 
 						scene->AddObjectToScene(image);
@@ -1829,7 +1984,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(1, 1, 1),
-							scene->GetDatamodelMember("gui")->getTransform()
+							parent
 						));
 
 						scene->AddObjectToScene(button);
@@ -1875,7 +2030,7 @@ void EditorWindow::DrawMainMenuBar()
 									if (ImGui::MenuItem(CastToNative(T->Name)))
 									{
 										Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-
+										retn->transform->SetParent(parent);
 										scene->AddObjectToScene(retn);
 									}
 
@@ -1887,7 +2042,7 @@ void EditorWindow::DrawMainMenuBar()
 								if (ImGui::MenuItem(CastToNative(T->Name)))
 								{
 									Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-
+									retn->transform->SetParent(parent);
 									scene->AddObjectToScene(retn);
 								}
 							}
@@ -1909,7 +2064,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							scene->GetDatamodelMember("editor only")->getTransform()
+							parent
 						), 64, 1.0f);
 
 					scene->AddObjectToScene(cubeRenderer);
@@ -1923,7 +2078,7 @@ void EditorWindow::DrawMainMenuBar()
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 0,0,0 }),
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							nullptr
+							parent
 						)
 					);
 
