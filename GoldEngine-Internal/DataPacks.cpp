@@ -106,8 +106,6 @@ Texture2D& DataPacks::GetTexture2D(unsigned int textureId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
-
 		if (nativePacks->fallbackTexture == nullptr)
 			nativePacks->fallbackTexture = new Engine::Native::EnginePtr(RAYLIB::LoadTexture("./Data/Engine/Textures/NotFound.png"));
 
@@ -124,8 +122,6 @@ Model& DataPacks::GetModel(unsigned int modelId)
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
-
 		if (nativePacks->fallbackModel == nullptr)
 			nativePacks->fallbackModel = new Engine::Native::EnginePtr(RAYLIB::LoadModel("./Data/Engine/Models/Error.obj"));
 
@@ -260,7 +256,6 @@ RAYLIB::ModelAnimation* Engine::Assets::Storage::DataPacks::GetAnimations(unsign
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
 		return {};
 	}
 }
@@ -274,7 +269,6 @@ RAYLIB::ModelAnimation Engine::Assets::Storage::DataPacks::GetAnimation(unsigned
 	}
 	catch (const std::exception& ex)
 	{
-		printError(gcnew String(ex.what()));
 		return {};
 	}
 }

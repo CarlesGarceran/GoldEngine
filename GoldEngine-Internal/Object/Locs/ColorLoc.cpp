@@ -20,3 +20,15 @@ unsigned int Engine::Components::Locs::ColorLoc::GetLocType()
 {
 	return 0;
 }
+
+System::Object^ Engine::Components::Locs::ColorLoc::GetValue()
+{
+	return this->color;
+}
+
+void Engine::Components::Locs::ColorLoc::SetValue(System::Object^ instance)
+{
+	if (instance->GetType() != Engine::Components::Color::typeid) throw gcnew System::ArgumentException();
+
+	this->SetColor((Engine::Components::Color^)instance);
+}

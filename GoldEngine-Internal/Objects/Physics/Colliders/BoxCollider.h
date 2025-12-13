@@ -23,7 +23,6 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 extents = Engine::Components::Vector3::Zero();
 
 	public:
-		BoxCollider(String^ name, Engine::Internal::Components::Transform^ transform);
 		BoxCollider();
 
 		void Awake() override;

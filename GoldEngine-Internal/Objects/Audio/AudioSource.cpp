@@ -16,11 +16,6 @@ void onUnloaded(AudioData sound)
 
 bool triggerPlay = true;
 
-AudioSource::AudioSource(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Script(name, transform)
-{
-}
-
 void AudioSource::onSoundChanged(unsigned int newId, unsigned int oldId)
 {
 	AudioData data = AudioData(

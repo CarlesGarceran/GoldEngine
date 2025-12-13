@@ -22,9 +22,17 @@ void Engine::Lua::VM::LuaVM::LuaVM_LoadString(Object^ param)
 
 	try
 	{
-		auto func = scriptState->LoadString(source, scriptState->Globals, "GoldEngineLuaThread");
-		auto co = scriptState->CreateCoroutine(func);
-		co->Coroutine->Resume();
+		this->value = scriptState->LoadString(source, scriptState->Globals, "GoldEngineLuaThread");
+		auto co = scriptState->CreateCoroutine(this->value);
+
+		try
+		{
+			co->Coroutine->Resume();
+		}
+		finally
+		{
+			delete co;
+		}
 	}
 	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
 	{
@@ -48,9 +56,8 @@ void Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByName(Object^ functionName)
 	{
 		if (hasFunction(source))
 		{
-			auto func = scriptState->Globals[source];
-			auto co = scriptState->CreateCoroutine(func);
-			co->Coroutine->Resume();
+			MoonSharp::Interpreter::Closure^ func = (MoonSharp::Interpreter::Closure^)scriptState->Globals[source];
+			func->Call();
 		}
 	}
 	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
@@ -74,7 +81,15 @@ void Engine::Lua::VM::LuaVM::LuaVM_RunFunctionByPointer(Object^ functionPointer)
 	try
 	{
 		auto co = scriptState->CreateCoroutine(source);
-		co->Coroutine->Resume();
+		
+		try
+		{
+			co->Coroutine->Resume();
+		}
+		finally
+		{
+			delete co;
+		}
 	}
 	catch (MoonSharp::Interpreter::ScriptRuntimeException^ ex)
 	{
@@ -149,6 +164,11 @@ void VMWrapper::SetProperty(Engine::Internal::Components::GameObject^ object, St
 	{
 		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
 		attribs->getAttribute(propertyName)->setValue(newValue);
+	}
+	else
+	{
+		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
+		attribs->addAttribute(propertyName, newValue);
 	}
 }
 
@@ -557,7 +577,7 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("Vector3", Engine::Components::Vector3::typeid);
 	RegisterGlobal("Color", Engine::Components::Color::typeid);
 	RegisterGlobal("Event", Engine::Scripting::Events::Event::typeid);
-
+	
 	// REGISTER DATAMODEL INSTANCES (workspace, gui)
 	if (Singleton<Engine::Scripting::ObjectManager^>::Instantiated)
 	{
@@ -583,9 +603,9 @@ void LuaVM::RegisterGlobalFunctions()
 
 	// CREATE CUSTOM LUA FUNCTIONS
 	RegisterGlobal("HasProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, bool>(&VMWrapper::HasProperty));
-	RegisterGlobal("GetAttributes", gcnew System::Func<Engine::Internal::Components::GameObject^, Engine::Scripting::AttributeManager^>(&VMWrapper::GetAttributeManager));
 	RegisterGlobal("SetProperty", gcnew System::Action<Engine::Internal::Components::GameObject^, String^, Object^>(&VMWrapper::SetProperty));
 	RegisterGlobal("GetProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, Object^>(&VMWrapper::GetProperty));
+	RegisterGlobal("GetAttributes", gcnew System::Func<Engine::Internal::Components::GameObject^, Engine::Scripting::AttributeManager^>(&VMWrapper::GetAttributeManager));
 	RegisterGlobal("CastToClass", gcnew System::Func<System::Object^, System::String^, System::Object^>(&VMWrapper::ToDerivate));
 	RegisterGlobal("ToDerivate", gcnew System::Func<System::Object^, System::Object^>(&VMWrapper::ToDerivate));
 	//RegisterGlobal("VM", this->scriptState);
@@ -785,8 +805,10 @@ void LuaVM::GenerateLuaBindings()
 					RemapConstructors(luaSrcFile, type, apiName);
 					RemapFunctions(luaSrcFile, type, apiName);
 
-					luaSrcFile += "local script = LuaScript.new();\n";
-					luaSrcFile += "local attributes = AttributeManager.new();\n";
+					luaSrcFile += "_G.script = LuaScript.new();\n";
+					luaSrcFile += "_G.workspace = GameObject.new();\n";
+					luaSrcFile += "_G.game = GameObject.new();\n";
+					luaSrcFile += "_G.attributes = AttributeManager.new();\n";
 				}
 			}
 			catch (Exception^ ex)

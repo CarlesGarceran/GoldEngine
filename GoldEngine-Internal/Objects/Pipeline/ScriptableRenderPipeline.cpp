@@ -24,11 +24,6 @@ void Engine::Render::UnloadRenderTextureDepthTex(RenderTexture2D target)
 	}
 }
 
-void Engine::Render::unloadCameraData(cameraData* data)
-{
-	delete data;
-}
-
 void Engine::Render::CallImGuizmoRender(Engine::Window^ windowPtr)
 {
 #if(!PRODUCTION_BUILD)
@@ -114,21 +109,21 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 	auto c = gcnew Engine::Components::Color(scene->skyColor);
 	RAYLIB::Color clearColor = c->toNative();
 
-	PreFirstPassRender(scene);
+	PreFirstPassRender(scene); // FIRSTPASS
 	PostFirstPassRender();
 
-	BeginDrawing();
 	{
 		CreateTexture();
 
 		BeginTextureMode(this->framebufferTexturePtr->getInstance());
 
-		OnRenderBegin();
+		OnRenderBegin(); // BEGIN
 
 		ClearBackground(clearColor);
-		RLGL::rlClearScreenBuffers();
+
 		RLGL::rlEnableDepthTest();
-		PreRenderFrame();
+
+		PreRenderFrame(); // PRE FRAME
 		{
 			Engine::EngineObjects::Camera^ camera = Engine::Scripting::ObjectManager::singleton()->GetMainCamera(true);
 
@@ -137,16 +132,7 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 			if (camera == nullptr)
 				goto RENDER_END;
 
-			bool is3DCamera = camera->is3DCamera();
-
-			if (cameraDataPtr != nullptr)
-				delete cameraDataPtr;
-
-			cameraDataPtr = new Engine::Native::EnginePtr<cameraData*>(new cameraData(camera->nearPlane, camera->farPlane), &unloadCameraData);
-
-			auto camera3D = ((Engine::EngineObjects::Native::NativeCamera3D*)camera->get());
-
-			BeginMode3D(camera3D->get());
+			BeginMode3D(((Engine::EngineObjects::Native::NativeCamera3D*)camera->get())->get());
 
 			render(currentLayer, scene);
 
@@ -160,7 +146,7 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 		RLGL::rlDisableDepthTest();
 		EndTextureMode();
 
-		for each (ScriptableEffect ^ effect in effects)
+		for each(ScriptableEffect ^ effect in effects)
 		{
 			effect->SetFramebuffer(&framebufferTexturePtr->getInstance());
 			effect->SetDepth(&framebufferTexturePtr->getInstance().depth);
@@ -208,25 +194,13 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 			EndTextureMode();
 		}
 
-		PreRenderStack();
-
-		ClearBackground(clearColor);
-
-		RAYLIB::Rectangle target;
-		target.x = 0;
-		target.y = 0;
-		target.width = Engine::Scripting::Screen::Width;
-		target.height = -Engine::Scripting::Screen::Height;
-
-		DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
-
-		PostRenderStack();
-
 		OnRenderEnd();
+
+		RAYLIB::BeginDrawing();
 
 		rlImGuiBegin();
 
-		for each (Engine::Internal::Components::GameObject ^ obj in scene->GetRenderQueue())
+		for each(GameObject ^ obj in scene->GetRenderQueue())
 		{
 			if (obj != nullptr)
 			{
@@ -245,11 +219,27 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 			((EditorWindow^)windowHandle)->DrawToolbar();
 		}
 #endif
-		//windowHandle->DrawImGui();
+
+
+		auto clearColor = gcnew Engine::Components::Color(scene->skyColor);
+		ClearBackground(clearColor->toNative());
+
+		RAYLIB::Rectangle target;
+		target.x = 0;
+		target.y = 0;
+		target.width = Engine::Scripting::Screen::Width;
+		target.height = -Engine::Scripting::Screen::Height;
+
+		DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
 
 		rlImGuiEnd();
+
+		RAYLIB::EndDrawing();
 	}
-	EndDrawing();
+
+	PostRenderFrame();
+
+	RLGL::rlReloadTextureUnits();
 }
 
 void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow_Editor(Engine::Window^ windowHandle, Engine::Management::Scene^ scene)
@@ -270,19 +260,16 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow_Editor(Engi
 
 		ClearBackground(clearColor);
 
-		RLGL::rlClearScreenBuffers();
 		RLGL::rlEnableDepthTest();
 
 		PreRenderFrame(); // PRE FRAME
 		{
 			Engine::EngineObjects::Camera^ camera = Engine::Scripting::ObjectManager::singleton()->GetMainCamera(false);
 
-			int currentLayer = 1;
+			int currentLayer = 0;
 
 			if (camera == nullptr)
 				goto RENDER_END;
-
-			bool is3DCamera = camera->is3DCamera();
 
 			BeginMode3D(((Engine::EngineObjects::Native::NativeCamera3D*)camera->get())->get());
 
@@ -376,6 +363,8 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow_Editor(Engi
 	EndDrawing();
 
 	PostRenderFrame();
+
+	RLGL::rlReloadTextureUnits();
 }
 
 RAYLIB::RenderTexture* Engine::Render::ScriptableRenderPipeline::getFrameBuffer()

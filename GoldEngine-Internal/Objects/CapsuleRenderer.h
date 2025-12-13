@@ -12,7 +12,7 @@ namespace Engine::EngineObjects::Geometry
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ Tint;
 
 	public:
-		CapsuleRenderer(String^ name, Engine::Internal::Components::Transform^ transform);
+		CapsuleRenderer();
 
 		void Start() override;
 		void Draw() override;

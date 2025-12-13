@@ -28,6 +28,8 @@ namespace Engine::Management
 		event OnSceneLoaded^ raiseInit;
 		event OnSceneLoaded^ raiseAwake;
 
+		System::Collections::Generic::List<Engine::Internal::Components::GameObject^>^ persistantObjects = gcnew System::Collections::Generic::List<Engine::Internal::Components::GameObject^>();
+
 		// Properties
 	public:
 		System::String^ sceneName;
@@ -170,9 +172,14 @@ namespace Engine::Management
 			return Data;
 		}
 
-		List<Engine::Management::MiddleLevel::SceneObject^>^ GetDrawQueue()
+		cli::array<Engine::Management::MiddleLevel::SceneObject^>^ GetDrawQueue()
 		{
-			return sceneObjects;
+			return sceneObjects->ToArray();
+		}
+
+		cli::array<Engine::Internal::Components::GameObject^>^ GetPersistentObjects()
+		{
+			return persistantObjects->ToArray();
 		}
 
 		void cleanupSceneObjects()
@@ -382,7 +389,30 @@ namespace Engine::Management
 	public:
 		virtual void OnUnload()
 		{
+			
+			for each(auto object in sceneObjects->ToArray())
+			{
+				Engine::Internal::Components::GameObject^ ref;
+				bool unload = true;
+				if ((ref = object->GetReference()) != nullptr)
+				{
+					auto attribs = ref->GetType()->GetCustomAttributes(true);
 
+					for each (auto attr in attribs)
+					{
+						if (attr->GetType() == Engine::Scripting::PersistantInstanceAttribute::typeid) 
+						{
+							if(!persistantObjects->Contains(ref)) persistantObjects->Add(ref);
+							unload = false;
+							continue;
+						}
+					}
+
+					if (unload) Engine::Internal::Components::GameObject::Destroy(ref);
+				}
+			}
+
+			System::GC::Collect();
 		}
 		virtual void OnLoad()
 		{

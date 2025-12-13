@@ -1185,6 +1185,9 @@
     <ClInclude Include="InstanceReference.h">
       <Filter>Headers\Engine\ScriptingAPI</Filter>
     </ClInclude>
+    <ClInclude Include="PersistantInstanceAttribute.h">
+      <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">

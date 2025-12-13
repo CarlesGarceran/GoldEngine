@@ -18,11 +18,6 @@ namespace Engine::EngineObjects
 		bool loadErrorCalledBack = false;
 
 	public:
-		LuaScript(System::String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
-		{
-
-		}
-
 		void Destroy() override
 		{
 			if (virtualMachine != nullptr)
@@ -42,6 +37,7 @@ namespace Engine::EngineObjects
 			}
 
 			initVM();
+			Awake();
 			Start();
 		}
 
@@ -62,7 +58,7 @@ namespace Engine::EngineObjects
 				virtualMachine->RegisterGlobal("attributes", attributes);
 				virtualMachine->RegisterGlobal("Globals", virtualMachine->GetGlobals());
 
-				virtualMachine->RegisterScript(luaSource);
+				virtualMachine->RegisterCoroutine(luaSource);
 
 				//Start();
 			}

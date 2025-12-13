@@ -47,7 +47,7 @@ void GameObject::createCollisionShape()
 
 #endif
 
-void MoveChildren(GameObject^ root, List<GameObject^>^ childs)
+void MoveChildren(GameObject^ root, cli::array<GameObject^>^ childs)
 {
 	for each (GameObject ^ child in childs)
 	{
@@ -91,7 +91,7 @@ GameObject::GameObject()
 GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transform^ transform, Engine::Internal::Components::ObjectType t, String^ tag, Engine::Components::Layer^ layer)
 {
 	this->coroutines = gcnew List<System::Collections::IEnumerator^>();
-	this->childs = gcnew List<GameObject^>();
+	this->childs = gcnew cli::array<GameObject^>(0);
 	this->active = true;
 	this->memberIsProtected = false;
 	this->name = n;
@@ -199,7 +199,7 @@ void GameObject::OnPropChanged()
 
 void fixChilds(GameObject^ root)
 {
-	for (int x = 0; x < root->childs->Count; x++)
+	for (int x = 0; x < root->childs->Length; x++)
 	{
 		GameObject^% obj = root->childs[x];
 
@@ -282,7 +282,11 @@ void GameObject::GameUpdate()
 
 		HookUpdate();
 
-		if (EngineState::PlayMode == false)
+		if (EngineState::PlayMode == true)
+		{
+			Update();
+		}
+		else
 		{
 			auto method = GetType()->GetMethod("Update");
 
@@ -290,9 +294,9 @@ void GameObject::GameUpdate()
 			{
 				return;
 			}
-		}
 
-		Update();
+			Update();
+		}
 	}
 	catch (Exception^ ex)
 	{
@@ -323,7 +327,12 @@ void GameObject::GameDrawImGUI()
 	if (!active)
 		return;
 
-	if (!EngineState::PlayMode)
+
+	if (EngineState::PlayMode == true)
+	{
+		DrawImGUI();
+	}
+	else
 	{
 		auto method = GetType()->GetMethod("DrawImGUI");
 
@@ -331,9 +340,9 @@ void GameObject::GameDrawImGUI()
 		{
 			return;
 		}
-	}
 
-	DrawImGUI();
+		DrawImGUI();
+	}
 }
 
 generic <class T>
@@ -429,8 +438,6 @@ System::Object^ GameObject::CastToType(Type^ T, bool useConvert)
 
 void Engine::Internal::Components::GameObject::Destroy()
 {
-	Singleton<Engine::Scripting::ObjectManager^>::Instance->Destroy(this);
-
 #ifdef USE_BULLET_PHYS
 	if(collisionShape != nullptr)
 		delete collisionShape;
@@ -438,14 +445,14 @@ void Engine::Internal::Components::GameObject::Destroy()
 }
 
 
-System::Collections::Generic::List<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendants()
+cli::array<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendants()
 {
-	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDescendantsOf(this);
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDescendantsOf(this)->ToArray();
 }
 
-System::Collections::Generic::List<GameObject^>^ GameObject::GetChildren()
+cli::array<GameObject^>^ GameObject::GetChildren()
 {
-	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetChildrenOf(this);
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetChildrenOf(this)->ToArray();
 }
 
 GameObject^ GameObject::GetChild(int index)
@@ -522,6 +529,16 @@ GameObject^ GameObject::Instantiate(GameObject^ instance, Transform^ parent)
 	instance->transform->setParent(parent);
 	Singleton<Engine::Scripting::ObjectManager^>::Instance->Instantiate(instance);
 	return instance;
+}
+
+GameObject^ Engine::Internal::Components::GameObject::FindFirstObjectByName(System::String^ name)
+{
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetFirstObjectByName(name);
+}
+
+GameObject^ Engine::Internal::Components::GameObject::FindFirstObjectByTag(System::String^ tag)
+{
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetFirstObjectByTag(tag);
 }
 
 Engine::Internal::Components::ObjectType GameObject::GetObjectType()

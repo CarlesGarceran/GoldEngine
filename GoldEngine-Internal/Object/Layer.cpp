@@ -16,7 +16,7 @@ namespace Engine::Components
 		this->layerName = name;
 	}
 
-	Layer::Layer(int mask, System::String^ name, unsigned int layerBlendFlags)
+	Layer::Layer(int mask, System::String^ name, unsigned short layerBlendFlags)
 		: Layer(mask, name)
 	{
 		this->layerBlendFlags = layerBlendFlags;
@@ -38,12 +38,12 @@ namespace Engine::Components
 		return layerMask.ToString() + "_" + layerName + "_" + layerBlendFlags.ToString();
 	}
 
-	void Layer::setLayerBlendFlags(unsigned int flags)
+	void Layer::setLayerBlendFlags(unsigned short flags)
 	{
 		this->layerBlendFlags = flags;
 	}
 
-	unsigned int Layer::getLayerBlendFlags()
+	unsigned short Layer::getLayerBlendFlags()
 	{
 		return this->layerBlendFlags;
 	}

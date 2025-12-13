@@ -20,6 +20,11 @@ void Engine::Scripting::Logging::Log(String^ message)
 	l.release();
 }
 
+void Engine::Scripting::Logging::Log(String^ message, ...cli::array<System::Object^>^ args)
+{
+	Log(String::Format(message, args));
+}
+
 void Engine::Scripting::Logging::LogCustom(String^ header, String^ message)
 {
 	msclr::lock l(log);
@@ -35,6 +40,11 @@ void Engine::Scripting::Logging::LogCustom(String^ header, String^ message)
 	}
 
 	l.release();
+}
+
+void Engine::Scripting::Logging::LogCustom(String^ header, String^ message, ...cli::array<System::Object^>^ args)
+{
+	LogCustom(header, String::Format(message, args));
 }
 
 void Engine::Scripting::Logging::LogDebug(String^ message)
@@ -55,6 +65,11 @@ void Engine::Scripting::Logging::LogDebug(String^ message)
 	l.release();
 }
 
+void Engine::Scripting::Logging::LogDebug(String^ message, ...cli::array<System::Object^>^ args)
+{
+	LogDebug(String::Format(message, args));
+}
+
 void Engine::Scripting::Logging::LogWarning(String^ message)
 {
 	msclr::lock l(log);
@@ -71,6 +86,11 @@ void Engine::Scripting::Logging::LogWarning(String^ message)
 	}
 
 	l.release();
+}
+
+void Engine::Scripting::Logging::LogWarning(String^ message, ...cli::array<System::Object^>^ args)
+{
+	LogWarning(String::Format(message, args));
 }
 
 void Engine::Scripting::Logging::LogFatal(String^ message)
@@ -92,6 +112,11 @@ void Engine::Scripting::Logging::LogFatal(String^ message)
 	l.release();
 }
 
+void Engine::Scripting::Logging::LogFatal(String^ message, ...cli::array<System::Object^>^ args)
+{
+	LogFatal(String::Format(message, args));
+}
+
 void Engine::Scripting::Logging::LogError(String^ message)
 {
 	msclr::lock l(log);
@@ -108,4 +133,9 @@ void Engine::Scripting::Logging::LogError(String^ message)
 	}
 
 	l.release();
+}
+
+void Engine::Scripting::Logging::LogError(String^ message, ...cli::array<System::Object^>^ args)
+{
+	LogError(String::Format(message, args));
 }

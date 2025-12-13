@@ -4,8 +4,8 @@
 
 using namespace Engine::EngineObjects;
 
-Engine::EngineObjects::Geometry::CapsuleRenderer::CapsuleRenderer(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Engine::EngineObjects::Geometry::Abstract::Renderer(name, transform),
+Engine::EngineObjects::Geometry::CapsuleRenderer::CapsuleRenderer()
+	: Engine::EngineObjects::Geometry::Abstract::Renderer(),
 	  Tint(Engine::Components::Color::New(0xFFFFFFFF))
 {
 }

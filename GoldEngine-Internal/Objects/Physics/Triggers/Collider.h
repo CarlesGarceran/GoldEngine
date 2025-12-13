@@ -9,7 +9,7 @@ namespace Engine::EngineObjects::Physics
 	public ref class Collider abstract : Engine::EngineObjects::Script
 	{
 	protected:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)]
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)]
 		Enums::ColliderShape colliderShape;
 		bool registered = false;
 
@@ -31,7 +31,6 @@ namespace Engine::EngineObjects::Physics
 		Engine::Scripting::Events::Event^ HitEnded = Engine::Scripting::Events::Event::New();
 
 	public:
-		Collider(String^ name, Engine::Internal::Components::Transform^ transform);
 		Collider();
 
 		virtual void Start() override;
@@ -48,6 +47,12 @@ namespace Engine::EngineObjects::Physics
 		virtual void OnCollisionStay(GameObject^ instance) override;
 		virtual void OnCollisionExit(GameObject^ instance) override;
 		virtual void OnCollided(GameObject^ instance) override;
+
+
+		virtual void OnTriggerEnter(GameObject^ instance) override;
+		virtual void OnTriggerStay(GameObject^ instance) override;
+		virtual void OnTriggerExit(GameObject^ instance) override;
+		virtual void OnTriggered(GameObject^ instance) override;
 
 	protected:
 		virtual void OnCollisionTypeChanged(Enums::ColliderType newType, Enums::ColliderType oldType) = 0;

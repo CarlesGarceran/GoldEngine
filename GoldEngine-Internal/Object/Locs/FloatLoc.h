@@ -12,5 +12,8 @@ namespace Engine::Components::Locs
 
 		void SetValue(float value);
 		unsigned int GetLocType() override;
+
+		System::Object^ GetValue() override;
+		void SetValue(System::Object^) override;
 	};
 }

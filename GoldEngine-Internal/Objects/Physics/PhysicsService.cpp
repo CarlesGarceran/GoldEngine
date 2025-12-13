@@ -690,8 +690,8 @@ inline int AddMask(int mask, int layerId) {
 
 #pragma managed(pop)
 
-PhysicsService::PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Engine::EngineObjects::Script(name, transform),
+PhysicsService::PhysicsService()
+	: Engine::EngineObjects::Script(),
 	frameRate(60),
 	maxSubSteps(10),
 	Gravity(Engine::Components::Vector3(0, -9.81f, 0))

@@ -15,5 +15,8 @@ namespace Engine::Components::Locs
 		void setInstance(System::Object^% instance);
 
 		unsigned int GetLocType() override;
+
+		System::Object^ GetValue() override;
+		void SetValue(System::Object^) override;
 	};
 }

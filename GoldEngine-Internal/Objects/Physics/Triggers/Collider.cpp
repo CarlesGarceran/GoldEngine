@@ -25,13 +25,6 @@ void UpdateSizeExtents(btBoxShape* boxShape, float size[3])
 using namespace Engine::EngineObjects::Physics;
 using namespace Engine::EngineObjects::Physics::Enums;
 
-Collider::Collider(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Engine::EngineObjects::Script(name, transform)
-{
-	this->wireColor = gcnew Engine::Components::Color(0xFF00FF00);
-	this->renderWires = true;
-}
-
 Engine::EngineObjects::Physics::Collider::Collider()
 	: Engine::EngineObjects::Script()
 {
@@ -78,10 +71,7 @@ void Engine::EngineObjects::Physics::Collider::OnCollisionEnter(GameObject^ inst
 {
 	if (instance == root || instance == this) return;
 
-	if (this->collisionType == ColliderType::Trigger)
-		Parent->OnTriggerEnter(instance);
-	else
-		Parent->OnCollisionEnter(instance);
+	Parent->OnCollisionEnter(instance);
 
 	HitBegin->raiseExecution(gcnew cli::array<System::Object^> { instance });
 }
@@ -90,10 +80,7 @@ void Engine::EngineObjects::Physics::Collider::OnCollisionStay(GameObject^ insta
 {
 	if (instance == root || instance == this) return;
 
-	if (this->collisionType == ColliderType::Trigger)
-		Parent->OnTriggerStay(instance);
-	else
-		Parent->OnCollisionStay(instance);
+	Parent->OnCollisionStay(instance);
 
 	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
 }
@@ -102,11 +89,7 @@ void Engine::EngineObjects::Physics::Collider::OnCollisionExit(GameObject^ insta
 {
 	if (instance == root || instance == this) return;
 
-	if (this->collisionType == ColliderType::Trigger)
-		Parent->OnTriggerExit(instance);
-	else
-		Parent->OnCollisionExit(instance);
-
+	Parent->OnCollisionExit(instance);
 
 	HitEnded->raiseExecution(gcnew cli::array<System::Object^> { instance });
 }
@@ -115,10 +98,43 @@ void Engine::EngineObjects::Physics::Collider::OnCollided(GameObject^ instance)
 {
 	if (instance == root || instance == this) return;
 
-	if (this->collisionType == ColliderType::Trigger)
-		Parent->OnTriggered(instance);
-	else
-		Parent->OnCollided(instance);
+	Parent->OnCollided(instance);
+
+	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnTriggerEnter(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	Parent->OnTriggerEnter(instance);
+
+	HitBegin->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnTriggerStay(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	Parent->OnTriggerStay(instance);
+
+	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnTriggerExit(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	Parent->OnTriggerExit(instance);
+
+	HitEnded->raiseExecution(gcnew cli::array<System::Object^> { instance });
+}
+
+void Engine::EngineObjects::Physics::Collider::OnTriggered(GameObject^ instance)
+{
+	if (instance == root || instance == this) return;
+
+	Parent->OnTriggered(instance);
 
 	Hit->raiseExecution(gcnew cli::array<System::Object^> { instance });
 }

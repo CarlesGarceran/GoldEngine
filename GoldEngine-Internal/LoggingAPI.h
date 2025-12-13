@@ -36,11 +36,17 @@ namespace Engine::Scripting
 
 	public:
 		static void Log(String^ message);
+		static void Log(String^ message, ... cli::array<System::Object^>^ args);
 		static void LogCustom(String^ header, String^ message);
+		static void LogCustom(String^ header, String^ message, ... cli::array<System::Object^>^ args);
 		static void LogDebug(String^ message);
+		static void LogDebug(String^ message, ... cli::array<System::Object^>^ args);
 		static void LogWarning(String^ message);
+		static void LogWarning(String^ message, ... cli::array<System::Object^>^ args);
 		static void LogFatal(String^ message);
+		static void LogFatal(String^ message, ... cli::array<System::Object^>^ args);
 		static void LogError(String^ message);
+		static void LogError(String^ message, ... cli::array<System::Object^>^ args);
 
 		static void clearLogs()
 		{

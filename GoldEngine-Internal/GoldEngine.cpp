@@ -2,6 +2,7 @@
 
 #include "Instantiable.h"
 #include "ExecuteInEditModeAttribute.h"
+#include "PersistantInstanceAttribute.h"
 #include "LuaAPI.h"
 
 using namespace Engine::Attributes;
@@ -395,10 +396,6 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 	if (consoleCommand.find("clear()") != std::string::npos || consoleCommand.find("Clear()") != std::string::npos)
 	{
 		Engine::Scripting::Logging::clearLogs();
-	}
-	else if (consoleCommand.find("ifd()") != std::string::npos)
-	{
-		ifd::FileDialog::Instance().Open("TestFileDialog", "Open file", "All Files (*.*),.*", false);
 	}
 	else
 	{
@@ -978,7 +975,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 				refName += _reference->name;
 				refName += (_reference->active == true) ? "" : "(INACTIVE)";
 
-				if (_reference->GetChildren()->Count > 0)
+				if (_reference->GetChildren()->Length > 0)
 				{
 					bool isOpen = ImGui::TreeNodeEx(CastStringToNative("##_" + refName + "_(ENGINE_PROTECTED)_" + "###_" + _reference->getTransform()->GetUID() + x).c_str());
 					ImGui::SameLine();
@@ -1103,17 +1100,9 @@ void EditorWindow::createAssetEntries(String^ path)
 					assetId = std::get<1>(res);
 				}
 
-				auto meshRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer(
-					"ModelRenderer",
-					gcnew Engine::Internal::Components::Transform(
-						Engine::Components::Vector3(0, 0, 0),
-						Engine::Components::Vector3(0, 0, 0),
-						Engine::Components::Vector3(1, 1, 1),
-						nullptr
-					),
-					assetId,
-					0
-				);
+				auto meshRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer();
+				meshRenderer->name = "ModelRenderer";
+				meshRenderer->modelId = assetId;
 				meshRenderer->SetParent(scene->GetDatamodelMember("workspace"));
 				scene->AddObjectToScene(meshRenderer);
 			}
@@ -1398,15 +1387,6 @@ void EditorWindow::Start()
 
 	Loop();
 }
-void EditorWindow::ExecAsIdentifiedObject(Engine::Internal::Components::ObjectType type, System::Object^ object)
-{
-	if (scene->sceneLoaded())
-	{
-		Engine::Internal::Components::GameObject^ modelRenderer = (Engine::Internal::Components::GameObject^)object;
-		modelRenderer->GameDraw();
-		modelRenderer->GameDrawGizmos();
-	}
-}
 void EditorWindow::DrawMainMenuBar()
 {
 	if (ImGui::BeginMainMenuBar())
@@ -1605,14 +1585,9 @@ void EditorWindow::DrawMainMenuBar()
 
 			if (ImGui::MenuItem("Empty Object"))
 			{
-				Engine::EngineObjects::Script^ newObject = gcnew Engine::EngineObjects::Script("Empty Object",
-					gcnew Engine::Internal::Components::Transform(
-						Engine::Components::Vector3::create({ 0,0,0 }),
-						Engine::Components::Vector3::create({ 0,0,0 }),
-						Engine::Components::Vector3::create({ 1,1,1 }),
-						parent
-					)
-				);
+				Engine::EngineObjects::Script^ newObject = gcnew Engine::EngineObjects::Script();
+				newObject->name = "Empty Object";
+				newObject->transform->SetParent(parent);
 
 				scene->AddObjectToScene(newObject);
 			}
@@ -1636,15 +1611,9 @@ void EditorWindow::DrawMainMenuBar()
 
 				if (ImGui::MenuItem("Capsule Renderer"))
 				{
-					Engine::EngineObjects::Geometry::CapsuleRenderer^ cubeRenderer = gcnew Engine::EngineObjects::Geometry::CapsuleRenderer(
-						"CapsuleRenderer",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 1,1,1 }),
-							parent
-						)
-					);
+					Engine::EngineObjects::Geometry::CapsuleRenderer^ cubeRenderer = gcnew Engine::EngineObjects::Geometry::CapsuleRenderer();
+					cubeRenderer->name = "CapsuleRenderer";
+					cubeRenderer->transform->SetParent(parent);
 
 					scene->AddObjectToScene(cubeRenderer);
 				}
@@ -1712,30 +1681,18 @@ void EditorWindow::DrawMainMenuBar()
 				{
 					if (ImGui::MenuItem("ModelRenderer"))
 					{
-						auto modelRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer(
-							"ModelRenderer",
-							gcnew Engine::Internal::Components::Transform(
-								Engine::Components::Vector3::create({ 0,0,0 }),
-								Engine::Components::Vector3::create({ 0,0,0 }),
-								Engine::Components::Vector3::create({ 0,0,0 }),
-								parent
-							)
-						);
+						auto modelRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer();
+						modelRenderer->name = "ModelRenderer";
+						modelRenderer->transform->SetParent(parent);
 
 						scene->AddObjectToScene(modelRenderer);
 					}
 
 					if (ImGui::MenuItem("MeshRenderer"))
 					{
-						auto meshRenderer = gcnew Engine::EngineObjects::Geometry::MeshRenderer(
-							"MeshRenderer",
-							gcnew Engine::Internal::Components::Transform(
-								Engine::Components::Vector3::create({ 0,0,0 }),
-								Engine::Components::Vector3::create({ 0,0,0 }),
-								Engine::Components::Vector3::create({ 1,1,1 }),
-								parent
-							)
-						);
+						auto meshRenderer = gcnew Engine::EngineObjects::Geometry::MeshRenderer();
+						meshRenderer->name = "MeshRenderer";
+						meshRenderer->transform->SetParent(parent);
 
 						scene->AddObjectToScene(meshRenderer);
 					}
@@ -1753,78 +1710,38 @@ void EditorWindow::DrawMainMenuBar()
 #ifdef USE_BULLET_PHYS
 				if (ImGui::MenuItem("RigidBody"))
 				{
-					auto meshRenderer = gcnew Engine::EngineObjects::Physics::RigidBody(
-						"RigidBody",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(1, 1, 1),
-							parent
-						)
-					);
+					auto meshRenderer = gcnew Engine::EngineObjects::Physics::RigidBody();
+					meshRenderer->name = "RigidBody";
+					meshRenderer->transform->SetParent(parent);
 
 					scene->AddObjectToScene(meshRenderer);
 				}
-				/*
-				if (ImGui::MenuItem("Collider"))
-				{
-					auto meshRenderer = gcnew Engine::EngineObjects::Physics::Collider(
-						"Collider",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(1, 1, 1),
-							scene->GetDatamodelMember("workspace")->transform
-						)
-					);
-
-					scene->AddObjectToScene(meshRenderer);
-				}
-				*/
 
 				if (ImGui::BeginMenu("Colliders"))
 				{
 					if (ImGui::MenuItem("Box Collider"))
 					{
-						auto meshRenderer = gcnew Engine::EngineObjects::Physics::BoxCollider(
-							"BoxCollider",
-							gcnew Engine::Internal::Components::Transform(
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(1, 1, 1),
-								parent
-							)
-						);
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::BoxCollider();
+						meshRenderer->name = "BoxCollider";
+						meshRenderer->transform->setParent(parent);
 
 						scene->AddObjectToScene(meshRenderer);
 					}
 
 					if (ImGui::MenuItem("Capsule Collider"))
 					{
-						auto meshRenderer = gcnew Engine::EngineObjects::Physics::CapsuleCollider(
-							"CapsuleCollider",
-							gcnew Engine::Internal::Components::Transform(
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(1, 1, 1),
-								parent
-							)
-						);
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::CapsuleCollider();
+						meshRenderer->name = "CapsuleCollider";
+						meshRenderer->transform->setParent(parent);
 
 						scene->AddObjectToScene(meshRenderer);
 					}
 
 					if (ImGui::MenuItem("Mesh Collider"))
 					{
-						auto meshRenderer = gcnew Engine::EngineObjects::Physics::MeshCollider(
-							"MeshCollider",
-							gcnew Engine::Internal::Components::Transform(
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(1, 1, 1),
-								parent
-							)
-						);
+						auto meshRenderer = gcnew Engine::EngineObjects::Physics::MeshCollider();
+						meshRenderer->name = "MeshCollider";
+						meshRenderer->transform->setParent(parent);
 
 						scene->AddObjectToScene(meshRenderer);
 					}
@@ -1845,15 +1762,9 @@ void EditorWindow::DrawMainMenuBar()
 			{
 				if (ImGui::MenuItem("AudioSource"))
 				{
-					auto meshRenderer = gcnew Engine::EngineObjects::AudioSource(
-						"AudioSource",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(0, 0, 0),
-							Engine::Components::Vector3(1, 1, 1),
-							parent
-						)
-					);
+					auto meshRenderer = gcnew Engine::EngineObjects::AudioSource();
+					meshRenderer->name = "AudioSource";
+					meshRenderer->transform->setParent(parent);
 
 					scene->AddObjectToScene(meshRenderer);
 				}
@@ -1962,12 +1873,14 @@ void EditorWindow::DrawMainMenuBar()
 				{
 					if (ImGui::MenuItem("RenderSurface3D"))
 					{
-						auto image = gcnew Engine::EngineObjects::Surface::RenderSurface3D("RenderSurface3D", gcnew Engine::Internal::Components::Transform(
+						auto image = gcnew Engine::EngineObjects::Surface::RenderSurface3D();
+						image->name = "RenderSurface3D";
+						image->transform = gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(),
 							Engine::Components::Vector3(1, 1, 1),
 							parent
-						));
+						);
 
 						scene->AddObjectToScene(image);
 					}
@@ -2001,13 +1914,10 @@ void EditorWindow::DrawMainMenuBar()
 			{
 				if (ImGui::MenuItem("Lua Script"))
 				{
-					Engine::EngineObjects::LuaScript^ luaScript = gcnew Engine::EngineObjects::LuaScript("LuaScript",
-						gcnew Engine::Internal::Components::Transform(
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 1,1,1 }),
-							parent
-						));
+					Engine::EngineObjects::LuaScript^ luaScript = gcnew Engine::EngineObjects::LuaScript();
+
+					luaScript->name = "Script";
+					luaScript->transform->SetParent(parent);
 
 					scene->AddObjectToScene(luaScript);
 				}
@@ -2023,6 +1933,8 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						for each (auto T in assembly->GetAssemblyTypes())
 						{
+							if (T->IsAbstract) continue;
+
 							if (!T->Namespace->Equals(""))
 							{
 								if (ImGui::BeginMenu(CastToNative(T->Namespace)))
@@ -2031,6 +1943,8 @@ void EditorWindow::DrawMainMenuBar()
 									{
 										Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
 										retn->transform->SetParent(parent);
+										retn->name = T->Name;
+
 										scene->AddObjectToScene(retn);
 									}
 
@@ -2043,6 +1957,8 @@ void EditorWindow::DrawMainMenuBar()
 								{
 									Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
 									retn->transform->SetParent(parent);
+									retn->name = T->Name;
+
 									scene->AddObjectToScene(retn);
 								}
 							}
@@ -2170,7 +2086,7 @@ void EditorWindow::DrawHierarchy()
 				String^ refName = reference->name;
 				refName += (reference->active == true) ? "" : " (INACTIVE)";
 
-				if (reference->GetChildren()->Count > 0)
+				if (reference->GetChildren()->Length > 0)
 				{
 					bool isOpen = ImGui::TreeNodeEx(CastStringToNative("##_" + refName + "_(ENGINE_PROTECTED)_" + "###_" + reference->getTransform()->GetUID() + x).c_str());
 					ImGui::SameLine();
@@ -2763,6 +2679,8 @@ void EditorWindow::DrawImGui()
 {
 	auto viewPort = ImGui::GetMainViewport();
 	ImGui::DockSpaceOverViewport(viewPort->ID, viewPort, ImGuiDockNodeFlags_None);
+
+	if (EngineState::PlayMode) return;
 
 	DrawMainMenuBar();
 	DrawToolbar();
@@ -3384,15 +3302,9 @@ void EditorWindow::create()
 
 	if (!scene->ExistsMember("game"))
 	{
-		gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-			"game",
-			gcnew Engine::Internal::Components::Transform(
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				nullptr
-			)
-		);
+		gameRoot = gcnew Engine::EngineObjects::Private::Scene();
+		gameRoot->name = "game";
+
 		scene->PushToRenderQueue(gameRoot);
 	}
 	else
@@ -3403,15 +3315,8 @@ void EditorWindow::create()
 		}
 		catch (Exception^ ex)
 		{
-			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-				"game",
-				gcnew Engine::Internal::Components::Transform(
-					Engine::Components::Vector3(0, 0, 0),
-					Engine::Components::Vector3(0, 0, 0),
-					Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				)
-			);
+			gameRoot = gcnew Engine::EngineObjects::Private::Scene();
+			gameRoot->name = "game";
 		}
 	}
 
@@ -3423,19 +3328,15 @@ void EditorWindow::create()
 	gui->setParent(gameRoot);
 	auto daemonParent = scene->GetDatamodelMember("daemons", true);
 	daemonParent->setParent(gameRoot);
+	auto scriptContext = scene->GetDatamodelMember("ScriptContext", true);
+	scriptContext->setParent(gameRoot);
 
 #ifdef USE_BULLET_PHYS
 
 	if (!scene->ExistsMember("PhysicsService"))
 	{
-		auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService("PhysicsService",
-			gcnew Engine::Internal::Components::Transform(
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				nullptr
-			)
-		);
+		auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService();
+		physicsService->name = "PhysicsService";
 		physicsService->setParent(gameRoot);
 
 		scene->PushToRenderQueue(physicsService);
@@ -3590,9 +3491,6 @@ void EditorWindow::Update()
 
 	if (camera == nullptr)
 		return;
-
-	auto projectionMode = camera->getProjection();
-	bool is3DCamera = (projectionMode == CamProjection::CAMERA_PERSPECTIVE);
 
 	void* cameraLocal = camera->get();
 

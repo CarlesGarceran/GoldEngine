@@ -3,8 +3,8 @@
 
 using namespace Engine::EngineObjects::Private;
 
-Scene::Scene(String^ name, Engine::Internal::Components::Transform^ transform) : 
-	Engine::EngineObjects::Script(name, transform),
+Scene::Scene() : 
+	Engine::EngineObjects::Script(),
 	scenePtr(Engine::Management::Scene::getLoadedScene()),
 	sceneName(scenePtr->sceneName),
 	skyColor(gcnew Engine::Components::Color(scenePtr->skyColor)),

@@ -16,7 +16,6 @@ namespace Engine::EngineObjects::Physics
 
 
 	public:
-		MeshCollider(String^ name, Engine::Internal::Components::Transform^ transform);
 		MeshCollider();
 
 		void Awake() override;

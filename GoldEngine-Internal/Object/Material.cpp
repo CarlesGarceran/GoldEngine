@@ -134,7 +134,7 @@ unsigned int Engine::Components::Material::GetMainTexture()
 {
 	if (containsLoc("albedoMap", MaterialProperties))
 	{
-		return ((Locs::TextureLoc^)MaterialProperties[getLocIndex("albedoMap", MaterialProperties)])->textureId;
+		return ((Locs::TextureLoc^)MaterialProperties[getLocIndex("albedoMap", MaterialProperties)]->GetMaterialLocation())->textureId;
 	}
 
 	return 0;
@@ -144,7 +144,7 @@ unsigned int Engine::Components::Material::GetNormalMap()
 {
 	if (containsLoc("normalMap", MaterialProperties))
 	{
-		return ((Locs::TextureLoc^)MaterialProperties[getLocIndex("normalMap", MaterialProperties)])->textureId;
+		return ((Locs::TextureLoc^)MaterialProperties[getLocIndex("normalMap", MaterialProperties)]->GetMaterialLocation())->textureId;
 	}
 
 	return 0;
@@ -155,7 +155,7 @@ T Engine::Components::Material::GetMaterialProperty(System::String^ propName)
 {
 	if (containsLoc(propName, MaterialProperties))
 	{
-		return (T)(MaterialProperties[getLocIndex(propName, MaterialProperties)]);
+		return (T)(MaterialProperties[getLocIndex(propName, MaterialProperties)]->GetMaterialLocation());
 	}
 
 	return T();
@@ -165,7 +165,11 @@ void Engine::Components::Material::SetMainTexture(int textureId)
 {
 	if (containsLoc("albedoMap", MaterialProperties))
 	{
-		((Locs::TextureLoc^)MaterialProperties[getLocIndex("albedoMap", MaterialProperties)])->textureId = textureId;
+		int locIndex = getLocIndex("albedoMap", MaterialProperties);
+		auto matLoc = ((Locs::TextureLoc^)MaterialProperties[locIndex]->GetMaterialLocation());
+		matLoc->textureId = textureId;
+
+		MaterialProperties[locIndex]->SetMaterialLocation(matLoc);
 	}
 }
 
@@ -173,7 +177,11 @@ void Engine::Components::Material::SetNormalMap(int textureId)
 {
 	if (containsLoc("normalMap", MaterialProperties))
 	{
-		((Locs::TextureLoc^)MaterialProperties[getLocIndex("normalMap", MaterialProperties)])->textureId = textureId;
+		int locIndex = getLocIndex("normalMap", MaterialProperties);
+		auto matLoc = ((Locs::TextureLoc^)MaterialProperties[locIndex]->GetMaterialLocation());
+		matLoc->textureId = textureId;
+
+		MaterialProperties[locIndex]->SetMaterialLocation(matLoc);
 	}
 }
 
@@ -482,14 +490,10 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 		}
 		}
 	}
-
-	RLGL::rlDisableShader();
 }
 
 void Engine::Components::Material::ResetShader(RAYLIB::Shader& shader)
 {
-	RLGL::rlEnableShader(shader.id);
-
 	for each (auto key in this->MaterialProperties)
 	{
 		Engine::Components::Locs::Generic::MaterialLoc^ genericLoc = key->GetMaterialLocation();
@@ -528,6 +532,4 @@ void Engine::Components::Material::ResetShader(RAYLIB::Shader& shader)
 		}
 		}
 	}
-
-	RLGL::rlDisableShader();
 }

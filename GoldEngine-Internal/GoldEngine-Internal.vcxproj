@@ -456,6 +456,7 @@
     <ClInclude Include="Object\Vector2.h" />
     <ClInclude Include="Object\Vector3.h" />
     <ClInclude Include="Object\ViewSpace.h" />
+    <ClInclude Include="PersistantInstanceAttribute.h" />
     <ClInclude Include="PreloadScript.h" />
     <ClInclude Include="SerializePropertyAttribute.h" />
     <ClInclude Include="Raylib\include\x64\raylib.h" />

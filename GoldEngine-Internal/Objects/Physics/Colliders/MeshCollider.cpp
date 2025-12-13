@@ -85,21 +85,15 @@ void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enu
 	}
 }
 
-Engine::EngineObjects::Physics::MeshCollider::MeshCollider(String^ name, Engine::Internal::Components::Transform^ transform) :
-	Collider(name, transform)
-{
-	colliderShape = Enums::ColliderShape::Mesh;
-
-	if (Parent != nullptr) 
-	{
-		transform->position = Parent->transform->position;
-	}
-}
-
 Engine::EngineObjects::Physics::MeshCollider::MeshCollider() :
 	Collider()
 {
-	colliderShape = Enums::ColliderShape::Mesh;
+	colliderShape = Enums::ColliderShape::Mesh; 
+
+	if (Parent != nullptr)
+	{
+		transform->position = Parent->transform->position;
+	}
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::Awake()

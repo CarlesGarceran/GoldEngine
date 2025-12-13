@@ -20,3 +20,15 @@ unsigned int Engine::Components::Locs::FloatLoc::GetLocType()
 {
 	return 2;
 }
+
+System::Object^ Engine::Components::Locs::FloatLoc::GetValue()
+{
+	return this->value;
+}
+
+void Engine::Components::Locs::FloatLoc::SetValue(System::Object^ instance)
+{
+	//if (instance->GetType() != float::typeid) throw gcnew System::ArgumentException();
+
+	this->value = (float)System::Convert::ToSingle(instance);
+}

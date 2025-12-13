@@ -42,7 +42,6 @@ private:
 	void DrawHierarchy();
 	void DrawProperties();
 	void DrawAssets();
-	void ExecAsIdentifiedObject(Engine::Internal::Components::ObjectType type, System::Object^ object);
 	void RegisterKeybinds();
 	void create();
 	void createAssetEntries(String^ path);

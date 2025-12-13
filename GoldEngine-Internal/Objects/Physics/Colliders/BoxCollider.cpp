@@ -138,8 +138,8 @@ void SetCollisionShape(GameObject^ Instance, Engine::Components::Vector3 extents
 	collisionShape->resampleAABB();
 }
 
-Engine::EngineObjects::Physics::BoxCollider::BoxCollider(String^ name, Engine::Internal::Components::Transform^ transform) : 
-	Collider(name, transform)
+Engine::EngineObjects::Physics::BoxCollider::BoxCollider() :
+	Collider()
 {
 	colliderShape = Enums::ColliderShape::Box;
 
@@ -148,12 +148,6 @@ Engine::EngineObjects::Physics::BoxCollider::BoxCollider(String^ name, Engine::I
 		extents = Parent->transform->scale;
 		transform->position = Parent->transform->position;
 	}
-}
-
-Engine::EngineObjects::Physics::BoxCollider::BoxCollider() :
-	Collider()
-{
-	colliderShape = Enums::ColliderShape::Box;
 }
 
 void Engine::EngineObjects::Physics::BoxCollider::Awake()

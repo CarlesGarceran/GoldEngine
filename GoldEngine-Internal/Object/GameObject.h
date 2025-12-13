@@ -32,7 +32,7 @@ namespace Engine::Internal::Components
 		System::String^ tag;
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			System::Collections::Generic::List<GameObject^>^ childs;
+			cli::array<GameObject^>^ childs;
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 			Engine::Scripting::Events::Event^ onPropertyChanged;
@@ -60,7 +60,7 @@ namespace Engine::Internal::Components
 	private:
 		~GameObject()
 		{
-			childs->Clear();
+			childs->Clear(childs);
 			onPropertyChanged->disconnectAll();
 			onChildAdded->disconnectAll();
 			onChildRemoved->disconnectAll();
@@ -203,8 +203,9 @@ namespace Engine::Internal::Components
 			this->layerMask = layerMask;
 		}
 
-		System::Collections::Generic::List<GameObject^>^ GetDescendants();
-		System::Collections::Generic::List<GameObject^>^ GetChildren();
+		cli::array<GameObject^>^ GetDescendants();
+		cli::array<GameObject^>^ GetChildren();
+
 		GameObject^ GetChild(int index);
 		GameObject^ GetChild(String^ name);
 
@@ -225,7 +226,6 @@ namespace Engine::Internal::Components
 
 		generic <class T>
 		T FindFirstChild();
-
 		generic <class T>
 		T FindFirstSibling();
 
@@ -235,6 +235,8 @@ namespace Engine::Internal::Components
 
 		generic <class T>
 		static T FindFirstObjectOfType();
+		static GameObject^ FindFirstObjectByName(System::String^ name);
+		static GameObject^ FindFirstObjectByTag(System::String^ tag);
 
 		/*
 #pragma region IConvertible_Implementation

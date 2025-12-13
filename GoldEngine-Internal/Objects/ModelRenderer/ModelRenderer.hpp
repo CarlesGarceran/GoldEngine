@@ -8,7 +8,6 @@ namespace Engine::EngineObjects::Geometry
 	{
 	private:
 		Engine::Native::EnginePtr<RAYLIB::Model>* model;
-		Engine::Components::Material^ material = nullptr;
 
 	public:
 		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
@@ -18,9 +17,6 @@ namespace Engine::EngineObjects::Geometry
 
 	public:
 		ModelRenderer();
-		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform);
-		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId);
-		ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId, Engine::Components::Color^ tint);
 
 		void Setup() override;
 
@@ -32,6 +28,5 @@ namespace Engine::EngineObjects::Geometry
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);
-		void onMaterialUpdated(unsigned int newId, unsigned int oldId);
 	};
 }

@@ -20,12 +20,6 @@ void onMaterialUnloaded(RAYLIB::Material material)
 	RAYLIB::UnloadMaterial(material);
 }
 
-Engine::EngineObjects::Surface::RenderSurface3D::RenderSurface3D(String^ name, Engine::Internal::Components::Transform^ transform)
-	: RenderSurface(name, transform)
-{
-
-}
-
 RenderSurface3D::RenderSurface3D()
 	: RenderSurface()
 {
@@ -161,12 +155,6 @@ void RenderSurface3D::onViewportSizeChanged(Engine::Components::Vector2 newSize,
 	RAYLIB::RenderTexture2D viewport = RAYLIB::LoadRenderTexture(newSize.x, newSize.y);
 
 	this->texturePtr->setInstanceRef(viewport);
-}
-
-RenderSurface::RenderSurface(String^ name, Engine::Internal::Components::Transform^ transform) :
-	Engine::EngineObjects::Script(name, transform)
-{
-
 }
 
 RenderSurface::RenderSurface() :

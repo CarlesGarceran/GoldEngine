@@ -164,6 +164,8 @@ namespace Engine::Scripting
 					return (T)t;
 				}
 			}
+
+			return T();
 		}
 
 		Engine::Internal::Components::GameObject^ GetFirstObjectOfType(System::Type^ type)

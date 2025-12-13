@@ -7,7 +7,6 @@ namespace Engine::EngineObjects::Surface
 	public ref class RenderSurface : Engine::EngineObjects::Script 
 	{ 
 	public:
-		RenderSurface(String^ name, Engine::Internal::Components::Transform^ transform);
 		RenderSurface();
 	};
 
@@ -31,7 +30,6 @@ namespace Engine::EngineObjects::Surface
 		Engine::Components::Color^ tintColor;
 
 	public:
-		RenderSurface3D(String^ name, Engine::Internal::Components::Transform^ transform);
 		RenderSurface3D();
 
 		void Start() override;

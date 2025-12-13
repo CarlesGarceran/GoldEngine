@@ -9,15 +9,15 @@ namespace Engine::Components
 		int layerMask; // int that represents the priority on rendering (layer 1 will write over layer 0, layer 2 will write over layer 1 and 0, ...);
 		System::String^ layerName;
 
-		unsigned int layerBlendFlags;
+		unsigned short layerBlendFlags;
 
 	public:
 		Layer();
 		Layer(int mask, System::String^ name);
-		Layer(int mask, System::String^ name, unsigned int layerBlendFlags);
+		Layer(int mask, System::String^ name, unsigned short layerBlendFlags);
 
-		void setLayerBlendFlags(unsigned int flags);
-		unsigned int getLayerBlendFlags();
+		void setLayerBlendFlags(unsigned short flags);
+		unsigned short getLayerBlendFlags();
 
 		bool IsLayer(Layer^ layerB);
 

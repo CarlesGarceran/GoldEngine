@@ -5,9 +5,6 @@ namespace Engine::EngineObjects
 	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Camera3D : public Engine::EngineObjects::Camera
 	{
-	protected: 
-		Native::NativeCamera3D* nativeCamera;
-
 	public:
 		Camera3D(String^ name, Engine::Internal::Components::Transform^ trans) : Engine::EngineObjects::Camera(name, trans, CameraProjection::CAMERA_PERSPECTIVE)
 		{
@@ -37,23 +34,6 @@ namespace Engine::EngineObjects
 			DrawLine3D(transform->position.toNative(), nativeCamera->get().target, GetColor(0xFF0000FF));
 		}
 
-		void setTarget(Engine::Components::Vector2 target) override
-		{
-			auto nativeCameraPtr = this->nativeCamera->getCameraPtr();
-
-			nativeCameraPtr->target.x = nativeCameraPtr->position.x + cosf(DEG2RAD * target.x) * cosf(DEG2RAD * target.y);
-			nativeCameraPtr->target.y = nativeCameraPtr->position.y + sinf(DEG2RAD * target.y);
-			nativeCameraPtr->target.z = nativeCameraPtr->position.z + sinf(DEG2RAD * target.x) * cosf(DEG2RAD * target.y);
-
-			transform->rotation = Engine::Components::Vector3(nativeCameraPtr->target.x, nativeCameraPtr->target.y, nativeCameraPtr->target.z);
-		}
-
-		void setTarget(Engine::Components::Vector3 target) override
-		{
-			transform->rotation = target;
-			this->nativeCamera->setCameraTarget(target.toNative());
-		}
-
 		void* get() override
 		{
 			return (void*)nativeCamera;
@@ -62,26 +42,6 @@ namespace Engine::EngineObjects
 		bool is3DCamera() override
 		{
 			return true;
-		}
-
-		void LookAt(Engine::Components::Vector3 target)
-		{
-			transform->rotation = target;
-
-			nativeCamera->get().target = target.toNative();
-
-			RAYLIB::Vector3 forward = RAYMATH::Vector3Normalize(RAYMATH::Vector3Subtract(target.toNative(), nativeCamera->get().position));
-			RAYLIB::Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
-
-			RAYLIB::Vector3 right = RAYMATH::Vector3Normalize(RAYMATH::Vector3CrossProduct(worldUp, forward));
-			RAYLIB::Vector3 up = RAYMATH::Vector3CrossProduct(forward, right);
-
-			nativeCamera->get().up = up;
-		}
-
-		void LookAt(GameObject^ instance)
-		{
-			LookAt(instance->transform->position);
 		}
 
 		void ApplyCameraYaw(float yaw, bool local) override

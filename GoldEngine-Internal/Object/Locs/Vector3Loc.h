@@ -11,5 +11,8 @@ namespace Engine::Components::Locs
 		Vector3Loc();
 
 		unsigned int GetLocType() override;
+
+		System::Object^ GetValue() override;
+		void SetValue(System::Object^) override;
 	};
 }

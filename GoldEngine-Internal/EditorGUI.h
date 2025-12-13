@@ -16,14 +16,14 @@ extern msclr::gcroot<Engine::Internal::Components::GameObject^> selectionObject;
 
 void DoubleEditor(Engine::Scripting::Attribute^ attrib)
 {
-	float tmp = (double)attrib->getValue();
+	double tmp = (double)attrib->getValue();
+	double step = 1.0;
+	double step_fast = 5.0;
 
-	float value = (double)tmp;
-
-	if (ImGui::InputFloat(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), &value, 0.1f, 0.5f, "%.3f"))
+	if (ImGui::InputScalar(CastStringToNative("###PROPERTY_EDITOR_##" + attrib->name).c_str(), ImGuiDataType_Double, &tmp, &step, &step_fast, "%.3f"))
 	{
-		attrib->setValue(value, false);
-		attrib->setType(float::typeid);
+		attrib->setValue(tmp, false);
+		attrib->setType(double::typeid);
 	}
 }
 
@@ -97,7 +97,7 @@ void ColorEditor(Engine::Scripting::Attribute^ attrib)
 		value = (Engine::Components::Color^)attrib->getValue();
 	}
 
-	auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(value->toHex()));
+	auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(value->toRGBA()));
 
 	float rawData[4] =
 	{
@@ -340,7 +340,7 @@ void ColorEditor(System::Object^ obj, System::Reflection::FieldInfo^ fieldInfo)
 {
 	Engine::Components::Color^ value = (Engine::Components::Color^)fieldInfo->GetValue(obj);
 
-	auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(value->toHex()));
+	auto float4 = ImGui::ColorConvertU32ToFloat4(ImU32(value->toRGBA()));
 
 	float rawData[4] =
 	{
@@ -352,7 +352,8 @@ void ColorEditor(System::Object^ obj, System::Reflection::FieldInfo^ fieldInfo)
 
 	if (ImGui::ColorEdit4(CastStringToNative("###PROPERTY_EDITOR_##" + fieldInfo->Name).c_str(), rawData))
 	{
-		fieldInfo->SetValue(obj, gcnew Engine::Components::Color(ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3]))));
+		unsigned int hex = ImGui::ColorConvertFloat4ToU32(ImVec4(rawData[0], rawData[1], rawData[2], rawData[3]));
+		fieldInfo->SetValue(obj, gcnew Engine::Components::Color(hex));
 	}
 }
 

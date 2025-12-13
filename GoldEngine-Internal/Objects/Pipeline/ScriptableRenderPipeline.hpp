@@ -2,21 +2,7 @@
 
 namespace Engine::Render
 {
-	struct cameraData
-	{
-	public:
-		float nearPlane;
-		float farPlane;
-
-		cameraData(float nP, float fP)
-		{
-			this->nearPlane = nP;
-			this->farPlane = fP;
-		}
-	};
-
 	void UnloadRenderTextureDepthTex(RenderTexture2D target);
-	void unloadCameraData(cameraData* data);
 
 	void CallImGuizmoRender(Engine::Window^ windowPtr);
 
@@ -52,7 +38,6 @@ namespace Engine::Render
 		Engine::Native::EnginePtr<RAYLIB::RenderTexture>* savedTexPtr; // used for the effects, interwinds with framebuffer.
 		Engine::Native::EnginePtr<RAYLIB::RenderTexture>* framebufferTexturePtr;
 		Engine::Native::EnginePtr<RAYLIB::Shader>* depthShaderPtr;
-		Engine::Native::EnginePtr<cameraData*>* cameraDataPtr;
 
 		System::Collections::Generic::List<ScriptableEffect^>^ effects;
 
@@ -170,21 +155,21 @@ namespace Engine::Render
 							{
 								if (reference->layerMask->IsLayer(cL))
 								{
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_ALPHA))
+									if ((reference->layerMask->getLayerBlendFlags() == BLEND_ALPHA))
 										RAYLIB::BeginBlendMode(BLEND_ALPHA);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_ADDITIVE))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_ADDITIVE))
 										RAYLIB::BeginBlendMode(BLEND_ADDITIVE);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_MULTIPLIED))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_MULTIPLIED))
 										RAYLIB::BeginBlendMode(BLEND_MULTIPLIED);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_ADD_COLORS))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_ADD_COLORS))
 										RAYLIB::BeginBlendMode(BLEND_ADD_COLORS);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_SUBTRACT_COLORS))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_SUBTRACT_COLORS))
 										RAYLIB::BeginBlendMode(BLEND_SUBTRACT_COLORS);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_ALPHA_PREMULTIPLY))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_ALPHA_PREMULTIPLY))
 										RAYLIB::BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_CUSTOM))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_CUSTOM))
 										RAYLIB::BeginBlendMode(BLEND_CUSTOM);
-									if ((reference->layerMask->getLayerBlendFlags() & BLEND_CUSTOM_SEPARATE))
+									else if ((reference->layerMask->getLayerBlendFlags() == BLEND_CUSTOM_SEPARATE))
 										RAYLIB::BeginBlendMode(BLEND_CUSTOM_SEPARATE);
 
 									PreRenderObject(reference);

@@ -6,18 +6,10 @@ namespace Engine::EngineObjects
 	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Camera2D : public Engine::EngineObjects::Camera
 	{
-	protected:
-		Native::NativeCamera3D* nativeCamera;
-
 	public:
 		Camera2D(String^ name, Engine::Internal::Components::Transform^ trans) : Engine::EngineObjects::Camera(name, trans, CameraProjection::CAMERA_ORTHOGRAPHIC)
 		{
 			nativeCamera = new Native::NativeCamera3D((RAYLIB::CameraProjection)cameraProjection);
-
-			if (!attributes->getAttribute("camera direction"))
-			{
-				attributes->addAttribute("camera direction", Engine::Components::Vector3(0, 0, 1));
-			}
 		}
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]
@@ -25,16 +17,9 @@ namespace Engine::EngineObjects
 		{
 			nativeCamera->getCameraPtr()->fovy = fov;
 
-			if (!attributes->getAttribute("camera direction"))
-			{
-				attributes->addAttribute("camera direction", Engine::Components::Vector3(0, 0, 1));
-			}
-
 			if (cameraMode == CamMode::CAMERA_CUSTOM)
 			{
-				if (attributes->getAttribute("camera direction"))
-					nativeCamera->get().target = ((Engine::Components::Vector3)attributes->getAttribute("camera direction")->getValue()).toNative();
-
+				nativeCamera->get().target = transform->rotation.toNative();
 				nativeCamera->getCameraPtr()->position = transform->position.toNative();
 			}
 
@@ -45,12 +30,6 @@ namespace Engine::EngineObjects
 		{
 			Engine::Components::Vector3 fwd = transform->forward;
 			DrawLine3D(transform->position.toNative(), nativeCamera->get().target, GetColor(0xFF0000FF));
-		}
-
-		void setTarget(Engine::Components::Vector3 target) override
-		{
-			attributes->getAttribute("camera direction")->setValue(target);
-			this->nativeCamera->setCameraTarget(target.toNative());
 		}
 
 		void* get() override
@@ -67,21 +46,21 @@ namespace Engine::EngineObjects
 		{
 			RAYLIB::CameraYaw(nativeCamera->getCameraPtr(), yaw, local);
 			RAYLIB::Vector3 v3 = nativeCamera->get().target;
-			attributes->getAttribute("camera direction")->setValue(Engine::Components::Vector3(v3.x, v3.y, v3.z));
+			transform->rotation = Engine::Components::Vector3(v3.x, v3.y, v3.z);
 		}
 
 		void ApplyCameraPitch(float yaw) override
 		{
 			RAYLIB::CameraPitch(nativeCamera->getCameraPtr(), yaw);
 			RAYLIB::Vector3 v3 = nativeCamera->get().target;
-			attributes->getAttribute("camera direction")->setValue(Engine::Components::Vector3(v3.x, v3.y, v3.z));
+			transform->rotation = Engine::Components::Vector3(v3.x, v3.y, v3.z);
 		}
 
 		void ApplyCameraRoll(float roll) override
 		{
 			RAYLIB::CameraRoll(nativeCamera->getCameraPtr(), roll);
 			RAYLIB::Vector3 v3 = nativeCamera->get().target;
-			attributes->getAttribute("camera direction")->setValue(Engine::Components::Vector3(v3.x, v3.y, v3.z));
+			transform->rotation = Engine::Components::Vector3(v3.x, v3.y, v3.z);
 		}
 	};
 }

@@ -106,8 +106,8 @@ void SetCollisionShape(GameObject^ Instance, float radius, float height, Engine:
 
 #endif
 
-Engine::EngineObjects::Physics::CapsuleCollider::CapsuleCollider(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Collider(name, transform)
+Engine::EngineObjects::Physics::CapsuleCollider::CapsuleCollider()
+	: Collider()
 {
 	colliderShape = Enums::ColliderShape::Capsule;
 
@@ -117,12 +117,6 @@ Engine::EngineObjects::Physics::CapsuleCollider::CapsuleCollider(String^ name, E
 		height = 1;
 		transform->position = Parent->transform->position;
 	}
-}
-
-Engine::EngineObjects::Physics::CapsuleCollider::CapsuleCollider()
-	: Collider()
-{
-	colliderShape = Enums::ColliderShape::Capsule;
 }
 
 void Engine::EngineObjects::Physics::CapsuleCollider::Awake()

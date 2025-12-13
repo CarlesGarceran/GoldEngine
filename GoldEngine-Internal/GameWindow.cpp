@@ -46,7 +46,7 @@ static System::Reflection::Assembly^ ResolveAssembly(System::Object^ sender, Sys
 {
 	System::Reflection::AssemblyName^ requestedName = gcnew System::Reflection::AssemblyName(args->Name);
 
-	for each (System::Reflection::Assembly ^ loadedAssembly in System::AppDomain::CurrentDomain->GetAssemblies())
+	for each(System::Reflection::Assembly ^ loadedAssembly in System::AppDomain::CurrentDomain->GetAssemblies())
 	{
 		if (System::Reflection::AssemblyName::ReferenceMatchesDefinition(gcnew System::Reflection::AssemblyName(loadedAssembly->FullName), requestedName))
 			return loadedAssembly;
@@ -62,8 +62,6 @@ static System::Reflection::Assembly^ ResolveAssembly(System::Object^ sender, Sys
 
 	return nullptr;
 }
-
-
 
 static Newtonsoft::Json::JsonSerializerSettings^ SerializerSettings()
 {
@@ -230,16 +228,30 @@ void GameWindow::Exit()
 
 void GameWindow::Update()
 {
+	if (!scene->sceneLoaded())
+		return;
+
 	if (Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance != renderPipeline)
 		renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
 
-	for each (GameObject ^ obj in scene->GetRenderQueue())
+	auto renderQueue = scene->GetRenderQueue();
+
+	msclr::lock^ lock = gcnew msclr::lock(renderQueue);
+	if (lock->try_acquire(5000))
 	{
-		if (obj != nullptr)
+		auto renderQue = renderQueue->ToArray();
+
+		for each (GameObject ^ obj in renderQue)
 		{
-			obj->GameUpdate();
+			if (scene->sceneLoaded())
+			{
+				obj->GameUpdate();
+			}
 		}
+
+		renderQue->Clear(renderQue);
 	}
+	lock->release();
 
 	engine_keybinds();
 
@@ -250,6 +262,7 @@ void GameWindow::Preload()
 {
 	dataPack.LoadDefaultAssets();
 	renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
+	SetExitKey(KEY_NULL);
 
 	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
 
@@ -259,9 +272,6 @@ void GameWindow::Preload()
 	}
 
 	packedData = scene->getSceneDataPack();
-
-	renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
-
 	Init();
 }
 
@@ -285,23 +295,13 @@ void GameWindow::Init()
 
 void GameWindow::create()
 {
-#ifdef USE_ILLUMINA
-	LightManager^ lightManager = nullptr;
-#endif
-
 	Engine::EngineObjects::Private::Scene^ gameRoot = nullptr;
 
 	if (!scene->ExistsMember("game"))
 	{
-		gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-			"game",
-			gcnew Engine::Internal::Components::Transform(
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				nullptr
-			)
-		);
+		gameRoot = gcnew Engine::EngineObjects::Private::Scene();
+		gameRoot->name = "game";
+	
 		scene->PushToRenderQueue(gameRoot);
 	}
 	else
@@ -312,15 +312,8 @@ void GameWindow::create()
 		}
 		catch (Exception^ ex)
 		{
-			gameRoot = gcnew Engine::EngineObjects::Private::Scene(
-				"game",
-				gcnew Engine::Internal::Components::Transform(
-					Engine::Components::Vector3(0, 0, 0),
-					Engine::Components::Vector3(0, 0, 0),
-					Engine::Components::Vector3(0, 0, 0),
-					nullptr
-				)
-			);
+			gameRoot = gcnew Engine::EngineObjects::Private::Scene();
+			gameRoot->name = "game";
 		}
 	}
 
@@ -332,19 +325,16 @@ void GameWindow::create()
 	gui->setParent(gameRoot);
 	auto daemonParent = scene->GetDatamodelMember("daemons", true);
 	daemonParent->setParent(gameRoot);
+	auto scriptContext = scene->GetDatamodelMember("ScriptContext", true);
+	scriptContext->setParent(gameRoot);
 
 #ifdef USE_BULLET_PHYS
 
 	if (!scene->ExistsMember("PhysicsService"))
 	{
-		auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService("PhysicsService",
-			gcnew Engine::Internal::Components::Transform(
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				nullptr
-			)
-		);
+		auto physicsService = gcnew Engine::EngineObjects::Physics::PhysicsService();
+		physicsService->name = "PhysicsService";
+		physicsService->setParent(gameRoot);
 
 		scene->PushToRenderQueue(physicsService);
 	}
@@ -408,4 +398,10 @@ void GameWindow::create()
 	}
 #endif
 
+	auto editorCamera = ObjectManager::singleton()->GetFirstObjectOfType(Engine::EngineObjects::Editor::EditorCamera::typeid);
+
+	if (editorCamera != nullptr)
+	{
+		GameObject::Destroy(editorCamera);
+	}
 }

@@ -41,19 +41,19 @@ namespace Engine::EngineObjects
 	public:
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)]
 		unsigned int soundId;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		float volume = 1.0f;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		float panning = 0.5f;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		float pitch = 1.0f;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)]
+		[Engine::Scripting::PropertyAttribute]
 		PanType panType = PanType::Pan2D; // HARDLOCK READONLY AS THERE'S NO PANNING ALGORITHM YET.
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		ResourceType resourceType = ResourceType::Sound;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		bool isLooped = true;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)]
+		[Engine::Scripting::PropertyAttribute]
 		bool isPlaying = false;
 	
 	private:
@@ -61,8 +61,6 @@ namespace Engine::EngineObjects
 		bool wasPlaying = false;
 
 	public:
-		AudioSource(String^ name, Engine::Internal::Components::Transform^ transform);
-
 		void Start() override;
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]

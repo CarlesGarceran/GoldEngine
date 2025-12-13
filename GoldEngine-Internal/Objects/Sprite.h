@@ -2,6 +2,8 @@
 
 namespace Engine::EngineObjects
 {
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Sprite : Engine::EngineObjects::ScriptBehaviour
 	{
 	public:
@@ -26,28 +28,26 @@ namespace Engine::EngineObjects
 
 		void Draw() override
 		{
-			Engine::Components::Vector2 transformedVector = this->transform->position.toVector2();
+			auto pos = this->transform->position.toVector2();
+			auto scale = this->transform->scale;
+
 			RAYLIB::Texture texture = Engine::Assets::Storage::DataPacks::singleton().GetTexture2D(TextureId);
 
-			RAYLIB::Rectangle outRectangle;
+			RAYLIB::Rectangle source = { 0, 0, -(float)texture.width, -(float)texture.height };
 
-			outRectangle.x = 0;
-			outRectangle.y = 0;
-			outRectangle.width = this->transform->scale.x;
-			outRectangle.height = this->transform->scale.y;
+			RAYLIB::Rectangle dest;
+			dest.width = scale.x;
+			dest.height = scale.y;
+			dest.x = pos.x - dest.width * 0.5f;
+			dest.y = pos.y - dest.height * 0.5f;
 
-			RAYLIB::Rectangle inRectangle;
-
-			inRectangle.x = 0;
-			inRectangle.y = 0;
-			inRectangle.width = texture.width;
-			inRectangle.height = texture.height;
+			RAYLIB::Vector2 origin = { dest.width * 0.5f, dest.height * 0.5f };
 
 			DrawTexturePro(
 				texture,
-				inRectangle,
-				outRectangle,
-				transformedVector.toNative(),
+				source,
+				dest,
+				origin,
 				transform->rotation.y,
 				SpriteTint->toNative()
 			);
@@ -58,5 +58,4 @@ namespace Engine::EngineObjects
 			delete this;
 		}
 	};
-
 }

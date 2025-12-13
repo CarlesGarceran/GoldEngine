@@ -16,11 +16,10 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float height;
 
 	private:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float gizmo_slices;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float gizmo_rings;
+		[Engine::Scripting::SerializePropertyAttribute] float gizmo_slices;
+		[Engine::Scripting::SerializePropertyAttribute] float gizmo_rings;
 
 	public:
-		CapsuleCollider(String^ name, Engine::Internal::Components::Transform^ transform);
 		CapsuleCollider();
 
 		void Awake() override;

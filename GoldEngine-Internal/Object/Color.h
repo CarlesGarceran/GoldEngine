@@ -9,53 +9,56 @@ namespace Engine::Components
 	public ref class Color : public Engine::Interfaces::IInstantiable<Color^>
 	{
 	private:
-		[Newtonsoft::Json::JsonRequiredAttribute]
-		unsigned int hexColor;
-		[Newtonsoft::Json::JsonRequiredAttribute]
-		__int8 r;
-		[Newtonsoft::Json::JsonRequiredAttribute]
-		__int8 g;
-		[Newtonsoft::Json::JsonRequiredAttribute]
-		__int8 b;
-		[Newtonsoft::Json::JsonRequiredAttribute]
-		__int8 a;
+		unsigned char _r; 
+		unsigned char _g; 
+		unsigned char _b; 
+		unsigned char _a;
+
+	public:
+		property unsigned char r { 
+			unsigned char get(); 
+			void set(unsigned char);
+		}
+
+		property unsigned char g {
+			unsigned char get();
+			void set(unsigned char);
+		}
+
+		property unsigned char b {
+			unsigned char get();
+			void set(unsigned char);
+		}
+
+		property unsigned char a {
+			unsigned char get();
+			void set(unsigned char);
+		}
 
 	public:
 		[Newtonsoft::Json::JsonConstructorAttribute]
 		Color();
 		Color(unsigned int colorHex);
-		Color(__int8 r, __int8 g, __int8 b, __int8 a);
+		Color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 		Color(int r, int g, int b, int a);
 		RAYLIB::Color toNativeAlt();
 		RAYLIB::Color toNative();
 		RAYLIB::Vector3 toNativeVector3();
 		std::array<float, 4> toFloat();
-		unsigned int% toHex();
-		unsigned int% ToHex() { return toHex(); }
+		unsigned int toHex();
+		unsigned int ToHex() { return toHex(); }
 
-		unsigned int% toRGBA();
-		unsigned int% ToRGBA() { return toRGBA(); }
+		unsigned int toRGBA();
+		unsigned int ToRGBA() { return toRGBA(); }
 
-		unsigned int% toARGB();
-		unsigned int% ToARGB() { return toARGB(); }
+		unsigned int toARGB();
+		unsigned int ToARGB() { return toARGB(); }
 
 		void setARGB(unsigned int value);
 		void SetARGB(unsigned int value) { this->setARGB(value); }
 
 		void setRGBA(unsigned int value);
 		void SetRGBA(unsigned int value) { this->setRGBA(value); }
-
-		void updateHexColor();
-
-		void setR(__int8 value);
-		void setG(__int8 value);
-		void setB(__int8 value);
-		void setA(__int8 value);
-
-		void SetR(__int8 value) { this->setR(value); }
-		void SetG(__int8 value) { this->setG(value); }
-		void SetB(__int8 value) { this->setB(value); }
-		void SetA(__int8 value) { this->setA(value); }
 
 		static Color^ New()
 		{
@@ -72,6 +75,12 @@ namespace Engine::Components
 			return gcnew Color(hexColor);
 		}
 
+		static Color^ New(int r, int g, int b, int a)
+		{
+			return gcnew Color(r, g, b, a);
+		}
+
+	private:
 		int GetR();
 		int GetG();
 		int GetB();
@@ -82,7 +91,17 @@ namespace Engine::Components
 		int getB() { return GetB(); }
 		int getA() { return GetA(); }
 
+		void setR(unsigned char value);
+		void setG(unsigned char value);
+		void setB(unsigned char value);
+		void setA(unsigned char value);
 
+		void SetR(unsigned char value) { this->setR(value); }
+		void SetG(unsigned char value) { this->setG(value); }
+		void SetB(unsigned char value) { this->setB(value); }
+		void SetA(unsigned char value) { this->setA(value); }
+
+	public:
 		static operator GLWrapper::Color(Engine::Components::Color^ color);
 		static operator Engine::Components::Color^(GLWrapper::Color color);
 	};

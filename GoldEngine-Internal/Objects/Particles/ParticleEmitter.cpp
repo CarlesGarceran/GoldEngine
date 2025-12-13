@@ -22,18 +22,6 @@ Engine::Components::Vector3 GetDirectionVector(EmissionDirection dir)
     return Engine::Components::Vector3(0, 1, 0);
 }
 
-Engine::EngineObjects::Particles::ParticleEmitter::ParticleEmitter()
-	: Engine::EngineObjects::Script()
-{
-
-}
-
-Engine::EngineObjects::Particles::ParticleEmitter::ParticleEmitter(String^ name, Engine::Internal::Components::Transform^ transform)
-	: Engine::EngineObjects::Script(name, transform)
-{
-
-}
-
 void Engine::EngineObjects::Particles::ParticleEmitter::Start()
 {
 

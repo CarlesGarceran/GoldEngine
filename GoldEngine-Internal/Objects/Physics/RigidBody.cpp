@@ -307,12 +307,6 @@ void Engine::EngineObjects::Physics::RigidBody::onKinematicChanged(bool newValue
 	}
 }
 
-RigidBody::RigidBody(String^ name, Engine::Internal::Components::Transform^ transform) : Engine::EngineObjects::Script(name, transform)
-{
-	if (!Singleton<PhysicsService^>::Instantiated)
-		return;
-}
-
 void Engine::EngineObjects::Physics::RigidBody::Awake()
 {
 	// hook binding

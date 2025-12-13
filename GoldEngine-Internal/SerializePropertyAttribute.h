@@ -2,6 +2,7 @@
 
 namespace Engine::Scripting
 {
+	[System::AttributeUsageAttribute(System::AttributeTargets::Field | System::AttributeTargets::Property)]
 	public ref class SerializePropertyAttribute : System::Attribute
 	{
 	public:

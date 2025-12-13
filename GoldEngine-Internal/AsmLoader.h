@@ -388,17 +388,8 @@ public:
 				}
 			}
 
-			auto transform = gcnew Engine::Internal::Components::Transform(
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(1, 1, 1),
-				nullptr
-			);
-
-			array<System::Object^>^ params = { storedType->Name + " - Reflected", transform };
-
 			if (storedType != nullptr)
-				return (T)System::Activator::CreateInstance(storedType, params);
+				return (T)System::Activator::CreateInstance(storedType);
 		}
 	}
 };

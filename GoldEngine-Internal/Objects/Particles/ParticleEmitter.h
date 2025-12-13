@@ -40,18 +40,15 @@ namespace Engine::EngineObjects::Particles
 	public ref class ParticleEmitter abstract : public Engine::EngineObjects::Script
 	{
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Enums::EmissionDirection emissionDirection;
+		[Engine::Scripting::PropertyAttribute] Enums::EmissionDirection emissionDirection;
 
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool emitting;
+		[Engine::Scripting::PropertyAttribute] bool emitting;
 
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Enums::EmitterShape shape;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Enums::EmitterShapeInOut shapeInOut;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Enums::EmitterShapeStyle shapeStyle;
+		[Engine::Scripting::PropertyAttribute] Enums::EmitterShape shape;
+		[Engine::Scripting::PropertyAttribute] Enums::EmitterShapeInOut shapeInOut;
+		[Engine::Scripting::PropertyAttribute] Enums::EmitterShapeStyle shapeStyle;
 
 	public:
-		ParticleEmitter();
-		ParticleEmitter(String^ name, Engine::Internal::Components::Transform^ transform);
-	
 		virtual void Start() override;
 		virtual void Update() override;
 		virtual void Draw() override = 0;

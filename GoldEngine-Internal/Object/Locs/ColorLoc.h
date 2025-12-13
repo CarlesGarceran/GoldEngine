@@ -12,5 +12,8 @@ namespace Engine::Components::Locs
 
 		void SetColor(Engine::Components::Color^ color);
 		unsigned int GetLocType() override;
+
+		System::Object^ GetValue() override;
+		void SetValue(System::Object^) override;
 	};
 }

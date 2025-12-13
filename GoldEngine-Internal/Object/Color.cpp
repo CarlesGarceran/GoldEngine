@@ -13,38 +13,34 @@ Engine::Components::Color::Color()
 
 Engine::Components::Color::Color(unsigned int colorHex)
 {
-	this->hexColor = colorHex;
-
-	r = (hexColor >> 24) & 0xFF;
-	g = (hexColor >> 16) & 0xFF;
-	b = (hexColor >> 8) & 0xFF;
-	a = (hexColor >> 0) & 0xFF;
+	_r = (colorHex >> 24) & 0xFF;
+	_g = (colorHex >> 16) & 0xFF;
+	_b = (colorHex >> 8) & 0xFF;
+	_a = (colorHex >> 0) & 0xFF;
 }
 
-Engine::Components::Color::Color(__int8 red, __int8 green, __int8 blue, __int8 alpha)
+Engine::Components::Color::Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha)
 {
-	r = red;
-	g = green;
-	b = blue;
-	a = alpha;
-	updateHexColor();
+	_r = red;
+	_g = green;
+	_b = blue;
+	_a = alpha;
 }
 
 Engine::Components::Color::Color(int red, int green, int blue, int alpha)
 {
-	r = red;
-	g = green;
-	b = blue;
-	a = alpha;
-	updateHexColor();
+	_r = red;
+	_g = green;
+	_b = blue;
+	_a = alpha;
 }
 
-unsigned int% Engine::Components::Color::toHex()
+unsigned int Engine::Components::Color::toHex()
 {
-	return this->hexColor;
+	return this->toRGBA();
 }
 
-unsigned int% Engine::Components::Color::toRGBA()
+unsigned int Engine::Components::Color::toRGBA()
 {
 	return
 		((unsigned int)(a & 0xFF) << 0) |
@@ -53,13 +49,13 @@ unsigned int% Engine::Components::Color::toRGBA()
 		((unsigned int)(r & 0xFF) << 24);
 }
 
-unsigned int% Engine::Components::Color::toARGB()
+unsigned int Engine::Components::Color::toARGB()
 {
 	return
 		((unsigned int)(a & 0xFF) << 24) |
-		((unsigned int)(b & 0xFF) << 16) |
+		((unsigned int)(r & 0xFF) << 16) |
 		((unsigned int)(g & 0xFF) << 8) |
-		((unsigned int)(r & 0xFF) << 0);
+		((unsigned int)(b & 0xFF) << 0);
 }
 
 void Engine::Components::Color::setARGB(unsigned int value)
@@ -68,13 +64,11 @@ void Engine::Components::Color::setARGB(unsigned int value)
 	r = (value >> 16) & 0xFF;
 	g = (value >> 8) & 0xFF;
 	b = value & 0xFF;
-
-	updateHexColor();
 }
 
 RAYLIB::Color Engine::Components::Color::toNativeAlt()
 {
-	return RAYLIB::GetColor(hexColor);
+	return RAYLIB::GetColor(ToRGBA());
 }
 
 RAYLIB::Color Engine::Components::Color::toNative()
@@ -82,8 +76,8 @@ RAYLIB::Color Engine::Components::Color::toNative()
 	RAYLIB::Color color = {};
 
 	// This is like a bomb, if you touch one channel the entire thing blows up and the red channel is suddenly green.
-	color.a = r;
-	color.r = a;
+	color.a = r; 
+	color.r = a; 
 	color.g = b;
 	color.b = g;
 
@@ -117,52 +111,36 @@ std::array<float, 4> Engine::Components::Color::toFloat()
 	return out;
 }
 
-void Engine::Components::Color::updateHexColor()
-{
-	hexColor =
-		((unsigned int)(r & 0xFF) << 24) |
-		((unsigned int)(g & 0xFF) << 16) |
-		((unsigned int)(b & 0xFF) << 8) |
-		((unsigned int)(a & 0xFF) << 0);
-}
 
 void Engine::Components::Color::setRGBA(unsigned int value)
 {
-	this->hexColor = value;
-
-	r = (hexColor >> 24) & 0xFF;
-	g = (hexColor >> 16) & 0xFF;
-	b = (hexColor >> 8) & 0xFF;
-	a = (hexColor >> 0) & 0xFF;
+	_r = (value >> 24) & 0xFF;
+	_g = (value >> 16) & 0xFF;
+	_b = (value >> 8) & 0xFF;
+	_a = (value >> 0) & 0xFF;
 }
 
 
-void Engine::Components::Color::setR(__int8 value)
+void Engine::Components::Color::setR(unsigned char value)
 {
-	r = value;
-	updateHexColor();
+	_r = value;
 }
 
 
-void Engine::Components::Color::setG(__int8 value)
+void Engine::Components::Color::setG(unsigned char value)
 {
-	g = value;
-	updateHexColor();
+	_g = value;
 }
 
 
-void Engine::Components::Color::setB(__int8 value)
+void Engine::Components::Color::setB(unsigned char value)
 {
-	b = value;
-
-	updateHexColor();
+    _b = value;
 }
 
-
-void Engine::Components::Color::setA(__int8 value)
+void Engine::Components::Color::setA(unsigned char value)
 {
-	a = value;
-	updateHexColor();
+	_a = value;
 }
 
 int Engine::Components::Color::GetR()
@@ -187,11 +165,52 @@ int Engine::Components::Color::GetA()
 
 Engine::Components::Color::operator GLWrapper::Color(Engine::Components::Color^ color)
 {
-	RAYLIB::Color rlColor = color->toNative();
-	return GLWrapper::Color(rlColor.r, rlColor.g, rlColor.b, rlColor.a);
+	RAYLIB::Color _color = color->toNative();
+
+	return GLWrapper::Color(_color.r, _color.g, _color.b, _color.a);
 }
 
 Engine::Components::Color::operator Engine::Components::Color ^ (GLWrapper::Color color)
 {
 	return gcnew Engine::Components::Color(color.R, color.G, color.B, color.A);
+}
+
+unsigned char Engine::Components::Color::a::get()
+{
+	return _a;
+}
+
+void Engine::Components::Color::a::set(unsigned char value)
+{
+	SetA(value);
+}
+
+unsigned char Engine::Components::Color::r::get()
+{
+	return _r;
+}
+
+void Engine::Components::Color::r::set(unsigned char value)
+{
+	SetR(value);
+}
+
+unsigned char Engine::Components::Color::g::get()
+{
+	return _g;
+}
+
+void Engine::Components::Color::g::set(unsigned char value)
+{
+	SetG(value);
+}
+
+unsigned char Engine::Components::Color::b::get()
+{
+	return _b;
+}
+
+void Engine::Components::Color::b::set(unsigned char value)
+{
+	SetB(value);
 }

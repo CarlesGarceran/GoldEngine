@@ -76,6 +76,11 @@ namespace Engine::Internal
 			Engine::Assets::Storage::DataPacks::singleton().AddSound(soundId, *sound);
 		}
 
+		inline static void LoadMaterial(unsigned int materialId, Engine::Components::Material^ material)
+		{
+			Engine::Assets::Storage::DataPacks::singleton().AddMaterial(materialId, material);
+		}
+
 		// FREEING \\
 
 		inline static void HL_FreeModels()

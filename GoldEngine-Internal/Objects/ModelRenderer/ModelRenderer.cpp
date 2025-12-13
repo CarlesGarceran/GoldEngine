@@ -12,26 +12,6 @@ Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer()
 
 }
 
-ModelRenderer::ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform)
-	: ModelRenderer::ModelRenderer(name, transform,0,0, Engine::Components::Color::New())
-{
-	
-}
-
-Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId)
-	: ModelRenderer::ModelRenderer(name, transform, modelId, materialId, Engine::Components::Color::New())
-{
-	
-}
-
-Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer(String^ name, Engine::Internal::Components::Transform^ transform, unsigned int modelId, unsigned int materialId, Engine::Components::Color^ tint)
-	: Engine::EngineObjects::Geometry::Abstract::Renderer(name, transform)
-{
-	this->modelId = modelId;
-	this->materialId = materialId;
-	this->tint = tint;
-}
-
 void ModelRenderer::Setup()
 {
 	Engine::EngineObjects::Geometry::Abstract::Renderer::Setup();
@@ -39,19 +19,16 @@ void ModelRenderer::Setup()
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
 
 	this->model = new EnginePtr<RAYLIB::Model>(model);
-	this->material = DataPacks::singleton().GetMaterial(materialId);
-
-	if (this->tint == nullptr)
-		(this->material->GetBaseColor() != nullptr && this->material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) ? this->tint = ((Engine::Components::Locs::ColorLoc^)this->material->GetBaseColor())->color : this->tint = Engine::Components::Color::New();
 
 	this->attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &ModelRenderer::onModelUpdated));
-	this->attributes->getAttribute("materialId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &ModelRenderer::onMaterialUpdated));
 }
 
 void ModelRenderer::Draw()
 {
-	RAYLIB::Model meshOnlyModel = this->model->getInstance();
-	RAYLIB::Shader shader = DataPacks::singleton().GetShader(this->material->shaderId->getInstance());
+	RAYLIB::Model& meshOnlyModel = this->model->getInstance();
+	Engine::Components::Material^ material = DataPacks::singleton().GetMaterial(materialId);
+
+	RAYLIB::Shader shader = DataPacks::singleton().GetShader(material->shaderId->getInstance());
 
 	meshOnlyModel.transform = RAYMATH::MatrixRotateXYZ({
 		DEG2RAD * this->transform->rotation.x,
@@ -59,15 +36,20 @@ void ModelRenderer::Draw()
 		DEG2RAD * this->transform->rotation.z
 	});
 
-	if (this->material->GetBaseColor() != nullptr && this->material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc)
-		this->tint = ((Engine::Components::Locs::ColorLoc^)this->material->GetBaseColor())->color;
+	if (material->GetBaseColor() != nullptr && material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc)
+		this->tint = ((Engine::Components::Locs::ColorLoc^)material->GetBaseColor())->color;
 
 	material->ApplyToShader(shader);
 
 	for (int x = 0; x < meshOnlyModel.materialCount; x++)
 	{
 		meshOnlyModel.materials[x].shader = shader;
+		for (int y = 0; y < 12; y++)
+		{
+			meshOnlyModel.materials[x].maps[y] = MaterialMap();
+		}
 	}
+
 
 	DrawModelEx(
 		meshOnlyModel,
@@ -85,7 +67,6 @@ void ModelRenderer::Destroy()
 {
 	delete model;
 	tint = nullptr;
-	material = nullptr;
 }
 
 RAYLIB::Model* Engine::EngineObjects::Geometry::ModelRenderer::GetModel()
@@ -112,14 +93,4 @@ void Engine::EngineObjects::Geometry::ModelRenderer::onModelUpdated(unsigned int
 	}
 
 	this->model->setInstance(model);
-}
-
-void Engine::EngineObjects::Geometry::ModelRenderer::onMaterialUpdated(unsigned int newId, unsigned int oldId)
-{
-	if (newId == oldId) return;
-
-	this->material = DataPacks::singleton().GetMaterial(newId);
-
-	if (this->tint == nullptr)
-		(this->material->GetBaseColor() != nullptr && this->material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) ? this->tint = ((Engine::Components::Locs::ColorLoc^)this->material->GetBaseColor())->color : this->tint = Engine::Components::Color::New();
 }

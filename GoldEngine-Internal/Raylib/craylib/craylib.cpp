@@ -457,6 +457,7 @@ extern "C"
         WRAP_RAYLIB_FUNC(UpdateMeshBuffer, void, (Mesh mesh, int index, const void* data, int dataSize, int offset), (mesh, index, data, dataSize, offset))
         WRAP_RAYLIB_FUNC(UnloadMesh, void, (Mesh mesh), (mesh))
         WRAP_RAYLIB_FUNC(DrawMesh, void, (Mesh mesh, Material material, Matrix transform), (mesh, material, transform))
+        WRAP_RAYLIB_FUNC(DrawMeshShader, void, (Mesh mesh, Shader shader, Matrix transform), (mesh, shader, transform))
         WRAP_RAYLIB_FUNC(DrawMeshInstanced, void, (Mesh mesh, Material material, const Matrix* transforms, int instances), (mesh, material, transforms, instances))
         WRAP_RAYLIB_FUNC(GetMeshBoundingBox, BoundingBox, (Mesh mesh), (mesh))
         WRAP_RAYLIB_FUNC(GenMeshTangents, void, (Mesh* mesh), (mesh))

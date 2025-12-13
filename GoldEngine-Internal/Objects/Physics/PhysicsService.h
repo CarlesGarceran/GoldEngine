@@ -77,14 +77,14 @@ namespace Engine::EngineObjects::Physics
 		bool pauseProcessing;
 
 	public:
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 Gravity = Engine::Components::Vector3(0, -9.81f, 0);
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] float frameRate;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::Public)] int maxSubSteps;
+		[Engine::Scripting::PropertyAttribute] Engine::Components::Vector3 Gravity = Engine::Components::Vector3(0, -9.81f, 0);
+		[Engine::Scripting::PropertyAttribute] float frameRate;
+		[Engine::Scripting::PropertyAttribute] int maxSubSteps;
 
 		System::Collections::Generic::Dictionary<int, System::Collections::Generic::Dictionary<int, bool>^>^ collisionGroups = gcnew System::Collections::Generic::Dictionary<int, System::Collections::Generic::Dictionary<int, bool>^>();
 
 	public:
-		PhysicsService(String^ name, Engine::Internal::Components::Transform^ transform);
+		PhysicsService();
 
 	public:
 		void Awake() override;

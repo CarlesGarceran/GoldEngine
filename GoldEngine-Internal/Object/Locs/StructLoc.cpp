@@ -27,3 +27,13 @@ unsigned int Engine::Components::Locs::StructLoc::GetLocType()
 {
 	return 3;
 }
+
+System::Object^ Engine::Components::Locs::StructLoc::GetValue()
+{
+	return getInstance();
+}
+
+void Engine::Components::Locs::StructLoc::SetValue(System::Object^ instance)
+{
+	this->setInstance(instance);
+}

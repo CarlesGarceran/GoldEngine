@@ -19,7 +19,7 @@ namespace Engine::EngineObjects::Private
 		System::Collections::Generic::List<Engine::Components::Layer^>^ layerMasks;
 
 	public:
-		Scene(String^ name, Engine::Internal::Components::Transform^ transform);
+		Scene();
 
 		void Awake() override;
 

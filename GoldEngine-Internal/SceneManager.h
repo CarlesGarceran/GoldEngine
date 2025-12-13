@@ -58,12 +58,13 @@ namespace Engine::Managers
 			loadedScene->sceneRequirements = parsedScene->sceneRequirements;
 
 
-			List<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
+			cli::array<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
+			cli::array<GameObject^>^ persistentObjects = loadedScene->GetPersistentObjects();
 
 			msclr::lock lock(sceneObjects);
 			if (lock.try_acquire(1000))
 			{
-				auto data = sceneObjects->ToArray();
+				auto data = sceneObjects;
 				loadedScene->cleanupSceneObjects();
 				parsedScene->cleanupSceneObjects();
 
@@ -71,6 +72,11 @@ namespace Engine::Managers
 				{
 					object->deserialize();
 					parsedScene->AddObjectToScene(object->GetReference());
+				}
+
+				for each (auto obj in persistentObjects)
+				{
+					parsedScene->AddObjectToScene(obj);
 				}
 			}
 
@@ -106,12 +112,13 @@ namespace Engine::Managers
 				loadedScene->skyColor = parsedScene->skyColor;
 				loadedScene->sceneRequirements = parsedScene->sceneRequirements;
 
-				List<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
+				cli::array<Engine::Management::MiddleLevel::SceneObject^>^ sceneObjects = parsedScene->GetDrawQueue();
+				cli::array<GameObject^>^ persistentObjects = loadedScene->GetPersistentObjects();
 
 				msclr::lock lock(sceneObjects);
 				if (lock.try_acquire(1000))
 				{
-					auto data = sceneObjects->ToArray();
+					auto data = sceneObjects;
 					loadedScene->cleanupSceneObjects();
 					parsedScene->cleanupSceneObjects();
 
@@ -119,6 +126,11 @@ namespace Engine::Managers
 					{
 						object->deserialize();
 						parsedScene->AddObjectToScene(object->GetReference());
+					}
+
+					for each (auto obj in persistentObjects)
+					{
+						parsedScene->AddObjectToScene(obj);
 					}
 				}
 

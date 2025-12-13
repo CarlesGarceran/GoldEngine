@@ -9,7 +9,6 @@ namespace Engine::EngineObjects::Geometry
 	private:
 		Engine::Native::EnginePtr<RAYLIB::Model>* modelInstance = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Mesh>* meshInstance = nullptr;
-		Engine::Components::Material^ materialInstance = nullptr;
 
 	public:
 		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
@@ -19,7 +18,6 @@ namespace Engine::EngineObjects::Geometry
 		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ tint;
 
 	public:
-		MeshRenderer(String^ name, Engine::Internal::Components::Transform^ transform);
 		MeshRenderer();
 
 		void Setup() override;
@@ -34,7 +32,6 @@ namespace Engine::EngineObjects::Geometry
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);
-		void onMaterialUpdated(unsigned int newId, unsigned int oldId);
 		void onMeshIndexUpdated(unsigned int newId, unsigned int oldId);
 	};
 }

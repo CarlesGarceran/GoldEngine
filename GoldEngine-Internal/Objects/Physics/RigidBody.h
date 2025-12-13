@@ -19,12 +19,10 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool Kinematic;
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float Mass;
 
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] float angularDamping;
-		[Engine::Scripting::PropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] Engine::Components::Vector3 angularVelocity = Engine::Components::Vector3::Zero();
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] float angularDamping;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] Engine::Components::Vector3 angularVelocity = Engine::Components::Vector3::Zero();
 
 	public:
-		RigidBody(String^ name, Engine::Internal::Components::Transform^ transform);
-
 		void Awake() override;
 		void Start() override;
 

@@ -2,13 +2,21 @@
 
 namespace Engine::Components::Locs::Generic
 {
-	public ref class MaterialLoc
+	[Engine::Attributes::LuaAPIAttribute]
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	public ref class MaterialLoc abstract
 	{
 	public:
 		MaterialLoc() {}
 		virtual unsigned int GetLocType() { return 0; }
+
+
+		virtual void SetValue(System::Object^ instance) = 0;
+		virtual System::Object^ GetValue() = 0;
 	};
 
+	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+	[Engine::Attributes::LuaAPIAttribute]
 	public ref class ShaderLoc
 	{
 	public:
@@ -88,6 +96,7 @@ namespace Engine::Components
 		TextureId(unsigned int id) { this->textureId = id; }
 	};
 
+	[Engine::Attributes::LuaAPIAttribute]
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	public ref class Material
 	{
