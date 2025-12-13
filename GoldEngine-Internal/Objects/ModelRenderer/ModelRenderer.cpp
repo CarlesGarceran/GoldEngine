@@ -19,7 +19,7 @@ void ModelRenderer::Setup()
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
 
 	this->model = new EnginePtr<RAYLIB::Model>(model);
-
+	this->tint = Engine::Components::Color::New();
 	this->attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &ModelRenderer::onModelUpdated));
 }
 

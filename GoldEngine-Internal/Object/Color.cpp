@@ -73,6 +73,8 @@ RAYLIB::Color Engine::Components::Color::toNativeAlt()
 
 RAYLIB::Color Engine::Components::Color::toNative()
 {
+	if (this == nullptr) return RAYLIB::BLANK;
+
 	RAYLIB::Color color = {};
 
 	// This is like a bomb, if you touch one channel the entire thing blows up and the red channel is suddenly green.

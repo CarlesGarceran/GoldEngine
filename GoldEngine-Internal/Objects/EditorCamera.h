@@ -7,6 +7,12 @@ namespace Engine::EngineObjects::Editor
 	public ref class EditorCamera : public Engine::EngineObjects::Camera3D
 	{
 	public:
+		EditorCamera(String^ name, Engine::Internal::Components::Transform^ trans) 
+			: Engine::EngineObjects::Camera3D(name, trans)
+		{
+
+		}
+
 		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override
 		{
