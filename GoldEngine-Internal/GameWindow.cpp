@@ -398,10 +398,12 @@ void GameWindow::create()
 	}
 #endif
 
+	/*
 	auto editorCamera = ObjectManager::singleton()->GetFirstObjectOfType(Engine::EngineObjects::Editor::EditorCamera::typeid);
 
 	if (editorCamera != nullptr)
 	{
 		GameObject::Destroy(editorCamera);
 	}
+	*/
 }
