@@ -46,7 +46,7 @@ namespace Engine::Managers
 			LoadSceneFromFile(sceneName, passwd, loadedScene);
 		}
 
-		static void LoadSceneFromMemory(String^ sceneMetadata, unsigned int passwd, Engine::Management::Scene^% loadedScene)
+		inline static void LoadSceneFromMemory(String^ sceneMetadata, unsigned int passwd, Engine::Management::Scene^% loadedScene)
 		{
 			auto parsedScene = Newtonsoft::Json::JsonConvert::DeserializeObject<Engine::Management::Scene^>(sceneMetadata);
 
@@ -65,10 +65,9 @@ namespace Engine::Managers
 			if (lock.try_acquire(1000))
 			{
 				auto data = sceneObjects;
-				loadedScene->cleanupSceneObjects();
 				parsedScene->cleanupSceneObjects();
 
-				for each(auto object in data)
+				for each (auto object in data)
 				{
 					object->deserialize();
 					parsedScene->AddObjectToScene(object->GetReference());
@@ -78,6 +77,8 @@ namespace Engine::Managers
 				{
 					parsedScene->AddObjectToScene(obj);
 				}
+
+				loadedScene->derreferenceSceneObjects();
 			}
 
 			for each(GameObject ^ object in parsedScene->GetRenderQueue())
@@ -85,10 +86,11 @@ namespace Engine::Managers
 				loadedScene->AddObjectToScene((GameObject^)object);
 			}
 
+			parsedScene->derreferenceSceneObjects();
 			Engine::Management::Scene::getLoadedScene()->flagSceneLoaded(true);
 		}
 
-		static void LoadSceneFromFile(System::String^ fN, unsigned int passwd, Engine::Management::Scene^% loadedScene)
+		inline static void LoadSceneFromFile(System::String^ fN, unsigned int passwd, Engine::Management::Scene^% loadedScene)
 		{
 			if (AssetExists(fN))
 			{
@@ -119,7 +121,6 @@ namespace Engine::Managers
 				if (lock.try_acquire(1000))
 				{
 					auto data = sceneObjects;
-					loadedScene->cleanupSceneObjects();
 					parsedScene->cleanupSceneObjects();
 
 					for each (auto object in data)
@@ -132,13 +133,16 @@ namespace Engine::Managers
 					{
 						parsedScene->AddObjectToScene(obj);
 					}
-				}
 
+					loadedScene->derreferenceSceneObjects();
+				}
+				
 				for each (GameObject ^ object in parsedScene->GetRenderQueue())
 				{
 					loadedScene->AddObjectToScene((GameObject^)object);
 				}
 
+				//parsedScene->derreferenceSceneObjects();
 				Engine::Management::Scene::getLoadedScene()->flagSceneLoaded(true);
 			}
 			else

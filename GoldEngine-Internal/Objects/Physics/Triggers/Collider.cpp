@@ -67,6 +67,23 @@ void Collider::Update()
 	}
 }
 
+void Engine::EngineObjects::Physics::Collider::Destroy()
+{
+	if (Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	{
+		Engine::EngineObjects::Physics::PhysicsService^ physService = Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instance;
+
+		Engine::Native::CollisionShape* collisionShape =
+			(root != nullptr) ? (Engine::Native::CollisionShape*)root->getCollisionShape()
+			: (Engine::Native::CollisionShape*)this->getCollisionShape();
+
+		if (collisionShape->hasCollisionObject())
+		{
+			physService->RemoveCollisionObject(collisionShape->getCollisionObject());
+		}
+	}
+}
+
 void Engine::EngineObjects::Physics::Collider::OnCollisionEnter(GameObject^ instance)
 {
 	if (instance == root || instance == this) return;

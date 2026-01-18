@@ -21,7 +21,6 @@ String^ Engine::Internal::Components::Transform::GetUID()
 	return uid;
 }
 
-
 void Engine::Internal::Components::Transform::SetUID(String^ uid)
 {
 	this->uid = uid;

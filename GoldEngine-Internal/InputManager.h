@@ -144,8 +144,8 @@ namespace Engine::Scripting
     public ref class CursorStatus
     {
     public:
-        static int Locked = 0;
-        static int Unlocked = 1;
+        static int const Locked = 0;
+        static int const Unlocked = 1;
     };
 
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
@@ -153,8 +153,165 @@ namespace Engine::Scripting
     public ref class CursorVisibility
     {
     public:
-        static int Visible = 0;
-        static int Hidden = 1;
+        static int const Visible = 0;
+        static int const Hidden = 1;
+    };
+
+    [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+        [Engine::Attributes::LuaAPIAttribute("GamepadAxis")]
+        public ref class GamepadAxis
+    {
+    public:
+        static int const GAMEPAD_AXIS_LEFT_X = 0;
+        static int const GAMEPAD_AXIS_LEFT_Y = 1;
+        static int const GAMEPAD_AXIS_RIGHT_X = 2;
+        static int const GAMEPAD_AXIS_RIGHT_Y = 3;
+        static int const GAMEPAD_AXIS_LEFT_TRIGGER = 4;
+        static int const GAMEPAD_AXIS_RIGHT_TRIGGER = 5;
+    };
+
+    [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+        [Engine::Attributes::LuaAPIAttribute("GamepadButtons")]
+    public ref class GamepadButtons
+    {
+    public:
+        static int const GAMEPAD_BUTTON_UNKNOWN = 0;
+        static int const GAMEPAD_BUTTON_LEFT_FACE_UP = 1;
+        static int const GAMEPAD_BUTTON_LEFT_FACE_RIGHT = 2;
+        static int const GAMEPAD_BUTTON_LEFT_FACE_DOWN = 3;
+        static int const GAMEPAD_BUTTON_LEFT_FACE_LEFT = 4;
+        static int const GAMEPAD_BUTTON_RIGHT_FACE_UP = 5;
+        static int const GAMEPAD_BUTTON_RIGHT_FACE_RIGHT = 6;
+        static int const GAMEPAD_BUTTON_RIGHT_FACE_DOWN = 7;
+        static int const GAMEPAD_BUTTON_RIGHT_FACE_LEFT = 8;
+        static int const GAMEPAD_BUTTON_LEFT_TRIGGER_1 = 9;
+        static int const GAMEPAD_BUTTON_LEFT_TRIGGER_2 = 10;
+        static int const GAMEPAD_BUTTON_RIGHT_TRIGGER_1 = 11;
+        static int const GAMEPAD_BUTTON_RIGHT_TRIGGER_2 = 12;
+        static int const GAMEPAD_BUTTON_MIDDLE_LEFT = 13;
+        static int const GAMEPAD_BUTTON_MIDDLE = 14;
+        static int const GAMEPAD_BUTTON_MIDDLE_RIGHT = 15;
+        static int const GAMEPAD_BUTTON_LEFT_THUMB = 16;
+        static int const GAMEPAD_BUTTON_RIGHT_THUMB = 17;
+    };
+
+    [MoonSharp::Interpreter::MoonSharpUserDataAttribute]
+        [Engine::Attributes::LuaAPIAttribute("Gamepad")]
+    public ref class Gamepad : Engine::Interfaces::IInstantiable<Gamepad^>
+    {
+    public:
+        static bool IsGamepadAvailable(int gamepadId)
+        {
+            return RAYLIB::IsGamepadAvailable(gamepadId);
+        }
+
+        static String^ GetGamepadName(int gamepadId)
+        {
+            return gcnew String(RAYLIB::GetGamepadName(gamepadId));
+        }
+
+        static bool IsGamepadButtonDown(int gamepadId, int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonDown(gamepadId, gamepadButton);
+        }
+
+        static bool IsGamepadButtonReleased(int gamepadId, int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonReleased(gamepadId, gamepadButton);
+        }
+
+        static bool IsGamepadButtonUp(int gamepadId, int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonUp(gamepadId, gamepadButton);
+        }
+
+        static bool IsGamepadButtonPressed(int gamepadId, int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonPressed(gamepadId, gamepadButton);
+        }
+
+        static int GetGamepadButtonPressed()
+        {
+            return RAYLIB::GetGamepadButtonPressed();
+        }
+
+        static int GetGamepadAxisCount(int gamepadId)
+        {
+            return RAYLIB::GetGamepadAxisCount(gamepadId);
+        }
+
+        static float GetGamepadAxisMovement(int gamepadId, int axis)
+        {
+            return RAYLIB::GetGamepadAxisMovement(gamepadId, axis);
+        }
+
+        static int SetGamepadMappings(String^ mapping)
+        {
+            return RAYLIB::SetGamepadMappings(CastStringToNative(mapping).c_str());
+        }
+
+        static void SetGamepadVibration(int gamepad, float leftMotor, float rightMotor, float duration)
+        {
+            RAYLIB::SetGamepadVibration(gamepad, leftMotor, rightMotor, duration);
+        }
+
+    private:
+        int gamepadId;
+
+        Gamepad(int gamepadId) :
+            gamepadId(gamepadId) {}
+
+        bool IsAvailable() { return RAYLIB::IsGamepadAvailable(gamepadId); }
+
+        String^ GetName()
+        {
+            return gcnew String(RAYLIB::GetGamepadName(gamepadId));
+        }
+
+        int GetAxisCount()
+        {
+            return RAYLIB::GetGamepadAxisCount(gamepadId);
+        }
+
+        float GetAxisMovement(int axis)
+        {
+            return RAYLIB::GetGamepadAxisMovement(gamepadId, axis);
+        }
+
+        bool ButtonPressed(int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonPressed(gamepadId, gamepadButton);
+        }
+
+        bool ButtonReleased(int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonReleased(gamepadId, gamepadButton);
+        }
+
+        bool ButtonUp(int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonUp(gamepadId, gamepadButton);
+        }
+
+        bool ButtonDown(int gamepadButton)
+        {
+            return RAYLIB::IsGamepadButtonDown(gamepadId, gamepadButton);
+        }
+
+        void SetVibration(float leftMotor, float rightMotor, float duration)
+        {
+            RAYLIB::SetGamepadVibration(gamepadId, leftMotor, rightMotor, duration);
+        }
+
+        void SetVibrationLeft(float leftMotor, float duration)
+        {
+            SetVibration(leftMotor, 0, duration);
+        }
+
+        void SetVibrationRight(float rightMotor, float duration)
+        {
+            SetVibration(0, rightMotor, duration);
+        }
     };
 
     [MoonSharp::Interpreter::MoonSharpUserDataAttribute]

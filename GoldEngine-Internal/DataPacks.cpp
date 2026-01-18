@@ -5,34 +5,33 @@
 
 using namespace Engine::Assets::Storage;
 
-void onUnloadSound(RAYLIB::Sound s)
+void UnloadAnimationStruct(AnimationStruct animStruct)
 {
-	UnloadSound(s);
-}
-
-void onUnloadMusicStream(RAYLIB::Music m)
-{
-	UnloadMusicStream(m);
-}
-
-void onUnloadModel(RAYLIB::Model m)
-{
-	UnloadModel(m);
-}
-
-void onUnloadShader(RAYLIB::Shader m)
-{
-	UnloadShader(m);
+	RAYLIB::UnloadModelAnimations(animStruct.animations, animStruct.animationCount);
 }
 
 void onUnloadTexture(RAYLIB::Texture2D tex)
 {
-	UnloadTexture(tex);
+	if (RAYLIB::IsTextureValid(tex))
+	{
+		RAYLIB::UnloadTexture(tex);
+	}
 }
 
-void onUnloadAnimations(AnimationStruct& animations)
+void onUnloadShader(RAYLIB::Shader shader)
 {
-	RAYLIB::UnloadModelAnimations(animations.animations, animations.animationCount);
+	if (RAYLIB::IsShaderValid(shader))
+	{
+		RAYLIB::UnloadShader(shader);
+	}
+}
+
+void onUnloadModel(RAYLIB::Model model)
+{
+	if(RAYLIB::IsModelValid(model))
+	{
+		RAYLIB::UnloadModel(model);
+	}
 }
 
 NativeDataPack::NativeDataPack()
@@ -54,6 +53,108 @@ NativeDataPack::NativeDataPack()
 	fallbackMesh = nullptr;
 }
 
+Engine::Assets::Storage::NativeDataPack::~NativeDataPack()
+{
+	if (fallbackModel != nullptr)
+	{
+		delete fallbackModel;
+		fallbackModel = nullptr;
+	}
+
+	if (fallbackTexture != nullptr)
+	{
+		delete fallbackTexture;
+		fallbackTexture = nullptr;
+	}
+
+	if (fallbackShader != nullptr)
+	{
+		delete fallbackShader;
+		fallbackShader = nullptr;
+	}
+
+	if (fallbackMaterial != nullptr)
+	{
+		delete fallbackMaterial;
+		fallbackMaterial = nullptr;
+	}
+
+	if (fallbackMesh != nullptr)
+	{
+		delete fallbackMesh;
+		fallbackMesh = nullptr;
+	}
+
+	if (fallbackFont != nullptr)
+	{
+		delete fallbackFont;
+		fallbackFont = nullptr;
+	}
+
+	for (auto& shader : shaders)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading ShaderID: {0}", shader.first));
+		delete shader.second;
+	}
+	shaders.clear();
+
+	for (auto& model : models)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading ModelID: {0}", model.first));
+		delete model.second;
+	}
+	models.clear();
+
+	for (auto& texture : textures2d)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading TextureID: {0}", texture.first));
+		delete texture.second;
+	}
+	textures2d.clear();
+
+	for (auto& sound : sounds)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading SoundID: {0}", sound.first));
+		delete sound.second;
+	}
+	sounds.clear();
+
+	for (auto& music : musics)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading MusicID: {0}", music.first));
+		delete music.second;
+	}
+	musics.clear();
+
+	for (auto& mesh : meshes)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading MeshID: {0}", mesh.first));
+		delete mesh.second;
+	}
+	meshes.clear();
+
+	for (auto& animation : animations)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading AnimationID: {0}", animation.first));
+		delete animation.second;
+	}
+	animations.clear();
+
+	for (auto& font : fonts)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading FontID: {0}", font.first));
+		delete font.second;
+	}
+	fonts.clear();
+
+	for (auto& material : materials)
+	{
+		print("[Native DataPacks]:", String::Format("Unloading MaterialID: {0}", material.first));
+		delete material.second;
+	}
+	materials.clear();
+}
+
 DataPacks* DataPacks::instance = nullptr;
 
 DataPacks::DataPacks()
@@ -65,7 +166,21 @@ DataPacks::DataPacks()
 		LoadDefaultAssets();
 }
 
-DataPacks DataPacks::singleton()
+void DataPacks::FreeAll()
+{
+	if (nativePacks != nullptr) 
+	{
+		delete nativePacks;
+		nativePacks = nullptr;
+	}
+
+	nativePacks = new NativeDataPack();
+	instance = this;
+
+	LoadDefaultAssets();
+}
+
+DataPacks& DataPacks::singleton()
 {
 	return *instance;
 }
@@ -80,22 +195,22 @@ void DataPacks::LoadDefaultAssets()
 	printConsole("Loading Default Assets");
 
 	if(nativePacks->fallbackModel == nullptr)
-		nativePacks->fallbackModel = new Engine::Native::EnginePtr(RAYLIB::LoadModel("./Data/Engine/Models/Error.obj"));
+		nativePacks->fallbackModel = new Engine::Native::EnginePtr<RAYLIB::Model>(RAYLIB::LoadModel("./Data/Engine/Models/Error.obj"), &onUnloadModel);
 
 	if(nativePacks->fallbackTexture == nullptr)
-		nativePacks->fallbackTexture = new Engine::Native::EnginePtr(RAYLIB::LoadTexture("./Data/Engine/Textures/NotFound.png"));
+		nativePacks->fallbackTexture = new Engine::Native::EnginePtr<RAYLIB::Texture2D>(RAYLIB::LoadTexture("./Data/Engine/Textures/NotFound.png"), &onUnloadTexture);
 
 	if(nativePacks->fallbackShader == nullptr)
-		nativePacks->fallbackShader = new Engine::Native::EnginePtr(RAYLIB::LoadShader("./Data/Engine/Shaders/base.vs", "./Data/Engine/Shaders/base.fs"));
+		nativePacks->fallbackShader = new Engine::Native::EnginePtr<RAYLIB::Shader>(RAYLIB::LoadShader("./Data/Engine/Shaders/base.vs", "./Data/Engine/Shaders/base.fs"), &onUnloadShader);
 
 	if (nativePacks->fallbackMaterial == nullptr)
 		nativePacks->fallbackMaterial = new msclr::gcroot(gcnew Engine::Components::Material(0));
 
 	if (nativePacks->fallbackFont == nullptr)
-		nativePacks->fallbackFont = new Engine::Native::EnginePtr(RAYLIB::GetFontDefault());
+		nativePacks->fallbackFont = new Engine::Native::EnginePtr<RAYLIB::Font>(RAYLIB::GetFontDefault());
 
 	if (nativePacks->fallbackMesh == nullptr)
-		nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(RAYLIB::GenMeshCube(1,1,1));
+		nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(RAYLIB::GenMeshCube(1,1,1), &UnloadMesh);
 }
 
 Texture2D& DataPacks::GetTexture2D(unsigned int textureId)
@@ -106,9 +221,6 @@ Texture2D& DataPacks::GetTexture2D(unsigned int textureId)
 	}
 	catch (const std::exception& ex)
 	{
-		if (nativePacks->fallbackTexture == nullptr)
-			nativePacks->fallbackTexture = new Engine::Native::EnginePtr(RAYLIB::LoadTexture("./Data/Engine/Textures/NotFound.png"));
-
 		return nativePacks->fallbackTexture->getInstance();
 	}
 }
@@ -122,9 +234,6 @@ Model& DataPacks::GetModel(unsigned int modelId)
 	}
 	catch (const std::exception& ex)
 	{
-		if (nativePacks->fallbackModel == nullptr)
-			nativePacks->fallbackModel = new Engine::Native::EnginePtr(RAYLIB::LoadModel("./Data/Engine/Models/Error.obj"));
-
 		return nativePacks->fallbackModel->getInstance();
 	}
 }
@@ -137,9 +246,6 @@ RAYLIB::Shader& DataPacks::GetShader(unsigned int shaderId)
 	}
 	catch (std::exception ex)
 	{
-		if (nativePacks->fallbackShader == nullptr)
-			nativePacks->fallbackShader = new Engine::Native::EnginePtr(RAYLIB::LoadShader("./Data/Engine/Shaders/base.vs", "./Data/Engine/Shaders/base.fs"));
-
 		return nativePacks->fallbackShader->getInstance();
 	}
 }
@@ -216,7 +322,7 @@ void DataPacks::AddMusic(unsigned int soundId, RAYLIB::Music& sound)
 	}
 	catch (const std::exception& ex) 
 	{
-		nativePacks->musics.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Music>(sound, &onUnloadMusicStream, &onUnloadMusicStream));
+		nativePacks->musics.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Music>(sound, &UnloadMusicStream, &UnloadMusicStream));
 	}
 }
 
@@ -281,7 +387,7 @@ void Engine::Assets::Storage::DataPacks::AddAnimations(unsigned int animationId,
 	}
 	catch (const std::exception& ex)
 	{
-		nativePacks->animations.emplace(animationId, new Engine::Native::EnginePtr<AnimationStruct>(animations, &onUnloadAnimations, &onUnloadAnimations));
+		nativePacks->animations.emplace(animationId, new Engine::Native::EnginePtr<AnimationStruct>(animations, &UnloadAnimationStruct, &UnloadAnimationStruct));
 	}
 }
 
@@ -330,7 +436,7 @@ void DataPacks::AddSound(unsigned int soundId, RAYLIB::Sound& sound)
 	}
 	catch (const std::exception& ex)
 	{
-		nativePacks->sounds.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Sound>(sound, &onUnloadSound, &onUnloadSound));
+		nativePacks->sounds.emplace(soundId, new Engine::Native::EnginePtr<RAYLIB::Sound>(sound, &UnloadSound, &UnloadSound));
 	}
 }
 
@@ -353,9 +459,6 @@ RAYLIB::Mesh& DataPacks::GetMesh(unsigned int musicId)
 	}
 	catch (const std::exception& ex)
 	{
-		if (nativePacks->fallbackMesh == nullptr)
-			nativePacks->fallbackMesh = new Engine::Native::EnginePtr<RAYLIB::Mesh>(nativePacks->fallbackModel->getInstance().meshes[0]);
-
 		return nativePacks->fallbackMesh->getInstance();
 	}
 }

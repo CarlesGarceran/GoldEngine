@@ -53,13 +53,11 @@ namespace Engine::Encryption
 		{
 			unsigned int retn = 0;
 
-			char dest[sizeof(passwd) + 1];
+			std::string dest(passwd);
 
-			strcpy(dest, passwd);
-
-			for (char c : dest)
+			for (int i = 0; i < dest.size(); i++)
 			{
-				retn += (unsigned int)c;
+				retn += (unsigned int)dest[i];
 			}
 
 			return retn;

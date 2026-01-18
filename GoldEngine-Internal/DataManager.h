@@ -83,25 +83,10 @@ namespace Engine::Internal
 
 		// FREEING \\
 
-		inline static void HL_FreeModels()
-		{
-			Engine::Assets::Storage::DataPacks::singleton().FreeModels();
-		}
-
-		inline static void HL_FreeShaders()
-		{
-			Engine::Assets::Storage::DataPacks::singleton().FreeShaders();
-		}
-
 		inline static void HL_FreeAll()
 		{
 			Engine::Assets::Storage::DataPacks::singleton().FreeAll();
 			Engine::Assets::Storage::DataPacks::singleton().LoadDefaultAssets();
-		}
-
-		inline static void HL_FreeShader(unsigned int shaderId)
-		{
-			Engine::Assets::Storage::DataPacks::singleton().FreeShader(shaderId);
 		}
 
 		inline static RAYLIB::Model* GetModel(unsigned int modelId)

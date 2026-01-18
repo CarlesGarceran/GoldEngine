@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
+#include <memory>
 #include <map>
 #include "Includes.h"
 #include "GlIncludes.h"
@@ -17,7 +18,7 @@
 
 namespace Engine::Assets::Storage
 {
-	public class NativeDataPack
+	class NativeDataPack
 	{
 	public:
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Shader>*> shaders;
@@ -39,6 +40,7 @@ namespace Engine::Assets::Storage
 		Engine::Native::EnginePtr<RAYLIB::Mesh>* fallbackMesh = nullptr;
 
 		NativeDataPack();
+		~NativeDataPack();
 	};
 
 	public class DataPacks
@@ -48,142 +50,26 @@ namespace Engine::Assets::Storage
 
 	public:
 		DataPacks();
+		
+		void FreeAll();
 
 		void LoadDefaultAssets();
 
 		bool dataPackHasAssets()
 		{
 			int assetCount = 0;
-
+			
 			assetCount += nativePacks->shaders.size();
 			assetCount += nativePacks->models.size();
 			assetCount += nativePacks->textures2d.size();
 			assetCount += nativePacks->materials.size();
-			//assetCount += nativePacks->meshes.size();
+			assetCount += nativePacks->meshes.size();
 			assetCount += nativePacks->sounds.size();
 			assetCount += nativePacks->musics.size();
 			assetCount += nativePacks->fonts.size();
 			assetCount += nativePacks->animations.size();
 
 			return (assetCount > 0);
-		}
-
-		void FreeShaders()
-		{
-			for (int x = 0; x < nativePacks->shaders.size(); x++)
-			{
-				auto sP = nativePacks->shaders[x];
-
-				delete sP;
-			}
-
-			nativePacks->shaders.clear();
-		}
-
-		void FreeMusics()
-		{
-			for (int x = 0; x < nativePacks->musics.size(); x++)
-			{
-				auto sP = nativePacks->musics[x];
-
-				delete sP;
-			}
-
-			nativePacks->musics.clear();
-		}
-
-
-		void FreeSounds()
-		{
-			for (int x = 0; x < nativePacks->sounds.size(); x++)
-			{
-				auto sP = nativePacks->sounds[x];
-
-				delete sP;
-			}
-
-			nativePacks->sounds.clear();
-		}
-
-
-		void FreeShader(unsigned int shaderId)
-		{
-			try
-			{
-				auto sP = nativePacks->shaders.at(shaderId);
-				delete sP;
-			}
-			catch (std::exception ex)
-			{
-
-			}
-
-			nativePacks->shaders.erase(shaderId);
-		}
-
-		void FreeMaterials()
-		{
-			for (int x = 0; x < nativePacks->materials.size(); x++)
-			{
-				if (nativePacks->materials.at(x) != nullptr)
-				{
-					delete nativePacks->materials[x];
-				}
-			}
-
-			nativePacks->materials.clear();
-		}
-
-		void FreeModels()
-		{
-			for (int x = 0; x < nativePacks->models.size(); x++)
-			{
-				auto sP = nativePacks->models[x];
-
-				delete sP;
-			}
-
-			nativePacks->models.clear();
-		}
-
-		void FreeTextures2D()
-		{
-			for (int x = 0; x < nativePacks->textures2d.size(); x++)
-			{
-				auto tP = nativePacks->textures2d[x];
-
-				delete tP;
-			}
-
-			nativePacks->textures2d.clear();
-		}
-
-		void FreeAnimations()
-		{
-			for (int x = 0; x < nativePacks->animations.size(); x++)
-			{
-				auto sP = nativePacks->animations[x];
-
-				sP->destroy();
-			}
-
-			nativePacks->models.clear();
-		}
-
-		void FreeAll()
-		{
-			if (this->nativePacks == nullptr)
-				return;
-
-			printf("Freeing and unloading loaded assets\n");
-
-			FreeModels();
-			FreeTextures2D();
-			FreeMaterials();
-			FreeShaders();
-			FreeSounds();
-			FreeMusics();
-			FreeAnimations();
 		}
 
 		RAYLIB::Model& GetFallbackModel();
@@ -262,7 +148,7 @@ namespace Engine::Assets::Storage
 
 		static DataPacks* instance;
 
-		static DataPacks singleton();
+		static DataPacks& singleton();
 
 		NativeDataPack* GetNativeDataPack();
 	};

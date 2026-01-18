@@ -8,9 +8,6 @@ namespace Engine::EngineObjects::Physics
 	[Engine::Attributes::LuaAPIAttribute]
 	public ref class MeshCollider : Engine::EngineObjects::Physics::Collider
 	{
-	private:
-		void* originalCollisionShape;
-
 	public:
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType = Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
 

@@ -38,6 +38,14 @@ namespace Engine::Management::MiddleLevel
 			}
 		}
 
+		~SceneObject()
+		{
+			delete sceneObject;
+			sceneObject = nullptr;
+			serializedData = "";
+			reflectableType = nullptr;
+		}
+
 		Engine::Internal::Components::GameObject^ GetReference()
 		{
 			if (sceneObject == nullptr)

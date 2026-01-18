@@ -4,6 +4,7 @@
 
 #pragma managed(push, off)
 #include <btBulletCollisionCommon.h>
+#pragma managed(pop)
 
 namespace Engine::Native
 {
@@ -14,8 +15,6 @@ namespace Engine::Native
 		Engine::Native::EnginePtr <btCollisionObject*>* collisionObject;
 		System::Runtime::InteropServices::GCHandle handle;
 		void* userHandler;
-		msclr::gcroot<GameObject^> gameObject;
-		bool uploaded;
 
 	public:
 		CollisionShape(Engine::Internal::Components::GameObject^);
@@ -37,11 +36,8 @@ namespace Engine::Native
 		void resampleAABB();
 		void freeCollisionObject();
 
-		GameObject^ getGameObject();
 		void setGameObject(GameObject^ instance);
 	};
 }
-
-#pragma managed(pop)
 
 #endif

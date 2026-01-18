@@ -102,7 +102,7 @@ void MeshRenderer::Draw()
 
 	meshOnlyModel.transform = _transform;
 
-	DrawModelEx(
+	DrawModelShaderEx(
 		meshOnlyModel,
 		{ transform->position.x,transform->position.y, transform->position.z },
 		{ 0,0,0 },

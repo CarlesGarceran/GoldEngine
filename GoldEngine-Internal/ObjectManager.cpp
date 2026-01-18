@@ -230,11 +230,11 @@ void ObjectManager::Destroy(Engine::Internal::Components::GameObject^ object)
 					obj->getTransform()->SetParent(nullptr);
 				}
 
-				// PURGE THE OBJECT FROM THE SCENE
-				loadedScene->RemoveObjectFromScene(t);
-
 				// call destroy method (for self impl)
 				object->Destroy();
+
+				// PURGE THE OBJECT FROM THE SCENE
+				loadedScene->derreferenceObject(loadedScene->getSceneObject(t));
 				break;
 			}
 		}

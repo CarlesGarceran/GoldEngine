@@ -13,6 +13,8 @@ namespace Engine::EngineObjects::Physics
 		Enums::ColliderShape colliderShape;
 		bool registered = false;
 
+		Engine::Native::CollisionShape* originalCollisionShape;
+
 		GameObject^ root;
 
 	public:
@@ -37,6 +39,7 @@ namespace Engine::EngineObjects::Physics
 		virtual void DrawGizmo() override;
 		[Engine::Attributes::ExecuteInEditModeAttribute] virtual void Update() override;
 
+		virtual void Destroy() override;
 
 		virtual bool ClaimOwnership(GameObject^ instance) = 0;
 		virtual void Disown() = 0;

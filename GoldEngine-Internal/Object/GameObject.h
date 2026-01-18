@@ -2,6 +2,13 @@
 
 #include "../Reflection/ReflectedType.h"
 
+#ifdef USE_BULLET_PHYS
+namespace Engine::Native
+{
+	class CollisionShape;
+}
+#endif
+
 namespace Engine::Internal::Components
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
@@ -10,7 +17,8 @@ namespace Engine::Internal::Components
 	{
 	private:
 #ifdef USE_BULLET_PHYS
-		void* collisionShape;
+		[Newtonsoft::Json::JsonIgnoreAttribute]
+		Engine::Native::CollisionShape* collisionShape = nullptr;
 		bool collisionObjectInitialized = false;
 #endif
 		Engine::Internal::Components::Transform^ lastTransform;
@@ -19,7 +27,14 @@ namespace Engine::Internal::Components
 		[Newtonsoft::Json::JsonPropertyAttribute]
 		Engine::Internal::Components::ObjectType type;
 
-		System::Collections::Generic::List<System::Collections::IEnumerator^>^ coroutines;
+		System::Collections::Generic::List<
+			System::Collections::Generic::Stack<
+				System::Collections::IEnumerator^>^>^ coroutines;
+
+		bool updateExecutesInEditMode = false;
+		bool drawImGuiExecutesInEditMode = false;
+		bool initialized = false;
+		bool activeToggle = false;
 
 	public:
 		bool active;
@@ -30,9 +45,6 @@ namespace Engine::Internal::Components
 		Engine::Internal::Components::ViewSpace viewSpace;
 		Engine::Components::Layer^ layerMask;
 		System::String^ tag;
-
-		[Newtonsoft::Json::JsonIgnoreAttribute]
-			cli::array<GameObject^>^ childs;
 
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 			Engine::Scripting::Events::Event^ onPropertyChanged;
@@ -56,51 +68,30 @@ namespace Engine::Internal::Components
 		[Newtonsoft::Json::JsonConstructorAttribute]
 		GameObject();
 		GameObject(System::String^ n, Engine::Internal::Components::Transform^ transform, Engine::Internal::Components::ObjectType t, String^ tag, Engine::Components::Layer^ layer);
-
-	private:
-		~GameObject()
-		{
-			childs->Clear(childs);
-			onPropertyChanged->disconnectAll();
-			onChildAdded->disconnectAll();
-			onChildRemoved->disconnectAll();
-			onDescendantAdded->disconnectAll();
-			
-#ifdef USE_BULLET_PHYS
-			delete collisionShape;
-#endif
-			delete name;
-			delete transform;
-			delete layerMask;
-			delete tag;
-			delete lastTransform;
-			delete childs;
-			delete onPropertyChanged;
-			delete onChildAdded;
-			delete onChildRemoved;
-			delete onDescendantAdded;
-			delete InstanceType;
-		}
+		virtual ~GameObject();
+		!GameObject();
 
 #ifdef USE_BULLET_PHYS
-	public:
-		void* getCollisionShape() { return collisionShape; }
-		void setCollisionShape(void* shape) 
-		{
-			collisionShape = shape;
-		}
+	internal:
+		Engine::Native::CollisionShape* getCollisionShape() { return collisionShape; }
+		void setCollisionShape(Engine::Native::CollisionShape* shape);
 
 		void createCollisionShape();
 #endif
 
-	public:
+	internal:
+		void InitializeObject();
 		// vmethods
 		// init functions (used by reflector & scene loader).
+		// internal 
 		virtual void Init(GameObject^ object) {}
 		virtual void Init() {}
 		virtual void Init(array<System::Object^>^ params) {}
 		virtual void Init(System::Object^ object) {}
 		virtual void Setup() {}
+		virtual void HookUpdate() {}
+
+	public:
 
 		// object methods
 		virtual void Awake();
@@ -127,17 +118,15 @@ namespace Engine::Internal::Components
 		virtual void OnCollisionExit(GameObject^ collider) {}
 		virtual void OnTriggerExit(GameObject^ collider) {}
 
-		// internal methods
-	protected:
-		virtual void HookUpdate() {}
 
 		// engine methods
 
 	private:
 		void descendantAdded(GameObject^ descendant);
 		void OnPropChanged();
+		void MoveChildren();
 
-	public:
+	internal:
 		void GameUpdate();
 		void GameDraw();
 		void GameDrawGizmos();
@@ -212,9 +201,8 @@ namespace Engine::Internal::Components
 		GameObject^ InstantiateChild(GameObject^ instance);
 
 		void LaunchCoroutine(System::Collections::IEnumerator^ coroutine);
-		void RemoveCoroutine(System::Collections::IEnumerator^ coroutine);
-		void RemoveCoroutine(int index);
-		void CleanCoroutines();
+		void StopCoroutine(System::Collections::IEnumerator^ coroutine);
+		void StopAllCoroutines();
 
 		generic <class T> T as();
 		generic <class T> T As() { return as<T>(); }
@@ -238,95 +226,5 @@ namespace Engine::Internal::Components
 		static GameObject^ FindFirstObjectByName(System::String^ name);
 		static GameObject^ FindFirstObjectByTag(System::String^ tag);
 
-		/*
-#pragma region IConvertible_Implementation
-
-		virtual System::TypeCode GetTypeCode()
-		{
-			return System::TypeCode();
-		}
-
-		virtual bool ToBoolean(System::IFormatProvider^ provider)
-		{
-			return false;
-		}
-
-		virtual wchar_t ToChar(System::IFormatProvider^ provider)
-		{
-			return L'\0';
-		}
-
-		virtual signed char ToSByte(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual unsigned char ToByte(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual short ToInt16(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual unsigned short ToUInt16(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual int ToInt32(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual unsigned int ToUInt32(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual long long ToInt64(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual unsigned long long ToUInt64(System::IFormatProvider^ provider)
-		{
-			return 0;
-		}
-
-		virtual float ToSingle(System::IFormatProvider^ provider)
-		{
-			return 0.0f;
-		}
-
-		virtual double ToDouble(System::IFormatProvider^ provider)
-		{
-			return 0.0;
-		}
-
-		virtual System::Decimal ToDecimal(System::IFormatProvider^ provider)
-		{
-			return System::Decimal();
-		}
-
-		virtual System::DateTime ToDateTime(System::IFormatProvider^ provider)
-		{
-			return System::DateTime();
-		}
-
-		virtual System::String^ ToString(System::IFormatProvider^ provider)
-		{
-			return "Script";
-		}
-
-		virtual System::Object^ ToType(System::Type^ conversionType, System::IFormatProvider^ provider)
-		{
-			return System::Convert::ChangeType(this, conversionType);
-		}
-
-#pragma endregion
-*/
 };
 }

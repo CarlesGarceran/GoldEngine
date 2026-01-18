@@ -41,7 +41,7 @@ List<GameObject^>^ fetchEveryChild(GameObject^ instance, List<GameObject^>^ list
 	else
 		instances = list;
 
-	for each (GameObject ^ child in instance->childs)
+	for each (GameObject ^ child in instance->GetChildren())
 	{
 		instances->Add(child);
 		fetchEveryChild(child, instances);

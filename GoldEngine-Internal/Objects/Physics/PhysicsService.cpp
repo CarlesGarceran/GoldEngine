@@ -323,11 +323,6 @@ typedef struct HTest
 	float depth;
 } HTest;
 
-inline auto MakePair(const void* a, const void* b)
-{
-	return std::minmax(a, b);
-}
-
 private struct GE_SingleContactResultCallback : public btCollisionWorld::ContactResultCallback
 {
 private:
@@ -397,52 +392,20 @@ public:
 	}
 };
 
-private struct GE_ContactResultCallback : public btCollisionWorld::ContactResultCallback
-{
-public:
-	bool collisionDetected = false;
-	std::set<std::pair<const void*, const void*>>* framePairs;
-
-	GE_ContactResultCallback(std::set<std::pair<const void*, const void*>>* pairs)
-		: framePairs(pairs) {
-	}
-
-	btScalar addSingleResult(btManifoldPoint& cp,
-		const btCollisionObjectWrapper* colObj0Wrap,
-		int partId0,
-		int index0,
-		const btCollisionObjectWrapper* colObj1Wrap,
-		int partId1,
-		int index1) override
-	{
-		if (colObj0Wrap == nullptr) return 0;
-		if (colObj1Wrap == nullptr) return 0;
-
-		const btCollisionObject* objA = colObj0Wrap->getCollisionObject();
-		const btCollisionObject* objB = colObj1Wrap->getCollisionObject();
-
-		if (objA == nullptr || objB == nullptr) return 0;
-
-		void* obj0ptr = objA->getUserPointer();
-		void* obj1ptr = objB->getUserPointer();
-
-		if (obj0ptr == nullptr || obj1ptr == nullptr) return 0;
-
-		auto key = MakePair(objA, objB);
-		framePairs->insert(key);
-
-		collisionDetected = true;
-
-		return 0;
-	}
-};
-
 #include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
-static std::set<std::pair<const void*, const void*>> prevFramePairs = std::set<std::pair<const void*, const void*>>();
-static std::set<std::pair<const void*, const void*>> thisFramePairs = std::set<std::pair<const void*, const void*>>();
+using Pair = std::pair<const btCollisionObject*, const btCollisionObject*>;
+
+inline Pair MakePair(const btCollisionObject* a,
+	const btCollisionObject* b)
+{
+	return (a < b) ? Pair{ a, b } : Pair{ b, a };
+}
+
+static std::vector<Pair> prevFramePairs = std::vector<Pair>();
+static std::vector<Pair> thisFramePairs = std::vector<Pair>();
 
 inline RCHit spherecast(btDiscreteDynamicsWorld* world, float originX, float originY, float originZ, float radius, float endX, float endY, float endZ, int layerGroup, int collisionMasks)
 {
@@ -569,115 +532,75 @@ inline void testCollision(btDiscreteDynamicsWorld* world)
 	auto objs = world->getCollisionObjectArray();
 
 
-	for (int i = 0; i < objs.size(); ++i)
+	int numManifolds = world->getDispatcher()->getNumManifolds();
+	for (int i = 0; i < numManifolds; ++i)
 	{
-		if (objs[i] == nullptr) continue;
+		btPersistentManifold* m =
+			world->getDispatcher()->getManifoldByIndexInternal(i);
 
-		btCollisionObject* obj = objs[i];
+		if (m->getNumContacts() == 0) continue;
 
-		GE_ContactResultCallback result(&thisFramePairs);
-		world->contactTest(obj, result);
+		const btCollisionObject* a = m->getBody0();
+		const btCollisionObject* b = m->getBody1();
+
+		if (a == nullptr || b == nullptr) continue;
+
+		auto key = MakePair(a, b);
+		thisFramePairs.emplace_back(key.first, key.second);
 	}
 
-	// Handle collided & triggered
+	std::sort(thisFramePairs.begin(), thisFramePairs.end());
+	thisFramePairs.erase(
+		std::unique(thisFramePairs.begin(), thisFramePairs.end()),
+		thisFramePairs.end()
+	);
+
+	// Enter & stay callback
 	for (auto& key : thisFramePairs)
 	{
-		const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
-		const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
+		bool existed = std::binary_search(
+			prevFramePairs.begin(), prevFramePairs.end(), key);
 
-		void* obj0ptr = objA->getUserPointer();
-		void* obj1ptr = objB->getUserPointer();
+		void* obj0 = key.first->getUserPointer();
+		void* obj1 = key.second->getUserPointer();
+		if (!obj0 || !obj1) continue;
 
-		if (!obj0ptr || !obj1ptr) continue;
+		bool trigger =
+			(key.first->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) ||
+			(key.second->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-		bool isTriggerA = (objA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-		bool isTriggerB = (objB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-		if (isTriggerA || isTriggerB)
+		if (!existed)
 		{
-			SendOnTriggeredCallback(obj0ptr, obj1ptr);
+			if (trigger) SendTriggerEnterCallback(obj0, obj1);
+			else         SendObjectEnterCallback(obj0, obj1);
 		}
 		else
 		{
-			SendOnCollidedCallback(obj0ptr, obj1ptr);
+			if (trigger) SendTriggerStayCallback(obj0, obj1);
+			else         SendObjectStayCallback(obj0, obj1);
 		}
 	}
 
-	// Handle new enters
-	for (auto& key : thisFramePairs)
-	{
-		if (prevFramePairs.find(key) == prevFramePairs.end())
-		{
-			const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
-			const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
-
-			void* obj0ptr = objA->getUserPointer();
-			void* obj1ptr = objB->getUserPointer();
-
-			if (!obj0ptr || !obj1ptr) continue;
-
-			bool isTriggerA = (objA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			bool isTriggerB = (objB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			if (isTriggerA || isTriggerB)
-				SendTriggerEnterCallback(obj0ptr, obj1ptr);
-			else
-				SendObjectEnterCallback(obj0ptr, obj1ptr);
-		}
-	}
-
-	// Handle stays
-	for (auto& key : thisFramePairs)
-	{
-		if (prevFramePairs.find(key) != prevFramePairs.end())
-		{
-			const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
-			const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
-
-			void* obj0ptr = objA->getUserPointer();
-			void* obj1ptr = objB->getUserPointer();
-
-			if (!obj0ptr || !obj1ptr) continue;
-
-			bool isTriggerA = (objA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			bool isTriggerB = (objB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			if (isTriggerA || isTriggerB)
-				SendTriggerStayCallback(obj0ptr, obj1ptr);
-			else
-				SendObjectStayCallback(obj0ptr, obj1ptr);
-		}
-	}
-
-	// Handle exits
+	// Exit callback
 	for (auto& key : prevFramePairs)
 	{
-		if (thisFramePairs.find(key) == thisFramePairs.end())
+		if (!std::binary_search(thisFramePairs.begin(), thisFramePairs.end(), key))
 		{
-			const btCollisionObject* objA = static_cast<const btCollisionObject*>(key.first);
-			const btCollisionObject* objB = static_cast<const btCollisionObject*>(key.second);
+			void* obj0 = key.first->getUserPointer();
+			void* obj1 = key.second->getUserPointer();
+			if (!obj0 || !obj1) continue;
 
-			void* obj0ptr = objA->getUserPointer();
-			void* obj1ptr = objB->getUserPointer();
+			bool trigger =
+				(key.first->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE) ||
+				(key.second->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-			if (!obj0ptr || !obj1ptr) continue;
-
-
-			bool isTriggerA = (objA->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			bool isTriggerB = (objB->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
-
-			if (isTriggerA || isTriggerB)
-				SendTriggerExitCallback(obj0ptr, obj1ptr);
-			else
-				SendObjectExitCallback(obj0ptr, obj1ptr);
+			if (trigger) SendTriggerExitCallback(obj0, obj1);
+			else         SendObjectExitCallback(obj0, obj1);
 		}
 	}
 
-	prevFramePairs = thisFramePairs;
+	prevFramePairs.swap(thisFramePairs);
+	thisFramePairs.clear();
 }
 
 inline int MakeGroup(int layerId) {

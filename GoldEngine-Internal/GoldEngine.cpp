@@ -287,7 +287,7 @@ int positionSelector = 0;
 bool gameViewMode = false;
 
 // error handling
-char* errorReason;
+std::string errorReason;
 
 bool ce1, ce2, ce3, ce4, ce5, ce6;
 bool selectionLock;
@@ -296,6 +296,9 @@ bool propertiesVisible = true;
 bool assetsVisible = true;
 bool consoleVisible = true;
 bool scenevpVisible = true;
+int layerId = 0;
+int layerBlendFlags = RAYLIB::BLEND_ALPHA;
+std::string layerName = "";
 msclr::gcroot<String^> jsonData = "";
 msclr::gcroot<String^> sceneSnapshot = "";
 msclr::gcroot<Engine::Editor::Gui::onFileSelected^> _callback = nullptr;
@@ -304,6 +307,31 @@ msclr::gcroot<Engine::Internal::Components::GameObject^> selectionObject = nullp
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
 #include "EditorWindow.h"
+
+inline const char* blendFlagsToString(int flag)
+{
+	switch (flag)
+	{
+	case 0:
+		return "Alpha";
+	case 1:
+		return "Additive";
+	case 2:
+		return "Multiplied";
+	case 3:
+		return "Add Colors";
+	case 4:
+		return "Subtract Colors";
+	case 5:
+		return "Alpha Premultiply";
+	case 6:
+		return "Custom";
+	case 7:
+		return "Custom Separate";
+	default:
+		return "";
+	}
+}
 
 void CopyRaylibMatrixToFloat16(const RAYLIB::Matrix& mat, float out[16])
 {
@@ -415,11 +443,7 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 }
 void ThrowUIError(String^ eR)
 {
-	std::string convErrRes = CastStringToNative(eR);
-
-	errorReason = new char[convErrRes.size()];
-
-	strcpy(errorReason, convErrRes.c_str());
+	errorReason = CastStringToNative(eR);
 
 	visualizeError = true;
 }
@@ -427,7 +451,7 @@ void ShowError()
 {
 	if (ImGui::BeginPopupModal("Unexpected Error", (bool*)false, ImGuiWindowFlags_NoResize))
 	{
-		ImGui::Text(errorReason);
+		ImGui::Text(errorReason.c_str());
 
 		if (ImGui::Button("Accept"))
 		{
@@ -3006,9 +3030,9 @@ void EditorWindow::DrawImGui()
 		ImGui::EndPopup();
 	}
 
-	if (ImGui::BeginPopupModal("Layer Editor", &b8, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize))
+	if (ImGui::BeginPopupModal("Layer Editor", &b8))
 	{
-		if (ImGui::BeginListBox("###LAYER_LIST"))
+		if (ImGui::BeginListBox("###LAYER_LIST", ImVec2(ImGui::GetWindowSize().x, 0)))
 		{
 			Engine::EngineObjects::Private::Scene^ sceneObj = scene->GetObjectByNameFromDrawQueue("workspace")->Parent->As< Engine::EngineObjects::Private::Scene^>();
 			auto% layers = sceneObj->layerMasks;
@@ -3027,8 +3051,24 @@ void EditorWindow::DrawImGui()
 					layer->layerName = gcnew String(data.c_str());
 				}
 
+				// Layer blend mode
+				ImGui::SameLine();
+				if (ImGui::BeginCombo((std::string("###LAYER_BLEND_FLAGS_") + std::to_string(layer->layerMask)).c_str(), blendFlagsToString(layer->getLayerBlendFlags())))
+				{
+					const std::vector<int> blendFlags = { RAYLIB::BLEND_ALPHA, RAYLIB::BLEND_ADDITIVE, RAYLIB::BLEND_MULTIPLIED, RAYLIB::BLEND_ADD_COLORS, RAYLIB::BLEND_SUBTRACT_COLORS, RAYLIB::BLEND_ALPHA_PREMULTIPLY, RAYLIB::BLEND_CUSTOM, RAYLIB::BLEND_CUSTOM_SEPARATE };
 
-				// Layer blend mode.
+					for (int blendFl : blendFlags)
+					{
+						bool selected = (blendFl == layer->getLayerBlendFlags());
+
+						if (ImGui::Selectable(blendFlagsToString(blendFl), selected))
+						{
+							layer->setLayerBlendFlags(blendFl);
+						}
+					}
+
+					ImGui::EndCombo();
+				}
 
 				ImGui::SameLine();
 
@@ -3038,8 +3078,7 @@ void EditorWindow::DrawImGui()
 					layerToRemove = layer;
 				}
 			}
-			ImGui::Button("+");
-
+			
 			if (rmvIdx != -1 && layerToRemove != nullptr)
 			{
 				Engine::Scripting::LayerManager::RemoveLayer(layerToRemove);
@@ -3047,6 +3086,47 @@ void EditorWindow::DrawImGui()
 			}
 
 			ImGui::EndListBox();
+
+			if (ImGui::CollapsingHeader("Add Layer"))
+			{
+				ImGui::Text("Layers with greater masks will get rendered after masks with lower values");
+				ImGui::Text("Layer 0 > Layer 1 > Layer 2 > Layer 3");
+
+				ImGui::Text("Layer Mask:");
+				ImGui::SameLine();
+				ImGui::InputInt("###LAYER_MASK", &layerId);
+
+				ImGui::Text("Layer Name:");
+				ImGui::SameLine();
+				ImGui::InputText("###LAYER_NAME", &layerName);
+
+				ImGui::Text("Layer Blend Flags:");
+				ImGui::SameLine();
+				if (ImGui::BeginCombo("###LAYER_BLEND_FLAGS", blendFlagsToString(layerBlendFlags)))
+				{
+					const std::vector<int> blendFlags = { RAYLIB::BLEND_ALPHA, RAYLIB::BLEND_ADDITIVE, RAYLIB::BLEND_MULTIPLIED, RAYLIB::BLEND_ADD_COLORS, RAYLIB::BLEND_SUBTRACT_COLORS, RAYLIB::BLEND_ALPHA_PREMULTIPLY, RAYLIB::BLEND_CUSTOM, RAYLIB::BLEND_CUSTOM_SEPARATE };
+
+					for (int blendFl : blendFlags)
+					{
+						bool selected = (blendFl == layerBlendFlags);
+
+						if (ImGui::Selectable(blendFlagsToString(blendFl), selected))
+						{
+							layerBlendFlags = blendFl;
+						}
+					}
+
+					ImGui::EndCombo();
+				}
+
+				if (ImGui::Button("Add"))
+				{
+					Layer^ layer = gcnew Layer(layerId, gcnew String(layerName.c_str()), layerBlendFlags);
+					Engine::Scripting::LayerManager::AddLayer(layer);
+				}
+			}
+
+			ImGui::Separator();
 
 			if (ImGui::Button("Close"))
 			{
@@ -3094,14 +3174,11 @@ void EditorWindow::DrawImGui()
 		char* data = new char[8192];
 		auto t = System::IO::File::ReadAllText("Data/" + scene->sceneRequirements + ".asset");
 
-		int size = t->ToCharArray()->Length + heapAlloc;
-		data = new char[size];
+		std::string nativeString = CastStringToNative(t);
 
-		strcpy(data, CastStringToNative(t).c_str());
-
-		if (ImGui::InputTextMultiline("", data, size, { ImGui::GetWindowSize().x - 20, ImGui::GetWindowSize().y - 60 }))
+		if (ImGui::InputTextMultiline("", &nativeString, { ImGui::GetWindowSize().x - 20, ImGui::GetWindowSize().y - 60 }))
 		{
-			System::String^ str = gcnew System::String(data);
+			System::String^ str = gcnew System::String(nativeString.c_str());
 
 			System::IO::File::WriteAllText("Data/" + scene->sceneRequirements + ".asset", str);
 		}
@@ -3166,9 +3243,7 @@ void EditorWindow::DrawImGui()
 
 		if (ImGui::Button("Open Scene"))
 		{
-			SceneManager::UnloadScene(scene);
 			SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
-			//scene->LoadScene();
 
 			packedData = scene->getSceneDataPack();
 
@@ -3234,7 +3309,6 @@ void EditorWindow::Exit()
 	UnloadTexture(soundTexture);
 	UnloadTexture(scriptTexture);
 	Engine::Utils::LogReporter::singleton->CloseThread();
-	dataPack.FreeAll();
 	exit(0);
 }
 void EditorWindow::RegisterKeybinds()

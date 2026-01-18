@@ -30,7 +30,7 @@ inline btCompoundShape* _createCompoundShape(btVector3 _bounds = btVector3(1,1,1
 	return compoundShape;
 }
 
-inline void disposeRigidBody(btRigidBody*& rigidBody)
+inline void disposeRigidBody(btRigidBody* rigidBody)
 {
 	if (!rigidBody) return;
 
@@ -41,7 +41,7 @@ inline void disposeRigidBody(btRigidBody*& rigidBody)
 	delete rigidBody;
 }
 
-inline void setMass(btRigidBody*& rigidBody, float mass, std::array<float, 3> inertia)
+inline void setMass(btRigidBody* rigidBody, float mass, std::array<float, 3> inertia)
 {
 	btVector3 _inertia(inertia[0], inertia[1], inertia[2]);
 
@@ -55,12 +55,12 @@ inline void setMass(btRigidBody*& rigidBody, float mass, std::array<float, 3> in
 	rigidBody->updateInertiaTensor();
 }
 
-inline void _setAngularVelocity(btRigidBody*& rigidBody, float x, float y, float z)
+inline void _setAngularVelocity(btRigidBody* rigidBody, float x, float y, float z)
 {
 	rigidBody->setAngularVelocity({ x,y,z });
 }
 
-inline void _setLinearVelocity(btRigidBody*& rigidBody, float x, float y, float z)
+inline void _setLinearVelocity(btRigidBody* rigidBody, float x, float y, float z)
 {
 	rigidBody->setLinearVelocity({ x,y,z });
 }
@@ -99,7 +99,7 @@ inline btRigidBody* createPhysBody(std::array<float,3> originPosition, float mas
 	return rigidBody;
 }
 
-inline std::array<float, 6> getVector(btRigidBody*& rigidBody)
+inline std::array<float, 6> getVector(btRigidBody* rigidBody)
 {
 	btTransform& _transform = rigidBody->getWorldTransform();
 
@@ -122,7 +122,7 @@ inline std::array<float, 6> getVector(btRigidBody*& rigidBody)
 	return data;
 }
 
-inline void setVector(btRigidBody*& rigidBody, float x, float y, float z)
+inline void setVector(btRigidBody* rigidBody, float x, float y, float z)
 {
 	if (rigidBody == nullptr)
 		return;
@@ -142,8 +142,8 @@ inline void setVector(btRigidBody*& rigidBody, float x, float y, float z, float 
 	if (rigidBody == nullptr)
 		return;
 
-	btTransform& transform = rigidBody->getWorldTransform();
-	//rigidBody->getMotionState()->getWorldTransform(transform);
+	btTransform transform;
+	rigidBody->getMotionState()->getWorldTransform(transform);
 
 	btQuaternion identity = btQuaternion::getIdentity();
 	identity.setEuler(yaw, pitch, roll);
@@ -151,9 +151,9 @@ inline void setVector(btRigidBody*& rigidBody, float x, float y, float z, float 
 	transform.setRotation(identity);
 	transform.setOrigin(btVector3(x, y, z));
 
-	//rigidBody->setWorldTransform(transform);
-	//rigidBody->getMotionState()->setWorldTransform(transform);
-	//rigidBody->setInterpolationWorldTransform(transform);
+	rigidBody->setWorldTransform(transform);
+	rigidBody->getMotionState()->setWorldTransform(transform);
+	rigidBody->setInterpolationWorldTransform(transform);
 }
 
 inline void _clearForces(btRigidBody*& rigidBody)
@@ -162,7 +162,7 @@ inline void _clearForces(btRigidBody*& rigidBody)
 	rigidBody->clearForces();
 }
 
-inline void _addForce(btRigidBody*& rigidBody, float x, float y, float z, int forceMode)
+inline void _addForce(btRigidBody* rigidBody, float x, float y, float z, int forceMode)
 {
 	if (forceMode == 0)
 	{
@@ -174,7 +174,7 @@ inline void _addForce(btRigidBody*& rigidBody, float x, float y, float z, int fo
 	}
 }
 
-inline void _addTorque(btRigidBody*& rigidBody, float x, float y, float z, int forceMode)
+inline void _addTorque(btRigidBody* rigidBody, float x, float y, float z, int forceMode)
 {
 	if (forceMode == 0)
 	{
@@ -186,7 +186,7 @@ inline void _addTorque(btRigidBody*& rigidBody, float x, float y, float z, int f
 	}
 }
 
-inline void _setAngularFactor(btRigidBody*& rigidBody, float x, float y, float z)
+inline void _setAngularFactor(btRigidBody* rigidBody, float x, float y, float z)
 {
 	rigidBody->setAngularFactor({
 		x,
@@ -352,18 +352,14 @@ void RigidBody::Start()
 
 void RigidBody::Update()
 {
-	if (!Singleton<PhysicsService^>::Instantiated || Parent == nullptr)
-		return;
+	if (!Singleton<PhysicsService^>::Instantiated || Parent == nullptr) return;
 	
-	if (!getRigidBody()->isActive())
-	{
-		return;
-	}
+	if (!getRigidBody()->isActive()) return;
 
 	std::array<float, 6> data = getVector(this->getRigidBody());
 
 	Parent->transform->position = Engine::Components::Vector3(data[0], data[1], data[2]);
-	Parent->transform->rotation += Engine::Components::Vector3(data[3], data[4], data[5]);
+	Parent->transform->rotation = Engine::Components::Vector3(data[3], data[4], data[5]);
 
 	transform->position = Parent->transform->position;
 	transform->rotation = Parent->transform->rotation;
@@ -445,14 +441,10 @@ void Engine::EngineObjects::Physics::RigidBody::Draw()
 
 void Engine::EngineObjects::Physics::RigidBody::Destroy()
 {
-	Singleton<PhysicsService^>::Instance->RemovePhysicsObject(this->getRigidBody());
-
-	if (Parent->FindFirstChild<Collider^>())
+	if (FindFirstSibling<Collider^>())
 	{
-		Parent->FindFirstChild<Collider^>()->Disown();
+		FindFirstSibling<Collider^>()->Disown();
 	}
-
-	delete getRigidBody();
 }
 
 void RigidBody::OnInactive()
@@ -568,9 +560,9 @@ Engine::Components::Vector3 Engine::EngineObjects::Physics::RigidBody::getTotalT
 	);
 }
 
-btRigidBody*& RigidBody::getRigidBody()
+btRigidBody* RigidBody::getRigidBody()
 {
-	return ((btRigidBody*&)((Engine::Native::CollisionShape*)this->getCollisionShape())->getCollisionObject());
+	return ((btRigidBody*)this->getCollisionShape()->getCollisionObject());
 }
 
 void Engine::EngineObjects::Physics::RigidBody::SetBounciness(float bounciness)

@@ -99,8 +99,6 @@ namespace Engine::EngineObjects::Physics
 		void setAngularFactor(Engine::Components::Vector3 axis) { SetAngularFactor(axis); }
 		void SetAngularFactor(Engine::Components::Vector3 axis);
 
-		btRigidBody*& getRigidBody();
-
 		virtual void OnCollisionEnter(GameObject^ instance) override;
 		virtual void OnCollisionStay(GameObject^ instance) override;
 		virtual void OnCollisionExit(GameObject^ instance) override;
@@ -114,6 +112,9 @@ namespace Engine::EngineObjects::Physics
 
 
 		void RecalculateInertia();
+
+	internal:
+		btRigidBody* getRigidBody();
 
 	private:
 		void createRigidBody();

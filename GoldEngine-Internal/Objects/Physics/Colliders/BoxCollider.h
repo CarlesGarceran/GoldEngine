@@ -16,11 +16,10 @@ namespace Engine::EngineObjects::Physics
 	public ref class BoxCollider : Engine::EngineObjects::Physics::Collider
 	{
 	private:
-		void* originalCollisionShape;
 		Engine::Native::EnginePtr<RAYLIB::Model>* cachedModel;
 
 	public:
-		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 extents = Engine::Components::Vector3::Zero();
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::Components::Vector3 extents = Engine::Components::Vector3::New(1,1,1);
 
 	public:
 		BoxCollider();

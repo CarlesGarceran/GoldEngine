@@ -41,11 +41,11 @@ void onCollisionObjectDeleted(btCollisionObject* object)
 	delete object;
 }
 
-CollisionShape::CollisionShape(Engine::Internal::Components::GameObject^ userPtr)
+CollisionShape::CollisionShape(Engine::Internal::Components::GameObject^ owner)
 {
-	this->handle = GCHandle::Alloc(userPtr);
+	this->handle = GCHandle::Alloc(owner);
 	this->userHandler = GCHandle::ToIntPtr(handle).ToPointer();
-	this->gameObject = msclr::gcroot(userPtr);
+
 	this->collisionShape = nullptr;
 	this->collisionObject = nullptr;
 }
@@ -53,7 +53,8 @@ CollisionShape::CollisionShape(Engine::Internal::Components::GameObject^ userPtr
 CollisionShape::~CollisionShape()
 {
 	this->handle.Free();
-	
+	this->userHandler = nullptr;
+
 	delete collisionObject;
 	delete collisionShape;
 }
@@ -251,21 +252,16 @@ void Engine::Native::CollisionShape::freeCollisionObject()
 	collisionObject->free();
 }
 
-
-GameObject^ CollisionShape::getGameObject()
-{
-	INSTANCE_CHECK(nullptr);
-
-	return this->gameObject;
-}
-
 void Engine::Native::CollisionShape::setGameObject(GameObject^ instance)
 {
+	if (this->handle.IsAllocated)
+		this->handle.Free();
+
 	this->handle = GCHandle::Alloc(instance);
 	this->userHandler = GCHandle::ToIntPtr(handle).ToPointer();
-	this->gameObject = msclr::gcroot(instance);
 
 	if (this->getCollisionObject() != nullptr)
 		this->collisionObject->getInstance()->setUserPointer(this->userHandler);
 }
+
 #endif

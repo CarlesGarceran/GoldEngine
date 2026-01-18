@@ -110,13 +110,6 @@ Engine::EngineObjects::Physics::CapsuleCollider::CapsuleCollider()
 	: Collider()
 {
 	colliderShape = Enums::ColliderShape::Capsule;
-
-	if (Parent != nullptr)
-	{
-		radius = 1;
-		height = 1;
-		transform->position = Parent->transform->position;
-	}
 }
 
 void Engine::EngineObjects::Physics::CapsuleCollider::Awake()

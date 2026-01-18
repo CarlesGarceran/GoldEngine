@@ -51,11 +51,13 @@ namespace Engine::Scripting
 		static void LoadLayers(System::String^ _layers)
 		{
 			layers = (System::Collections::Generic::List<Layer^>^)Newtonsoft::Json::JsonConvert::DeserializeObject<System::Collections::Generic::List<Layer^>^>(_layers);
+			sortLayers();
 		}
 
 		static void LoadLayers(System::Collections::Generic::List<Layer^>^ _layers)
 		{
 			layers = _layers;
+			sortLayers();
 		}
 
 	public:
@@ -128,6 +130,7 @@ namespace Engine::Scripting
 			}
 
 			layers->Add(layer);
+			sortLayers();
 			onLayerAdded->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
 		}
 
@@ -143,7 +146,8 @@ namespace Engine::Scripting
 				{
 					layers->Remove(GetLayerFromId(layer->layerMask));
 				}
-				
+
+				sortLayers();
 				onLayerRemoved->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
 			}
 		}
@@ -163,6 +167,7 @@ namespace Engine::Scripting
 					layers->Remove(GetLayerFromId(layer->layerMask));
 				}
 
+				sortLayers();
 				onLayerRemoved->raiseExecution(gcnew cli::array<Engine::Components::Layer^>(1) { layer });
 			}
 		}
@@ -216,6 +221,31 @@ namespace Engine::Scripting
 			}
 
 			return layerLevel;
+		}
+
+	private:
+		static void sortLayers()
+		{
+			int n = layers->Count;
+			bool swapped;
+
+			do
+			{
+				swapped = false;
+				for (int i = 0; i < n - 1; ++i)
+				{
+					Layer^ currentLayer = layers[i];
+					Layer^ nextLayer = layers[i + 1];
+
+					if (currentLayer->layerMask > nextLayer->layerMask)
+					{
+						layers[i] = nextLayer;
+						layers[i + 1] = currentLayer;
+						swapped = true;
+					}
+				}
+				--n;
+			} while (swapped);
 		}
 	};
 }

@@ -120,7 +120,7 @@ void SetCollisionShape(GameObject^ Instance, Engine::Components::Vector3 extents
 {
 	if (Instance == nullptr) return;
 
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)Instance->getCollisionShape());
+	Engine::Native::CollisionShape* collisionShape = Instance->getCollisionShape();
 	_setCollisionShape(
 		collisionShape, 
 		{ 
@@ -142,17 +142,10 @@ Engine::EngineObjects::Physics::BoxCollider::BoxCollider() :
 	Collider()
 {
 	colliderShape = Enums::ColliderShape::Box;
-
-	if (Parent != nullptr)
-	{
-		extents = Parent->transform->scale;
-		transform->position = Parent->transform->position;
-	}
 }
 
 void Engine::EngineObjects::Physics::BoxCollider::Awake()
 {
-
 	if (this->attributes->hasAttribute("extents"))
 		this->attributes->getAttribute("extents")->onPropertyChanged->connect(gcnew Action<Engine::Components::Vector3, Engine::Components::Vector3>(this, &BoxCollider::OnExtentsChanged));
 
@@ -255,7 +248,7 @@ bool Engine::EngineObjects::Physics::BoxCollider::ClaimOwnership(GameObject^ ins
 	if (!instance->IsA<Engine::EngineObjects::Physics::RigidBody^>())
 		return false;
 
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
 
 	/*
 	if (instance->IsA<RigidBody^>() && root != instance)
@@ -516,7 +509,7 @@ void Engine::EngineObjects::Physics::BoxCollider::Update()
 {
 	Collider::Update();
 
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
 
 	if (renderWires)
 	{
@@ -541,7 +534,7 @@ void Engine::EngineObjects::Physics::BoxCollider::Update()
 
 	if (root)
 	{
-		Engine::Native::CollisionShape* _collisionShape = ((Engine::Native::CollisionShape*)root->getCollisionShape());
+		Engine::Native::CollisionShape* _collisionShape = (Engine::Native::CollisionShape*)root->getCollisionShape();
 
 		if (_collisionShape->hasCollisionObject())
 		{

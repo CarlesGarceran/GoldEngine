@@ -114,19 +114,14 @@ namespace Engine::Management
 			printConsole("Unloading scene");
 
 			OnUnload();
+			derreferenceSceneObjects();
 			sceneObjects->Clear();
-			DataPacks::singleton().FreeAll();
 			RLGL::rlReloadTextureUnits();
 			System::GC::Collect();
 		}
 
 		void RemoveObjectFromScene(Engine::Management::MiddleLevel::SceneObject^ object)
 		{
-			if (sceneObjects->Contains(object))
-			{
-				sceneObjects->Remove(object);
-			}
-
 			if (sceneObjects->Contains(object))
 			{
 				sceneObjects->Remove(object);
@@ -182,11 +177,58 @@ namespace Engine::Management
 			return persistantObjects->ToArray();
 		}
 
+	internal:
 		void cleanupSceneObjects()
 		{
 			sceneObjects->Clear();
 		}
 
+		void derreferenceSceneObjects()
+		{
+			for (int x = 0; x < sceneObjects->Count; x++)
+			{
+				auto sceneObject = sceneObjects[x];
+
+				if (sceneObject != nullptr)
+				{
+					if (persistantObjects->Contains(sceneObject->GetReference())) continue;
+
+					delete sceneObject;
+					sceneObject = nullptr;
+				}
+			}
+		}
+
+		Engine::Management::MiddleLevel::SceneObject^ getSceneObject(Engine::Internal::Components::GameObject^ object)
+		{
+			Engine::Management::MiddleLevel::SceneObject^ instance = nullptr;
+
+			for each(Engine::Management::MiddleLevel::SceneObject ^ sceneObject in sceneObjects)
+			{
+				GameObject^ inst = sceneObject->GetReference();
+
+				if (inst == object)
+				{
+					instance = sceneObject;
+					break;
+				}
+			}
+
+			return instance;
+		}
+
+		void derreferenceObject(Engine::Management::MiddleLevel::SceneObject^ object)
+		{
+			if (object == nullptr) return;
+
+			delete object;
+			object = nullptr;
+			GC::Collect();
+			GC::WaitForPendingFinalizers();
+			GC::Collect();
+		}
+
+	public:
 		bool ExistsDatamodelMember(System::String^ datamodel)
 		{
 			for each (auto objects in sceneObjects)
@@ -305,27 +347,29 @@ namespace Engine::Management
 					object,
 					""));
 
-				if (!sceneFinishedLoading)
+				try
 				{
-					raiseSetup += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Setup);
-					raiseInit += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Init);
-					raiseAwake += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Awake);
-					onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Start);
-				}
-				else
-				{
-					try
+					if (!sceneFinishedLoading)
 					{
+						object->InitializeObject();
+						raiseSetup += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Setup);
+						raiseInit += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Init);
+						raiseAwake += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Awake);
+						onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Start);
+					}
+					else
+					{
+						object->InitializeObject();
 						object->Setup();
 						object->Init();
 						object->Awake();
 						object->Start();
 					}
-					catch (Exception^ ex)
-					{
-						printError(ex->Message);
-						printError(ex->StackTrace);
-					}
+				}
+				catch (Exception^ ex)
+				{
+					printError(ex->Message);
+					printError(ex->StackTrace);
 				}
 			}
 			l->release();
@@ -389,9 +433,10 @@ namespace Engine::Management
 	public:
 		virtual void OnUnload()
 		{
-			
 			for each(auto object in sceneObjects->ToArray())
 			{
+				if (object == nullptr) continue;
+
 				Engine::Internal::Components::GameObject^ ref;
 				bool unload = true;
 				if ((ref = object->GetReference()) != nullptr)
@@ -408,11 +453,17 @@ namespace Engine::Management
 						}
 					}
 
-					if (unload) Engine::Internal::Components::GameObject::Destroy(ref);
+					if (unload) 
+					{
+						Engine::Internal::Components::GameObject::Destroy(ref);
+						delete object;
+					}
 				}
 			}
 
-			System::GC::Collect();
+			GC::Collect();
+			GC::WaitForPendingFinalizers();
+			GC::Collect();
 		}
 		virtual void OnLoad()
 		{

@@ -22,7 +22,8 @@ namespace Engine::Internal::Components
 	{
 	private:
 		[Newtonsoft::Json::JsonPropertyAttribute]
-			System::String^ uid;
+		System::String^ uid;
+	
 	public:
 		Engine::Internal::Components::Transform^ parent;
 		// worldspace

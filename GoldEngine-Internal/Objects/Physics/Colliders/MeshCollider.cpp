@@ -89,11 +89,6 @@ Engine::EngineObjects::Physics::MeshCollider::MeshCollider() :
 	Collider()
 {
 	colliderShape = Enums::ColliderShape::Mesh; 
-
-	if (Parent != nullptr)
-	{
-		transform->position = Parent->transform->position;
-	}
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::Awake()

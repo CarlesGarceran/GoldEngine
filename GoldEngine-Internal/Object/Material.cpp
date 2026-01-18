@@ -494,6 +494,8 @@ void Engine::Components::Material::ApplyToShader(RAYLIB::Shader& shader)
 
 void Engine::Components::Material::ResetShader(RAYLIB::Shader& shader)
 {
+	RLGL::rlReloadTextureUnits();
+
 	for each (auto key in this->MaterialProperties)
 	{
 		Engine::Components::Locs::Generic::MaterialLoc^ genericLoc = key->GetMaterialLocation();

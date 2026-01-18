@@ -8,9 +8,6 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Attributes::LuaAPIAttribute]
 		public ref class CapsuleCollider : Engine::EngineObjects::Physics::Collider
 	{
-	private:
-		void* originalCollisionShape;
-
 	public:
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float radius;
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float height;

@@ -26,18 +26,18 @@
 
 using namespace Engine::Internal::Components;
 
-bool activeToggle = false;
-
 #ifdef USE_BULLET_PHYS
 
-Engine::Native::CollisionShape* getCollider(GameObject^ inst)
+void Engine::Internal::Components::GameObject::setCollisionShape(Engine::Native::CollisionShape* shape)
 {
-	Engine::Native::CollisionShape* ptr = (Engine::Native::CollisionShape*)inst->getCollisionShape();
+	if (this->collisionShape == nullptr) return;
 
-	if (ptr == nullptr)
-		inst->createCollisionShape();
+	if (this->collisionShape != shape)
+	{
+		delete this->collisionShape;
+	}
 
-	return (Engine::Native::CollisionShape*)inst->getCollisionShape();
+	this->collisionShape = shape;
 }
 
 void GameObject::createCollisionShape()
@@ -45,15 +45,31 @@ void GameObject::createCollisionShape()
 	this->collisionShape = new Engine::Native::CollisionShape(this);
 }
 
+void Engine::Internal::Components::GameObject::InitializeObject()
+{
+	if (initialized) return;
+	initialized = true;
+
+#ifdef USE_BULLET_PHYS
+	if (collisionShape == nullptr)
+		createCollisionShape();
 #endif
 
-void MoveChildren(GameObject^ root, cli::array<GameObject^>^ childs)
-{
-	for each (GameObject ^ child in childs)
-	{
-		//child->transform->position = (root->transform->position - child->transform->localPosition);
-	}
+	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
+	this->onChildAdded = gcnew Engine::Scripting::Events::Event();
+	this->onChildRemoved = gcnew Engine::Scripting::Events::Event();
+	this->onDescendantAdded = gcnew Engine::Scripting::Events::Event();
+
+	this->onDescendantAdded->connect(gcnew Action<GameObject^>(this, &GameObject::descendantAdded));
+
+	auto method = GetType()->GetMethod("Update");
+	updateExecutesInEditMode = method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
+
+	method = GetType()->GetMethod("DrawImGUI");
+	drawImGuiExecutesInEditMode = method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
 }
+
+#endif
 
 // BUBBLING \\
 
@@ -71,27 +87,15 @@ void GameObject::descendantAdded(GameObject^ descendant)
 
 GameObject::GameObject()
 {
-	this->coroutines = gcnew List<System::Collections::IEnumerator^>();
-
-#ifdef USE_BULLET_PHYS
-	this->collisionShape = new Engine::Native::CollisionShape(this);
-#endif
+	this->coroutines = gcnew System::Collections::Generic::List<System::Collections::Generic::Stack<System::Collections::IEnumerator^>^>();
 
 	if(layerMask != nullptr)
 		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerMask->layerMask);
-
-	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
-	this->onChildAdded = gcnew Engine::Scripting::Events::Event();
-	this->onChildRemoved = gcnew Engine::Scripting::Events::Event();
-	this->onDescendantAdded = gcnew Engine::Scripting::Events::Event();
-
-	this->onDescendantAdded->connect(gcnew Action<GameObject^>(this, &GameObject::descendantAdded));
 }
 
 GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transform^ transform, Engine::Internal::Components::ObjectType t, String^ tag, Engine::Components::Layer^ layer)
 {
-	this->coroutines = gcnew List<System::Collections::IEnumerator^>();
-	this->childs = gcnew cli::array<GameObject^>(0);
+	this->coroutines = gcnew System::Collections::Generic::List<System::Collections::Generic::Stack<System::Collections::IEnumerator^>^>();
 	this->active = true;
 	this->memberIsProtected = false;
 	this->name = n;
@@ -111,7 +115,7 @@ GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transfor
 	this->tag = tag;
 	
 #ifdef USE_BULLET_PHYS
-	this->collisionShape = new Engine::Native::CollisionShape(this);
+	createCollisionShape();
 #endif
 	// EVENT CREATION \\
 
@@ -123,6 +127,42 @@ GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transfor
 	this->onDescendantAdded->connect(gcnew Action<GameObject^>(this, &GameObject::descendantAdded));
 
 	activeToggle = this->active;
+
+	auto method = GetType()->GetMethod("Update");
+
+	if (method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
+	{
+		updateExecutesInEditMode = true;
+	}
+
+	method = GetType()->GetMethod("DrawImGUI");
+
+	if (method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
+	{
+		drawImGuiExecutesInEditMode = true;
+	}
+}
+
+Engine::Internal::Components::GameObject::~GameObject()
+{
+	onPropertyChanged->disconnectAll();
+	onChildAdded->disconnectAll();
+	onChildRemoved->disconnectAll();
+	onDescendantAdded->disconnectAll();
+
+	this->!GameObject();
+	GC::SuppressFinalize(this);
+}
+
+Engine::Internal::Components::GameObject::!GameObject()
+{
+#ifdef USE_BULLET_PHYS
+	if (collisionShape != nullptr)
+	{
+		delete collisionShape;
+		collisionShape = nullptr;
+	}
+#endif
 }
 
 void GameObject::setParent(GameObject^ object)
@@ -173,45 +213,34 @@ void GameObject::OnPropChanged()
 	if (!transform->position.Equals(lastTransform->position))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "position", transform->position, lastTransform->position });
-		MoveChildren(this, this->childs);
-
-		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
+		MoveChildren();
 	}
 	else if (!transform->rotation.Equals(lastTransform->rotation))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "rotation", transform->rotation, lastTransform->rotation });
-
-		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
 	else if (!transform->scale.Equals(lastTransform->scale))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "scale", transform->scale, lastTransform->scale });
-
-		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
 	else if ((lastTransform != nullptr && lastTransform->parent != nullptr) && (transform->parent != nullptr) && (!transform->parent->GetUID()->Equals(lastTransform->parent->GetUID())))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "parent", transform->parent, lastTransform->parent });
-
-		lastTransform = gcnew Engine::Internal::Components::Transform(transform->position, transform->rotation, transform->scale, transform->parent);
 	}
+
+	lastTransform->position = transform->position;
+	lastTransform->rotation = transform->rotation;
+	lastTransform->scale = transform->scale;
+	lastTransform->parent = transform->parent;
 }
 
-void fixChilds(GameObject^ root)
+void Engine::Internal::Components::GameObject::MoveChildren()
 {
-	for (int x = 0; x < root->childs->Length; x++)
-	{
-		GameObject^% obj = root->childs[x];
+	Engine::Components::Vector3 delta = transform->position - lastTransform->position;
 
-		if (obj->GetType() != obj->InstanceType->getTypeReference())
-		{
-			Engine::Scripting::ObjectManager::singleton()->Destroy(obj);
-			GameObject^ newInstance = (GameObject^)Cast::Deserialzable((System::Object^%)obj, obj->InstanceType->getTypeReference());
-			root->childs[x] = newInstance;
-			Engine::Scripting::ObjectManager::singleton()->Instantiate(newInstance);
-		}
-		else
-			continue;
+	for each (auto child in GetChildren())
+	{
+		child->transform->position += delta;
 	}
 }
 
@@ -247,7 +276,6 @@ void GameObject::GameUpdate()
 		this->layerMask = Engine::Scripting::LayerManager::GetLayerFromId(layerId);
 
 		OnPropChanged();
-		this->childs = GetChildren();
 
 		if (!active)
 		{
@@ -267,16 +295,36 @@ void GameObject::GameUpdate()
 			}
 		}
 
-		auto coroutinesCpy = coroutines->ToArray();
-
-		if (coroutinesCpy->Length > 0)
+		for (int i = coroutines->Count - 1; i >= 0; i--)
 		{
-			for (int x = coroutinesCpy->Length; x > 0; x--)
-			{
-				auto coroutine = coroutinesCpy[x-1];
+			auto stack = coroutines[i];
 
-				if (!coroutine->MoveNext())
-					coroutines->RemoveAt(x-1);
+			if (stack->Count == 0)
+			{
+				coroutines->RemoveAt(i);
+				continue;
+			}
+
+			auto top = stack->Peek();
+
+			if (top->MoveNext())
+			{
+				Object^ yielded = top->Current;
+
+				System::Collections::IEnumerator^ nested = dynamic_cast<System::Collections::IEnumerator^>(yielded);
+				if (nested != nullptr)
+				{
+					stack->Push(nested);
+				}
+			}
+			else
+			{
+				stack->Pop();
+
+				if (stack->Count == 0)
+				{
+					coroutines->RemoveAt(i);
+				}
 			}
 		}
 
@@ -288,14 +336,7 @@ void GameObject::GameUpdate()
 		}
 		else
 		{
-			auto method = GetType()->GetMethod("Update");
-
-			if (!method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
-			{
-				return;
-			}
-
-			Update();
+			if (updateExecutesInEditMode) Update();
 		}
 	}
 	catch (Exception^ ex)
@@ -334,14 +375,7 @@ void GameObject::GameDrawImGUI()
 	}
 	else
 	{
-		auto method = GetType()->GetMethod("DrawImGUI");
-
-		if (!method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
-		{
-			return;
-		}
-
-		DrawImGUI();
+		if(drawImGuiExecutesInEditMode) DrawImGUI();
 	}
 }
 
@@ -438,10 +472,7 @@ System::Object^ GameObject::CastToType(Type^ T, bool useConvert)
 
 void Engine::Internal::Components::GameObject::Destroy()
 {
-#ifdef USE_BULLET_PHYS
-	if(collisionShape != nullptr)
-		delete collisionShape;
-#endif
+
 }
 
 
@@ -490,20 +521,39 @@ GameObject^ GameObject::InstantiateChild(GameObject^ instance)
 
 void Engine::Internal::Components::GameObject::LaunchCoroutine(System::Collections::IEnumerator^ coroutine)
 {
-	this->coroutines->Add(coroutine);
+	auto stack = gcnew System::Collections::Generic::Stack<System::Collections::IEnumerator^>();
+	stack->Push(coroutine);
+	coroutines->Add(stack);
 }
 
-void Engine::Internal::Components::GameObject::RemoveCoroutine(System::Collections::IEnumerator^ coroutine)
+void Engine::Internal::Components::GameObject::StopCoroutine(System::Collections::IEnumerator^ routine)
 {
-	this->coroutines->Remove(coroutine);
+	if (routine == nullptr)
+		return;
+
+	for (int i = coroutines->Count - 1; i >= 0; i--)
+	{
+		auto stack = coroutines[i];
+
+		if (stack->Count == 0)
+		{
+			coroutines->RemoveAt(i);
+			continue;
+		}
+
+		System::Collections::IEnumerator^ root = nullptr;
+		for each(System::Collections::IEnumerator^ e in stack)
+			root = e;
+
+		if (Object::ReferenceEquals(root, routine))
+		{
+			coroutines->RemoveAt(i);
+			return;
+		}
+	}
 }
 
-void Engine::Internal::Components::GameObject::RemoveCoroutine(int index)
-{
-	this->coroutines->RemoveAt(index);
-}
-
-void Engine::Internal::Components::GameObject::CleanCoroutines()
+void Engine::Internal::Components::GameObject::StopAllCoroutines()
 {
 	this->coroutines->Clear();
 }
@@ -548,7 +598,11 @@ Engine::Internal::Components::ObjectType GameObject::GetObjectType()
 
 GameObject^ GameObject::Parent::get()
 {
-	return (GameObject^)Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjectFromTransform(this->transform->getParent());
+	Transform^ _transform = this->transform->getParent();
+
+	if (_transform == nullptr) return nullptr;
+
+	return (GameObject^)Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjectFromTransform(_transform);
 }
 
 void GameObject::Parent::set(GameObject^ arg)

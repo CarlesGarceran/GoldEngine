@@ -568,6 +568,9 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("MouseButton", Engine::Scripting::MouseButtons::typeid);
 	RegisterGlobal("CursorStatus", Engine::Scripting::CursorStatus::typeid);
 	RegisterGlobal("CursorVisibility", Engine::Scripting::CursorVisibility::typeid);
+	RegisterGlobal("Gamepad", Engine::Scripting::Gamepad::typeid);
+	RegisterGlobal("GamepadAxis", Engine::Scripting::GamepadAxis::typeid);
+	RegisterGlobal("GamepadButtons", Engine::Scripting::GamepadButtons::typeid);
 	RegisterGlobal("SharedInstance", SharedInstance::typeid);
 	RegisterGlobal("VMWrap", VMWrapper::typeid);
 	RegisterGlobal("Time", Engine::Scripting::Time::typeid);
