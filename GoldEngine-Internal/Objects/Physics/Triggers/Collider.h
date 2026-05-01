@@ -13,8 +13,6 @@ namespace Engine::EngineObjects::Physics
 		Enums::ColliderShape colliderShape;
 		bool registered = false;
 
-		Engine::Native::CollisionShape* originalCollisionShape;
-
 		GameObject^ root;
 
 	public:

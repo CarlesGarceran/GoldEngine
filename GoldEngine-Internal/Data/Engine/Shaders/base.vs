@@ -1,26 +1,57 @@
 #version 330
 
+#define MAX_BONE_NUM 128
+
 // Input vertex attributes
 in vec3 vertexPosition;
 in vec2 vertexTexCoord;
 in vec3 vertexNormal;
 in vec4 vertexColor;
 
+in vec4 vertexBoneIndices;
+in vec4 vertexBoneWeights;
+
 // Input uniform values
 uniform mat4 mvp;
+uniform mat4 matNormal;
+uniform mat4 boneMatrices[MAX_BONE_NUM];
 
-// Output vertex attributes (to fragment shader)
+// Output vertex attributes
 out vec2 fragTexCoord;
 out vec4 fragColor;
-
-// NOTE: Add here your custom variables
+out vec3 fragNormal;
 
 void main()
 {
-    // Send vertex attributes to fragment shader
+    int boneIndex0 = int(vertexBoneIndices.x);
+    int boneIndex1 = int(vertexBoneIndices.y);
+    int boneIndex2 = int(vertexBoneIndices.z);
+    int boneIndex3 = int(vertexBoneIndices.w);
+
+    vec4 skinnedPosition =
+        vertexBoneWeights.x*(boneMatrices[boneIndex0]*vec4(vertexPosition, 1.0)) +
+        vertexBoneWeights.y*(boneMatrices[boneIndex1]*vec4(vertexPosition, 1.0)) + 
+        vertexBoneWeights.z*(boneMatrices[boneIndex2]*vec4(vertexPosition, 1.0)) + 
+        vertexBoneWeights.w*(boneMatrices[boneIndex3]*vec4(vertexPosition, 1.0));
+
+    vec4 skinnedNormal =
+        vertexBoneWeights.x*(boneMatrices[boneIndex0]*vec4(vertexNormal, 0.0)) +
+        vertexBoneWeights.y*(boneMatrices[boneIndex1]*vec4(vertexNormal, 0.0)) + 
+        vertexBoneWeights.z*(boneMatrices[boneIndex2]*vec4(vertexNormal, 0.0)) + 
+        vertexBoneWeights.w*(boneMatrices[boneIndex3]*vec4(vertexNormal, 0.0));
+
+    skinnedNormal.w = 0.0;
+
+    // Fallback if skinnedPosition is effectively zero
+    if (length(skinnedPosition.xyz) < 0.0001)
+    {
+        skinnedPosition = vec4(vertexPosition, 1.0);
+        skinnedNormal = vec4(vertexNormal, 0.0);
+    }
+
     fragTexCoord = vertexTexCoord;
     fragColor = vertexColor;
+    fragNormal = normalize(vec3(matNormal * skinnedNormal));
 
-    // Calculate final vertex position
-    gl_Position = mvp*vec4(vertexPosition, 1.0);
+    gl_Position = mvp * skinnedPosition;
 }

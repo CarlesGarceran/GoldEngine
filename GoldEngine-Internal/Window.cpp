@@ -5,6 +5,7 @@
 #include "Window.h"
 #include <Windows.h>
 #include "imnotifications/ImNotify.h"
+#include "imnodes/Wrapper/ImNodesWrapper.h"
 #include "imgui/Fonts/fa_solid_900.h"
 
 using namespace Engine;
@@ -15,6 +16,7 @@ void Engine::Window::OpenWindow(int width, int height, const char* name)
 
 	InitWindow(width, height, name);
 	InitAudioDevice();
+	SetFPS(60);
 
 	RAYLIB::SetMasterVolume(1.0f);
 
@@ -24,7 +26,8 @@ void Engine::Window::OpenWindow(int width, int height, const char* name)
 	InitializeExtensions();
 
 	rlImGuiSetup(true);
-	ImNodes::CreateContext();
+	ImNodesContext* ctx = ImNodes::CreateContext();
+	ImNodesEditorContext* editorCtx = ImNodes::EditorContextCreate();
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -44,6 +47,10 @@ void Engine::Window::OpenWindow(int width, int height, const char* name)
 		iconsConfig.GlyphMinAdvanceX = iconFontSize;
 		io.Fonts->AddFontFromMemoryCompressedTTF(fa_solid_900_compressed_data, fa_solid_900_compressed_size, iconFontSize, &iconsConfig, iconsRanges);
 	}
+
+	ImGuiNET::Nodes::ImNodes::SetImGuiContext(IntPtr(ImGui::GetCurrentContext()));
+	ImNodes::StyleColorsDark();
+	ImGuiNET::Nodes::ImNodes::SetCurrentContext(IntPtr(ctx));
 }
 
 void Window::InitializeExtensions()

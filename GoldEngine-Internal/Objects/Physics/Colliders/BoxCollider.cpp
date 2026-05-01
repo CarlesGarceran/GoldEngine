@@ -158,19 +158,20 @@ void Engine::EngineObjects::Physics::BoxCollider::Awake()
 	this->onPropertyChanged->connect(gcnew Action<String^, System::Object^, System::Object^>(this, &BoxCollider::OnParentChanged));
 
 	SetCollisionShape(this, extents, origin);
-
+	RAYLIB::Model defaultModel = { 0 };
 	this->cachedModel = new Engine::Native::EnginePtr<RAYLIB::Model>(
-		{ },
+		defaultModel,
 		&SafeUnloadModel,
 		&SafeUnloadModel
 	);
+	registered = true;
 }
 
 void Engine::EngineObjects::Physics::BoxCollider::Start()
 {
 	Collider::Start();
 
-	if (!registered && Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
+	if (registered && Singleton<Engine::EngineObjects::Physics::PhysicsService^>::Instantiated)
 	{
 		Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 		
@@ -227,14 +228,14 @@ void Engine::EngineObjects::Physics::BoxCollider::DrawGizmo()
 
 void Engine::EngineObjects::Physics::BoxCollider::Destroy()
 {
-	if (Parent != nullptr && this->originalCollisionShape != nullptr)
+	if (root)
 	{
-		Parent->setCollisionShape(this->originalCollisionShape);
+		if (root->IsA<RigidBody^>()) root->As<RigidBody^>()->DisposedShape();
 	}
-	else
+
+	if (Parent != nullptr)
 	{
-		if (originalCollisionShape != nullptr) // Idk in which case this could happen but... idk, just in case it happens.
-			delete originalCollisionShape;
+		Parent->restoreCollisionShape();
 	}
 }
 
@@ -249,6 +250,8 @@ bool Engine::EngineObjects::Physics::BoxCollider::ClaimOwnership(GameObject^ ins
 		return false;
 
 	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
+
+	if (root == instance) return true;
 
 	/*
 	if (instance->IsA<RigidBody^>() && root != instance)
@@ -333,7 +336,6 @@ void Engine::EngineObjects::Physics::BoxCollider::CreateShape()
 void Engine::EngineObjects::Physics::BoxCollider::Disown()
 {
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-
 	root = nullptr;
 
 	SetCollisionShape(this, extents, origin);
@@ -429,7 +431,7 @@ void Engine::EngineObjects::Physics::BoxCollider::RenderGuizmos(btCollisionObjec
 			Engine::Components::Vector3::Zero().toNative(),
 			{ 0,0,0 },
 			0,
-			transform->scale.toNative(),
+			{ 1,1,1 },
 			wireColor->toNative()
 		);
 	}
@@ -510,6 +512,7 @@ void Engine::EngineObjects::Physics::BoxCollider::Update()
 	Collider::Update();
 
 	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
+	if (collisionShape == nullptr) return;
 
 	if (renderWires)
 	{
@@ -529,51 +532,6 @@ void Engine::EngineObjects::Physics::BoxCollider::Update()
 		if (this->cachedModel->isLoaded() && RAYLIB::IsModelValid(this->cachedModel->getInstance()))
 		{
 			this->cachedModel->free();
-		}
-	}
-
-	if (root)
-	{
-		Engine::Native::CollisionShape* _collisionShape = (Engine::Native::CollisionShape*)root->getCollisionShape();
-
-		if (_collisionShape->hasCollisionObject())
-		{
-			btCollisionObject*& collisionObject = _collisionShape->getCollisionObject();
-
-			if (collisionObject->getCollisionShape() != collisionShape->getCollisionShape())
-			{
-				collisionObject->setCollisionShape(collisionShape->getCollisionShape());
-			}
-		}
-
-		if (collisionShape->hasCollisionObject() && collisionShape->getCollisionObject() != nullptr)
-		{
-			if (collisionShape->getCollisionObject() != _collisionShape->getCollisionObject())
-				collisionShape->freeCollisionObject();
-		}
-	}
-	else
-	{
-		if (collisionShape->hasCollisionObject())
-		{
-			auto collisionObject = collisionShape->getCollisionObject();
-			Engine::EngineObjects::Physics::Native::updateCollisionObject(collisionObject,
-				{ 
-					transform->position.x + origin.x, 
-					transform->position.y + origin.y, 
-					transform->position.z + origin.z 
-				},
-				{
-					transform->rotation.x,
-					transform->rotation.y,
-					transform->rotation.z
-				},
-				{
-					transform->scale.x,
-					transform->scale.y,
-					transform->scale.z
-				}
-			);
 		}
 	}
 }

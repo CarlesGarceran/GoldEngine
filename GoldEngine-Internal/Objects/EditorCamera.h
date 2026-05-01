@@ -16,19 +16,27 @@ namespace Engine::EngineObjects::Editor
 		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override
 		{
-			this->transform->position = Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().position);
 			nativeCamera->get().fovy = fov;
-			transform->rotation = Engine::Components::Vector3::create(((Native::NativeCamera3D*)this->get())->get().target);
 
-			if (cameraMode == CamMode::CAMERA_CUSTOM)
+			if (cameraMode == CamMode::CAMERA_FREE)
 			{
-				this->nativeCamera->get().target = transform->rotation.toNative();
-				this->nativeCamera->getCameraPtr()->position = transform->position.toNative();
+				// Native camera is authoritative
+				transform->position =
+					Engine::Components::Vector3::create(nativeCamera->get().position);
+
+				Engine::Components::Vector3 forward =
+					Engine::Components::Vector3::create(
+						RAYMATH::Vector3Subtract(nativeCamera->get().target, nativeCamera->get().position)
+					).Normalized();
+
+				transform->rotation =
+					Engine::Components::Quaternion::LookRotation(forward, Engine::Components::Vector3(0,1,0));
+
+				return; // IMPORTANT: do NOT overwrite native camera
 			}
 
-			UpdateCamera(this->nativeCamera->getCameraPtr(), (int)cameraMode);
+			UpdateCamera(nativeCamera->getCameraPtr(), (int)cameraMode);
 		}
-
 
 		void OnActive() override
 		{

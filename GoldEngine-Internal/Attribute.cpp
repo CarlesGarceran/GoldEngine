@@ -97,6 +97,18 @@ inline Engine::Scripting::Attribute::Attribute(AccessLevel level, String^ str, S
 	setType(userDataType->getTypeReference()); // For consistency
 }
 
+Engine::Scripting::Attribute::~Attribute()
+{
+	onPropertyChanged->disconnectAll();
+
+	name = nullptr;
+	userDataType = nullptr;
+	onPropertyChanged = nullptr;
+	descriptor = nullptr;
+	rootObject = nullptr;
+	userData = nullptr;
+}
+
 bool isEnum(System::Type^ type)
 {
 	return (type->IsEnum);
@@ -158,6 +170,8 @@ inline void Engine::Scripting::Attribute::setValue(System::Object^ object, bool 
 	if (accessLevel == AccessLevel::ReadOnly)
 		return;
 
+	if (object == userData || object->Equals(userData)) return;
+
 	onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { object, userData });
 	userData = object;
 	
@@ -173,6 +187,8 @@ inline void Engine::Scripting::Attribute::setValue(System::Object^ object, bool 
 
 inline void Engine::Scripting::Attribute::setValueForce(System::Object^ object, bool overrideType)
 {
+	if (object == userData || object->Equals(userData)) return;
+
 	onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { object, userData });
 	userData = object;
 

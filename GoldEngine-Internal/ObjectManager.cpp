@@ -11,6 +11,11 @@ using namespace Concurrency;
 
 #pragma managed(pop)
 
+void Engine::Scripting::ObjectManager::SwapScene(Engine::Management::Scene^ scene)
+{
+	this->loadedScene = scene;
+}
+
 ObjectManager::ObjectManager(Engine::Management::Scene^ loadedScene)
 {
 	this->loadedScene = loadedScene;
@@ -219,8 +224,12 @@ void ObjectManager::Destroy(Engine::Internal::Components::GameObject^ object)
 			{
 				auto type = v->GetObjectType();
 
-				if (type == Engine::Internal::Components::ObjectType::Datamodel || type == Engine::Internal::Components::ObjectType::Daemon || type == Engine::Internal::Components::ObjectType::LightManager || v->isProtected())
-					return;
+				if (Engine::Management::Scene::getLoadedScene() != nullptr) // If the scene singleton is null, the scene is being unloaded
+				{
+					if (type == Engine::Internal::Components::ObjectType::Datamodel || type == Engine::Internal::Components::ObjectType::Daemon || type == Engine::Internal::Components::ObjectType::LightManager || v->isProtected())
+						return;
+				}
+
 
 				// REPARENT ALL THE CHILDREN TO NULL (SET AS UNPARENTED).
 				List<Engine::Internal::Components::GameObject^>^ objectList = ObjectManager::singleton()->GetChildrenOf(object);
@@ -232,9 +241,13 @@ void ObjectManager::Destroy(Engine::Internal::Components::GameObject^ object)
 
 				// call destroy method (for self impl)
 				object->Destroy();
+				object->SetParent(nullptr);
 
 				// PURGE THE OBJECT FROM THE SCENE
 				loadedScene->derreferenceObject(loadedScene->getSceneObject(t));
+
+				System::GC::Collect();
+				System::GC::WaitForPendingFinalizers();
 				break;
 			}
 		}

@@ -80,7 +80,7 @@ namespace Engine::Encryption
 		static System::String^ DecryptString(System::String^ fileContents, unsigned int password)
 		{
 			System::String^ decryptedContents = "";
-
+			
 			auto decStr = fileContents->Split('/');
 
 			for each(String ^ s in decStr)

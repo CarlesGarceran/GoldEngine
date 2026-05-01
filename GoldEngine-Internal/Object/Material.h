@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace Engine::Components::Locs::Generic
 {
 	[Engine::Attributes::LuaAPIAttribute]
@@ -9,7 +10,6 @@ namespace Engine::Components::Locs::Generic
 	public:
 		MaterialLoc() {}
 		virtual unsigned int GetLocType() { return 0; }
-
 
 		virtual void SetValue(System::Object^ instance) = 0;
 		virtual System::Object^ GetValue() = 0;

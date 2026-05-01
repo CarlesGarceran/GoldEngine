@@ -28,5 +28,8 @@ namespace Engine::EngineObjects::Private
 
 		GameObject^ GetService(System::String^ serviceName);
 		GameObject^ Service(System::String^ serviceName) { return GetService(serviceName); }
+
+
+		void Destroy() override;
 	};
 }

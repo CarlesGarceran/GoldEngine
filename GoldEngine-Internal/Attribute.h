@@ -35,6 +35,8 @@ namespace Engine::Scripting
 		[Newtonsoft::Json::JsonConstructorAttribute]
 		Attribute(AccessLevel level, String^ str, System::Object^ data, System::Type^ dT);
 
+		~Attribute();
+
 	public:
 		void setValue(System::Object^ object, bool overrideType);
 		void setValueForce(System::Object^ object, bool overrideType);
@@ -126,23 +128,42 @@ namespace Engine::Scripting
 			if(userDataType != nullptr)
 				userDataType->DeserializeType();
 
-			if (userData->GetType() != Newtonsoft::Json::Linq::JObject::typeid)
-				return userData;
-
-			try
+			if (userData->GetType() != userDataType->getTypeReference())
 			{
-				Newtonsoft::Json::Linq::JObject^ sonObject = (Newtonsoft::Json::Linq::JObject^)userData;
-				return sonObject->ToObject(userDataType->getTypeReference());
-			}
-			catch (Exception^ ex)
-			{
-			#ifdef LOGAPI_IMPL
-				printError(ex->Message);
-				printError(ex->StackTrace);
-			#endif
+				if (userData->GetType() == Newtonsoft::Json::Linq::JObject::typeid)
+				{
+					try
+					{
+						Newtonsoft::Json::Linq::JObject^ sonObject = (Newtonsoft::Json::Linq::JObject^)userData;
+						return sonObject->ToObject(userDataType->getTypeReference());
+					}
+					catch (Exception^ ex)
+					{
+						#ifdef LOGAPI_IMPL
+							printError(ex->Message);
+							printError(ex->StackTrace);
+						#endif
 
-				return userData;
+						return userData;
+					}
+				}
+				else
+				{
+					System::Type^ type = userDataType->getTypeReference();
+					if (type->IsEnum)
+					{
+						return System::Enum::Parse(type, userData->ToString());
+					}
+					else
+					{
+						return System::Convert::ChangeType(userData, userDataType->getTypeReference());
+					}
+				}
 			}
+
+			return userData;
+			
+			
 		}
 
 		void setType(System::Type^ type)

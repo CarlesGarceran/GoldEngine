@@ -36,30 +36,39 @@ inline std::array<RAYLIB::Vector3, 2> GetEdge(btConvexHullShape* shape, int i)
 	};
 }
 
-void SetShapeScaling(btCollisionObject* object, std::array<float, 3> scale)
+inline void SetShapeScaling(btCollisionObject* object, std::array<float, 3> scale)
 {
 	object->getCollisionShape()->setLocalScaling({ scale[0], scale[1], scale[2] });
 }
 
-void _setCollisionShape(Engine::Native::CollisionShape* hookedShape, RAYLIB::Mesh& meshInstance, int collisionType)
+inline void _setCollisionShape(NativePhysicsService nativePhysService, Engine::Native::CollisionShape* hookedShape, RAYLIB::Mesh& meshInstance, int collisionType, std::array<float, 3> offset)
 {
 	if (hookedShape == nullptr) return;
 
-	btCollisionShape* collisionShape = NativeSingleton<NativePhysicsService>::Get().getCollisionShapeFromMesh(meshInstance, collisionType);
-	
-	hookedShape->createCollisionShape(collisionShape);
+	btCollisionShape* collisionShape = nativePhysService.getCollisionShapeFromMesh(meshInstance, collisionType);
+	btCompoundShape* compoundShape = new btCompoundShape();
+
+	btTransform localTransform;
+	localTransform.setIdentity();
+	localTransform.setOrigin({ offset[0], offset[1], offset[2] });
+	compoundShape->addChildShape(localTransform, collisionShape);
+
+	hookedShape->createCollisionShape(compoundShape);
 }
 
 UNMANAGED_END
 
-void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType)
+using PhysicsService = Engine::EngineObjects::Physics::PhysicsService;
+
+void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType, Engine::Components::Vector3 origin)
 {
 	if (Instance == nullptr) return;
+
+	PhysicsService^ phys = Singleton<PhysicsService^>::Instance;
 
 	if (Instance->Parent != nullptr && Instance->Parent->IsA<Renderer^>())
 	{
 		Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)Instance->getCollisionShape());
-		Engine::Native::CollisionShape* collisionShape2 = ((Engine::Native::CollisionShape*)Instance->Parent->getCollisionShape());
 
 		Renderer^ renderer = Instance->Parent->As<Renderer^>();
 
@@ -69,19 +78,18 @@ void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enu
 		{
 			meshIndex = renderer->As<MeshRenderer^>()->meshIndex;
 
-			if (meshIndex > (*renderer->As<MeshRenderer^>()->GetModel()).meshCount)
+			if (meshIndex > (*renderer->As<MeshRenderer^>()->GetModelPtr()).meshCount)
 				return;
 		}
 		else if (renderer->IsA<ModelRenderer^>())
 		{
 			meshIndex = 0;
 
-			if (meshIndex > (*renderer->As<ModelRenderer^>()->GetModel()).meshCount)
+			if (meshIndex > (*renderer->As<ModelRenderer^>()->GetModelPtr()).meshCount)
 				return;
 		}
 
-		_setCollisionShape(collisionShape, (*renderer->GetModel()).meshes[meshIndex], (int)meshCollisionType);
-		_setCollisionShape(collisionShape2, (*renderer->GetModel()).meshes[meshIndex], (int)meshCollisionType);
+		_setCollisionShape(*phys->getNativePhysicsService(), collisionShape, renderer->GetModelPtr()->meshes[meshIndex], (int)meshCollisionType, { origin.x, origin.y, origin.z });
 	}
 }
 
@@ -117,7 +125,8 @@ void Engine::EngineObjects::Physics::MeshCollider::Start()
 	{
 		Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
 
-		SetCollisionShape(this, this->meshCollisionType);
+		if (!collisionShape->hasCollisionShape())
+			SetCollisionShape(this, meshCollisionType, origin);
 
 		if (this->collisionType == Enums::ColliderType::Trigger)
 			collisionShape->createBulletGhostObject(true);
@@ -125,12 +134,6 @@ void Engine::EngineObjects::Physics::MeshCollider::Start()
 			collisionShape->createBulletObject(true);
 
 		registered = true;
-
-		if (Parent != nullptr)
-		{
-			this->originalCollisionShape = (Engine::Native::CollisionShape*)Parent->getCollisionShape();
-			Parent->setCollisionShape(this->getCollisionShape());
-		}
 	}
 }
 
@@ -143,21 +146,16 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 	if (Parent != nullptr && Parent->IsA<Renderer^>())
 	{
 		btCollisionObject* collisionObject = collisionShape->getCollisionObject();
+		if (!collisionShape->hasCollisionObject() || !collisionShape->hasCollisionShape()) return;
 
 		if(meshCollisionType == Enums::MeshCollisionType::Concave)
 		{
-			RAYLIB::Model& model = *Parent->As<Renderer^>()->GetModel();
-			int meshIndex = 0;
-
-			if (Parent->IsA<MeshRenderer^>())
-				meshIndex = Parent->As<MeshRenderer^>()->meshIndex;
-
-			RAYLIB::Mesh& mesh = model.meshes[meshIndex];
-
+			RAYLIB::Model* model = Parent->As<Renderer^>()->GetModelPtr();
+			
 			RAYLIB::DrawModelWiresEx(
-				model,
-				transform->position.toNative(),
-				transform->rotation.toNative(),
+				*model,
+				(transform->position + (transform->localPosition * -1)).toNative(),
+				transform->rotation.ToEulerAngles().toNative(),
 				0.0f,
 				transform->scale.toNative(),
 				wireColor->toNative()
@@ -166,7 +164,8 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 		else if (meshCollisionType == Enums::MeshCollisionType::Convex) 
 		{
 			Engine::Native::CollisionShape* collisionShape = (Engine::Native::CollisionShape*)this->getCollisionShape();
-			btConvexHullShape* convexHullShape = (btConvexHullShape*)collisionShape->getCollisionShape();
+			btCompoundShape* compoundShape = (btCompoundShape*)collisionShape->getCollisionShape();
+			btConvexHullShape* convexHullShape = (btConvexHullShape*)compoundShape->getChildShape(0);
 
 			int numVerts = convexHullShape->getNumEdges();
 
@@ -205,7 +204,15 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 
 void Engine::EngineObjects::Physics::MeshCollider::Destroy()
 {
-	Parent->setCollisionShape(this->originalCollisionShape);
+	if (root)
+	{
+		if (root->IsA<RigidBody^>()) root->As<RigidBody^>()->DisposedShape();
+	}
+
+	if (Parent != nullptr)
+	{
+		Parent->restoreCollisionShape();
+	}
 }
 
 bool Engine::EngineObjects::Physics::MeshCollider::IsOwned()
@@ -218,13 +225,16 @@ bool Engine::EngineObjects::Physics::MeshCollider::ClaimOwnership(GameObject^ in
 	if (!instance->IsA<Engine::EngineObjects::Physics::RigidBody^>())
 		return false;
 
-	if (root == instance)
-		return false;
+	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
+
+	if (root == instance) return true;
 
 	root = instance;
 
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-	SetCollisionShape(this, this->meshCollisionType);
+	if (!collisionShape->hasCollisionShape())
+	{
+		SetCollisionShape(this, this->meshCollisionType, origin);
+	}
 
 	if (registered && collisionShape->getCollisionObject() != nullptr)
 	{
@@ -232,20 +242,56 @@ bool Engine::EngineObjects::Physics::MeshCollider::ClaimOwnership(GameObject^ in
 		registered = false;
 	}
 
+	if (root != nullptr)
+	{
+		Engine::Native::CollisionShape* _collisionShape = ((Engine::Native::CollisionShape*)root->getCollisionShape());
+
+		if (_collisionShape->hasCollisionObject())
+		{
+			btCollisionObject*& collisionObject = _collisionShape->getCollisionObject();
+			collisionObject->setCollisionShape(collisionShape->getCollisionShape());
+
+			collisionShape->setCollisionObject(collisionObject, false, false);
+
+			if (this->collisionType == Enums::ColliderType::Trigger)
+				collisionObject->setCollisionFlags(collisionObject->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+			else
+				collisionObject->setCollisionFlags(collisionObject->getCollisionFlags() & btCollisionObject::CF_NO_CONTACT_RESPONSE);
+		}
+
+		if (collisionShape->hasCollisionObject() && registered)
+		{
+			Singleton<PhysicsService^>::Instance->RemoveCollisionObject(collisionShape->getCollisionObject());
+			collisionShape->freeCollisionObject();
+		}
+
+		collisionShape->resampleAABB();
+	}
 
 	return true;
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::CreateShape()
 {
-	SetCollisionShape(this, this->meshCollisionType);
+	SetCollisionShape(this, this->meshCollisionType, origin);
 	root = nullptr;
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::Disown()
 {
+	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+
 	root = nullptr;
 	registered = false;
+
+	SetCollisionShape(this, meshCollisionType, origin);
+
+	if (this->collisionType == Enums::ColliderType::Trigger)
+		collisionShape->createBulletGhostObject(true);
+	else
+		collisionShape->createBulletObject(true);
+
+	registered = true;
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::OnCollisionTypeChanged(Enums::ColliderType newType, Enums::ColliderType oldType)
@@ -289,51 +335,26 @@ void Engine::EngineObjects::Physics::MeshCollider::Update()
 	Collider::Update();
 
 	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+	if (collisionShape == nullptr) return;
 
-	if (root != nullptr && root->IsA<RigidBody^>() && !root->As<RigidBody^>()->Kinematic && meshCollisionType == Enums::MeshCollisionType::Concave)
+	if (root != nullptr && root->IsA<RigidBody^>())
 	{
-		printError("A non kinematic rigidbody can't use a concave collider.");
-		meshCollisionType = Enums::MeshCollisionType::Convex;
-		registered = false;
-	}
-
-	if (!registered && root == nullptr)
-	{
-		SetCollisionShape(this, this->meshCollisionType);
-
-		if (this->collisionType == Enums::ColliderType::Trigger)
-			collisionShape->createBulletGhostObject(true);
-		else
-			collisionShape->createBulletObject(true);
-
-		registered = true;
-
-		if (Parent != nullptr && this->originalCollisionShape == nullptr)
+		if (root->As<RigidBody^>()->Kinematic && meshCollisionType == Enums::MeshCollisionType::Concave)
 		{
-			this->originalCollisionShape = (Engine::Native::CollisionShape*)Parent->getCollisionShape();
-			Parent->setCollisionShape(this->getCollisionShape());
+			printWarning("A non kinematic rigidbody can't use a concave collider.");
+			meshCollisionType = Enums::MeshCollisionType::Convex;
+			registered = false;
+
+			btRigidBody* body = root->As<RigidBody^>()->getRigidBody();
+			body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			body->setActivationState(DISABLE_DEACTIVATION);
 		}
-	}
-
-	if (collisionShape->getCollisionObject() != nullptr)
-	{
-		SetShapeScaling(collisionShape->getCollisionObject(), { transform->scale.x, transform->scale.y, transform->scale.z });
-	}
-
-	if (Parent != nullptr)
-	{
-		auto collisionObject = collisionShape->getCollisionObject();
-
-		Engine::EngineObjects::Physics::Native::updateCollisionObject(
-			collisionObject, 
-			{ transform->position.x, transform->position.y, transform->position.z }, 
-			{ transform->rotation.x, transform->rotation.y, transform->rotation.z }
-		);
-	}
-
-	if (root)
-	{
-		transform->position = root->transform->position;
+		else
+		{
+			btRigidBody* body = root->As<RigidBody^>()->getRigidBody();
+			body->setCollisionFlags(body->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
+			body->activate(true);
+		}
 	}
 }
 

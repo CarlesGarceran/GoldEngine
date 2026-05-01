@@ -247,6 +247,7 @@ CIMGUI_API bool imnodes_IsPinHovered(int* attribute_id)
 {
     return ImNodes::IsPinHovered(attribute_id);
 }
+
 CIMGUI_API int imnodes_NumSelectedNodes()
 {
     return ImNodes::NumSelectedNodes();

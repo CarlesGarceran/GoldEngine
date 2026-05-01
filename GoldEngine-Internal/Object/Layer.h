@@ -16,6 +16,8 @@ namespace Engine::Components
 		Layer(int mask, System::String^ name);
 		Layer(int mask, System::String^ name, unsigned short layerBlendFlags);
 
+		~Layer();
+
 		void setLayerBlendFlags(unsigned short flags);
 		unsigned short getLayerBlendFlags();
 

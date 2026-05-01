@@ -14,7 +14,7 @@ Engine::Components::Locs::TextureLoc::TextureLoc()
 
 unsigned int Engine::Components::Locs::TextureLoc::GetLocType()
 {
-	return 1;
+	return (unsigned int)Engine::Components::Enums::MaterialLocations::TextureLoc;
 }
 
 System::Object^ Engine::Components::Locs::TextureLoc::GetValue()
@@ -24,7 +24,5 @@ System::Object^ Engine::Components::Locs::TextureLoc::GetValue()
 
 void Engine::Components::Locs::TextureLoc::SetValue(System::Object^ instance)
 {
-	//if (instance->GetType() != System::UInt32::typeid) throw gcnew System::ArgumentException();
-
 	this->textureId = (unsigned int)System::Convert::ToUInt32(instance);
 }

@@ -480,7 +480,6 @@ extern "C"
         WRAP_RAYLIB_FUNC(SetMaterialTexture, void, (Material* material, int mapType, Texture2D texture), (material, mapType, texture))
         WRAP_RAYLIB_FUNC(SetModelMeshMaterial, void, (Model* model, int meshId, int materialId), (model, meshId, materialId))
         WRAP_RAYLIB_FUNC(UpdateModelAnimation, void, (Model model, ModelAnimation anim, int frame), (model, anim, frame))
-        WRAP_RAYLIB_FUNC(UnloadModelAnimation, void, (ModelAnimation anim), (anim))
         WRAP_RAYLIB_FUNC(UnloadModelAnimations, void, (ModelAnimation* animations, int animCount), (animations, animCount))
         WRAP_RAYLIB_FUNC(IsModelAnimationValid, bool, (Model model, ModelAnimation anim), (model, anim))
         WRAP_RAYLIB_FUNC(CheckCollisionSpheres, bool, (Vector3 center1, float radius1, Vector3 center2, float radius2), (center1, radius1, center2, radius2))

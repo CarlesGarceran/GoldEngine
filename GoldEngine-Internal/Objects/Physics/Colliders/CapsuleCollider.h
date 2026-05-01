@@ -13,8 +13,8 @@ namespace Engine::EngineObjects::Physics
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float height;
 
 	private:
-		[Engine::Scripting::SerializePropertyAttribute] float gizmo_slices;
-		[Engine::Scripting::SerializePropertyAttribute] float gizmo_rings;
+		[Engine::Scripting::SerializePropertyAttribute] float gizmo_slices = 16;
+		[Engine::Scripting::SerializePropertyAttribute] float gizmo_rings = 16;
 
 	public:
 		CapsuleCollider();

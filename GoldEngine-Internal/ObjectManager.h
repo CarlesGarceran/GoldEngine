@@ -35,6 +35,10 @@ namespace Engine::Scripting
 		Engine::Management::Scene^ loadedScene;
 		Engine::Scripting::SceneTarget target = Engine::Scripting::RenderQueue; // by default hook RenderQueue
 
+
+	internal:
+		void SwapScene(Engine::Management::Scene^ scene);
+
 	public:
 		ObjectManager(Engine::Management::Scene^ loadedScene);
 
@@ -70,6 +74,13 @@ namespace Engine::Scripting
 #endif
 		}
 
+		void SetSelectedObject(GameObject^ instance)
+		{
+#ifndef PRODUCTION_BUILD
+			Singleton<Window^>::Instance->SetSelectedObject(instance);
+#endif
+		}
+
 		Engine::Management::Scene^ GetLoadedScene()
 		{
 			return loadedScene;
@@ -98,6 +109,24 @@ namespace Engine::Scripting
 			return objects;
 		}
 
+		List<Engine::Internal::Components::GameObject^>^ GetObjectsOfType(System::Type^ type)
+		{
+			auto objects = gcnew List<Engine::Internal::Components::GameObject^>();
+
+			for each (GameObject ^ t in loadedScene->GetRenderQueue())
+			{
+				if (t == nullptr)
+					continue;
+
+				if (t->GetType()->Equals(type) || t->GetType()->IsSubclassOf(type))
+				{
+					objects->Add(t);
+				}
+			}
+
+			return objects;
+		}
+
 		generic <class T>
 		List<T>^ GetObjectsOfType()
 		{
@@ -105,7 +134,10 @@ namespace Engine::Scripting
 
 			for each (GameObject^ t in loadedScene->GetRenderQueue())
 			{
-				if (t != nullptr && t->GetType() == T::typeid)
+				if (t == nullptr)
+					continue;
+
+				if (t->GetType()->Equals(T::typeid) || t->GetType()->IsSubclassOf(T::typeid))
 				{
 					objects->Add(t->ToObjectType<T>());
 				}

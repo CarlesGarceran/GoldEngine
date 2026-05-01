@@ -116,11 +116,11 @@
 // NOTE: Microsoft specifiers to tell compiler that symbols are imported/exported from a .dll
 // NOTE: visibility(default) attribute makes symbols "visible" when compiled with -fvisibility=hidden
 #if defined(_WIN32) && defined(BUILD_LIBTYPE_SHARED)
-#define RLAPI __declspec(dllexport)     // We are building the library as a Win32 shared library (.dll)
+#define RLAPI __declspec(dllexport)     // Building the library as a Win32 shared library (.dll)
 #elif defined(BUILD_LIBTYPE_SHARED)
-#define RLAPI __attribute__((visibility("default"))) // We are building the library as a Unix shared library (.so/.dylib)
+#define RLAPI __attribute__((visibility("default"))) // Building the library as a Unix shared library (.so/.dylib)
 #elif defined(_WIN32) && defined(USE_LIBTYPE_SHARED)
-#define RLAPI __declspec(dllimport)     // We are using the library as a Win32 shared library (.dll)
+#define RLAPI __declspec(dllimport)     // Using the library as a Win32 shared library (.dll)
 #endif
 
 // Function specifiers definition
@@ -131,7 +131,6 @@
 // Support TRACELOG macros
 #ifndef TRACELOG
 #define TRACELOG(level, ...) (void)0
-#define TRACELOGD(...) (void)0
 #endif
 
 // Allow custom memory allocators
@@ -149,7 +148,8 @@
 #endif
 
 // Security check in case no GRAPHICS_API_OPENGL_* defined
-#if !defined(GRAPHICS_API_OPENGL_11) && \
+#if !defined(GRAPHICS_API_OPENGL_11_SOFTWARE) && \
+    !defined(GRAPHICS_API_OPENGL_11) && \
     !defined(GRAPHICS_API_OPENGL_21) && \
     !defined(GRAPHICS_API_OPENGL_33) && \
     !defined(GRAPHICS_API_OPENGL_43) && \
@@ -159,7 +159,7 @@
 #endif
 
 // Security check in case multiple GRAPHICS_API_OPENGL_* defined
-#if defined(GRAPHICS_API_OPENGL_11)
+#if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_11_SOFTWARE)
 #if defined(GRAPHICS_API_OPENGL_21)
 #undef GRAPHICS_API_OPENGL_21
 #endif
@@ -172,6 +172,11 @@
 #if defined(GRAPHICS_API_OPENGL_ES2)
 #undef GRAPHICS_API_OPENGL_ES2
 #endif
+#endif
+
+// Software implementation uses OpenGL 1.1 functionality
+#if defined(GRAPHICS_API_OPENGL_11_SOFTWARE)
+#define GRAPHICS_API_OPENGL_11
 #endif
 
 // OpenGL 2.1 uses most of OpenGL 3.3 Core functionality
@@ -190,10 +195,6 @@
 #define GRAPHICS_API_OPENGL_ES2
 #endif
 
-// Support framebuffer objects by default
-// NOTE: Some driver implementation do not support it, despite they should
-#define RLGL_RENDER_TEXTURES_HINT
-
 //----------------------------------------------------------------------------------
 // Defines and Macros
 //----------------------------------------------------------------------------------
@@ -206,9 +207,9 @@
 #define RL_DEFAULT_BATCH_BUFFER_ELEMENTS  8192
 #endif
 #if defined(GRAPHICS_API_OPENGL_ES2)
-    // We reduce memory sizes for embedded systems (RPI and HTML5)
+    // Reducing memory sizes for embedded systems (RPI and HTML5)
     // NOTE: On HTML5 (emscripten) this is allocated on heap,
-    // by default it's only 16MB!...just take care...
+    // by default heap is only 16MB!...just take care...
 #define RL_DEFAULT_BATCH_BUFFER_ELEMENTS  2048
 #endif
 #endif
@@ -234,10 +235,10 @@
 
 // Projection matrix culling
 #ifndef RL_CULL_DISTANCE_NEAR
-#define RL_CULL_DISTANCE_NEAR                 0.01      // Default near cull distance
+#define RL_CULL_DISTANCE_NEAR                 0.05      // Default near cull distance
 #endif
 #ifndef RL_CULL_DISTANCE_FAR
-#define RL_CULL_DISTANCE_FAR                1000.0      // Default far cull distance
+#define RL_CULL_DISTANCE_FAR                4000.0      // Default far cull distance
 #endif
 
 // Texture parameters (equivalent to OpenGL defines)
@@ -347,13 +348,16 @@
 #ifndef RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES
 #define RL_DEFAULT_SHADER_ATTRIB_LOCATION_INDICES     6
 #endif
-#ifdef RL_SUPPORT_MESH_GPU_SKINNING
-#ifndef RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEIDS
-#define RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEIDS     7
+#ifdef SUPPORT_GPU_SKINNING
+#ifndef RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEINDICES
+#define RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEINDICES 7
 #endif
 #ifndef RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEWEIGHTS
 #define RL_DEFAULT_SHADER_ATTRIB_LOCATION_BONEWEIGHTS 8
 #endif
+#endif
+#ifndef RL_DEFAULT_SHADER_ATTRIB_LOCATION_INSTANCETRANSFORMS
+#define RL_DEFAULT_SHADER_ATTRIB_LOCATION_INSTANCETRANSFORMS 9
 #endif
 
 //----------------------------------------------------------------------------------
@@ -424,7 +428,8 @@ typedef struct rlRenderBatch {
 
 // OpenGL version
 typedef enum {
-    RL_OPENGL_11 = 1,           // OpenGL 1.1
+    RL_OPENGL_11_SOFTWARE = 0,  // Software rendering
+    RL_OPENGL_11,               // OpenGL 1.1
     RL_OPENGL_21,               // OpenGL 2.1 (GLSL 120)
     RL_OPENGL_33,               // OpenGL 3.3 (GLSL 330)
     RL_OPENGL_43,               // OpenGL 4.3 (using GLSL 330)
@@ -641,10 +646,8 @@ extern "C" {            // Prevents name mangling of functions
     RLAPI void rlDisableVertexBufferElement(void);          // Disable vertex buffer element (VBO element)
     RLAPI void rlEnableVertexAttribute(unsigned int index); // Enable vertex attribute index
     RLAPI void rlDisableVertexAttribute(unsigned int index); // Disable vertex attribute index
-#if defined(GRAPHICS_API_OPENGL_11)
     RLAPI void rlEnableStatePointer(int vertexAttribType, void* buffer); // Enable attribute state pointer
     RLAPI void rlDisableStatePointer(int vertexAttribType); // Disable attribute state pointer
-#endif
 
     // Textures state
     RLAPI void rlActiveTextureSlot(int slot);               // Select and active a texture slot
@@ -681,9 +684,12 @@ extern "C" {            // Prevents name mangling of functions
     RLAPI void rlEnableScissorTest(void);                   // Enable scissor test
     RLAPI void rlDisableScissorTest(void);                  // Disable scissor test
     RLAPI void rlScissor(int x, int y, int width, int height); // Scissor test
-    RLAPI void rlEnableWireMode(void);                      // Enable wire mode
     RLAPI void rlEnablePointMode(void);                     // Enable point mode
-    RLAPI void rlDisableWireMode(void);                     // Disable wire (and point) mode
+    RLAPI void rlDisablePointMode(void);                    // Disable point mode
+    RLAPI void rlSetPointSize(float size);                  // Set the point drawing size
+    RLAPI float rlGetPointSize(void);                       // Get the point drawing size
+    RLAPI void rlEnableWireMode(void);                      // Enable wire mode
+    RLAPI void rlDisableWireMode(void);                     // Disable wire mode
     RLAPI void rlSetLineWidth(float width);                 // Set the line drawing width
     RLAPI float rlGetLineWidth(void);                       // Get the line drawing width
     RLAPI void rlEnableSmoothLines(void);                   // Enable line aliasing
@@ -703,10 +709,10 @@ extern "C" {            // Prevents name mangling of functions
     // Functions Declaration - rlgl functionality
     //------------------------------------------------------------------------------------
     // rlgl initialization functions
-    RLAPI void rlReloadTextureUnits();
     RLAPI void rlglInit(int width, int height);             // Initialize rlgl (buffers, shaders, textures, states)
     RLAPI void rlglClose(void);                             // De-initialize rlgl (buffers, shaders, textures)
     RLAPI void rlLoadExtensions(void* loader);              // Load OpenGL extensions (loader function required)
+    RLAPI void* rlGetProcAddress(const char* procName);     // Get OpenGL procedure address
     RLAPI int rlGetVersion(void);                           // Get current OpenGL version
     RLAPI void rlSetFramebufferWidth(int width);            // Set current framebuffer width
     RLAPI int rlGetFramebufferWidth(void);                  // Get default framebuffer width
@@ -727,6 +733,7 @@ extern "C" {            // Prevents name mangling of functions
     RLAPI void rlDrawRenderBatchActive(void);               // Update and draw internal render batch
     RLAPI bool rlCheckRenderBatchLimit(int vCount);         // Check internal buffer overflow for a given number of vertex
 
+    RLAPI void rlReloadTextureUnits(void);
     RLAPI void rlSetTexture(unsigned int id);               // Set current texture for render batch and check buffers limits
 
     //------------------------------------------------------------------------------------------------------------------------
@@ -764,18 +771,21 @@ extern "C" {            // Prevents name mangling of functions
     RLAPI void rlFramebufferAttach(unsigned int fboId, unsigned int texId, int attachType, int texType, int mipLevel); // Attach texture/renderbuffer to a framebuffer
     RLAPI bool rlFramebufferComplete(unsigned int id);                        // Verify framebuffer is complete
     RLAPI void rlUnloadFramebuffer(unsigned int id);                          // Delete framebuffer from GPU
+    // WARNING: Copy and resize framebuffer functionality only defined for software backend
+    RLAPI void rlCopyFramebuffer(int x, int y, int width, int height, int format, void* pixels); // Copy framebuffer pixel data to internal buffer
+    RLAPI void rlResizeFramebuffer(int width, int height);                    // Resize internal framebuffer
 
     // Shaders management
     RLAPI unsigned int rlLoadShaderCode(const char* vsCode, const char* fsCode);    // Load shader from code strings
     RLAPI unsigned int rlCompileShader(const char* shaderCode, int type);           // Compile custom shader and return shader id (type: RL_VERTEX_SHADER, RL_FRAGMENT_SHADER, RL_COMPUTE_SHADER)
     RLAPI unsigned int rlLoadShaderProgram(unsigned int vShaderId, unsigned int fShaderId); // Load custom shader program
     RLAPI void rlUnloadShaderProgram(unsigned int id);                              // Unload shader program
-    RLAPI int rlGetLocationUniform(unsigned int shaderId, const char* uniformName); // Get shader location uniform
-    RLAPI int rlGetLocationAttrib(unsigned int shaderId, const char* attribName);   // Get shader location attribute
+    RLAPI int rlGetLocationUniform(unsigned int shaderId, const char* uniformName); // Get shader location uniform, requires shader program id
+    RLAPI int rlGetLocationAttrib(unsigned int shaderId, const char* attribName);   // Get shader location attribute, requires shader program id
     RLAPI void rlSetUniform(int locIndex, const void* value, int uniformType, int count); // Set shader value uniform
     RLAPI void rlSetUniformMatrix(int locIndex, Matrix mat);                        // Set shader value matrix
     RLAPI void rlSetUniformMatrices(int locIndex, const Matrix* mat, int count);    // Set shader value matrices
-    RLAPI void rlSetUniformSampler(int locIndex, unsigned int textureId);           // Set shader value sampler
+    RLAPI void rlSetUniformSampler(int locIndex, unsigned int textureId, bool cubeMap);           // Set shader value sampler
     RLAPI void rlSetShader(unsigned int id, int* locs);                             // Set shader currently active (id and locations)
 
     // Compute shader management

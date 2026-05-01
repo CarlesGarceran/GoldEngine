@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "DataPacks.h"
 #include "DataPack.h"
 #include "FileManager.h"
@@ -23,12 +23,8 @@ namespace Engine::Management
 		bool sceneFinishedLoading;
 		unsigned int password;
 		static Scene^ singleton;
-		event OnSceneLoaded^ onLoadedScene;
-		event OnSceneLoaded^ raiseSetup;
-		event OnSceneLoaded^ raiseInit;
-		event OnSceneLoaded^ raiseAwake;
 
-		System::Collections::Generic::List<Engine::Internal::Components::GameObject^>^ persistantObjects = gcnew System::Collections::Generic::List<Engine::Internal::Components::GameObject^>();
+		static System::Collections::Generic::List<Engine::Internal::Components::GameObject^>^ persistantObjects = gcnew System::Collections::Generic::List<Engine::Internal::Components::GameObject^>();
 
 		// Properties
 	public:
@@ -100,8 +96,8 @@ namespace Engine::Management
 
 			sceneFinishedLoading = true;
 
-			if (Directory::Exists("Data/unpacked/"))
-				Directory::Delete("Data/unpacked/", true);
+			if (Directory::Exists(EXTRACT_PATH))
+				Directory::Delete(EXTRACT_PATH, true);
 
 			OnLoad();
 
@@ -109,15 +105,16 @@ namespace Engine::Management
 
 		void UnloadScene()
 		{
+			singleton = nullptr;
 			sceneFinishedLoading = false;
 
 			printConsole("Unloading scene");
-
 			OnUnload();
 			derreferenceSceneObjects();
 			sceneObjects->Clear();
 			RLGL::rlReloadTextureUnits();
 			System::GC::Collect();
+			System::GC::WaitForPendingFinalizers();
 		}
 
 		void RemoveObjectFromScene(Engine::Management::MiddleLevel::SceneObject^ object)
@@ -223,9 +220,6 @@ namespace Engine::Management
 
 			delete object;
 			object = nullptr;
-			GC::Collect();
-			GC::WaitForPendingFinalizers();
-			GC::Collect();
 		}
 
 	public:
@@ -312,6 +306,10 @@ namespace Engine::Management
 
 				return newMember;
 			}
+			else
+			{
+				return nullptr;
+			}
 		}
 
 		void CopyRenderQueueToSceneObjects()
@@ -339,40 +337,29 @@ namespace Engine::Management
 			if (object == nullptr)
 				return;
 
-			msclr::lock^ l = gcnew msclr::lock(sceneObjects);
-			l->acquire();
-			{
-				sceneObjects->Add(gcnew Engine::Management::MiddleLevel::SceneObject(
-					object->GetObjectType(),
-					object,
-					""));
+			msclr::lock l(sceneObjects);
+			sceneObjects->Add(gcnew Engine::Management::MiddleLevel::SceneObject(
+				object->GetObjectType(),
+				object,
+				""));
 
-				try
+			try
+			{
+				object->InitializeObject();
+
+				if (sceneFinishedLoading)
 				{
-					if (!sceneFinishedLoading)
-					{
-						object->InitializeObject();
-						raiseSetup += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Setup);
-						raiseInit += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Init);
-						raiseAwake += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Awake);
-						onLoadedScene += gcnew OnSceneLoaded(object, &Engine::Internal::Components::GameObject::Start);
-					}
-					else
-					{
-						object->InitializeObject();
-						object->Setup();
-						object->Init();
-						object->Awake();
-						object->Start();
-					}
-				}
-				catch (Exception^ ex)
-				{
-					printError(ex->Message);
-					printError(ex->StackTrace);
+					object->Setup();
+					object->Init();
+					object->Awake();
+					object->Start();
 				}
 			}
-			l->release();
+			catch (Exception^ ex)
+			{
+				printError(ex->Message);
+				printError(ex->StackTrace);
+			}
 		}
 
 		void PushToRenderQueue(Engine::Management::MiddleLevel::SceneObject^ object)
@@ -402,7 +389,7 @@ namespace Engine::Management
 			return gcnew Engine::Internal::Components::GameObject(datamodel,
 				gcnew Engine::Internal::Components::Transform(
 					Engine::Components::Vector3(0, 0, 0),
-					Engine::Components::Vector3(0, 0, 0),
+					Engine::Components::Quaternion::FromEulerAngles(Engine::Components::Vector3(0, 0, 0)),
 					Engine::Components::Vector3(1, 1, 1),
 					nullptr
 				),
@@ -415,17 +402,70 @@ namespace Engine::Management
 	public:
 		void HookSceneInit()
 		{
-			try
+			auto renderQueue = this->GetRenderQueue();
+
+			// 1️⃣ Setup phase
+			for each (GameObject ^ obj in renderQueue)
 			{
-				raiseSetup();
-				raiseInit();
-				raiseAwake();
-				onLoadedScene();
+				if (obj == nullptr) continue;
+
+				try
+				{
+					obj->Setup();
+				}
+				catch (Exception^ ex)
+				{
+					printError(ex->Message);
+					printError(ex->StackTrace);
+				}
 			}
-			catch (Exception^ ex)
+
+			// 2️⃣ Init phase
+			for each (GameObject ^ obj in renderQueue)
 			{
-				printError(ex->Message);
-				printError(ex->StackTrace);
+				if (obj == nullptr) continue;
+
+				try
+				{
+					obj->Init();
+				}
+				catch (Exception^ ex)
+				{
+					printError(ex->Message);
+					printError(ex->StackTrace);
+				}
+			}
+
+			// 3️⃣ Awake phase
+			for each (GameObject ^ obj in renderQueue)
+			{
+				if (obj == nullptr) continue;
+
+				try
+				{
+					obj->Awake();
+				}
+				catch (Exception^ ex)
+				{
+					printError(ex->Message);
+					printError(ex->StackTrace);
+				}
+			}
+
+			// 4️⃣ Start phase
+			for each (GameObject ^ obj in renderQueue)
+			{
+				if (obj == nullptr) continue;
+
+				try
+				{
+					obj->Start();
+				}
+				catch (Exception^ ex)
+				{
+					printError(ex->Message);
+					printError(ex->StackTrace);
+				}
 			}
 		}
 
@@ -433,6 +473,18 @@ namespace Engine::Management
 	public:
 		virtual void OnUnload()
 		{
+			std::list<int> indicesToPurge = {};
+			for (int x = 0; x < persistantObjects->Count; x++)
+			{
+				if (persistantObjects[x]->IsDisposed()) indicesToPurge.push_back(x);
+			}
+
+			indicesToPurge.reverse();
+			for (int index : indicesToPurge)
+			{
+				persistantObjects->RemoveAt(index);
+			}
+
 			for each(auto object in sceneObjects->ToArray())
 			{
 				if (object == nullptr) continue;
@@ -461,9 +513,7 @@ namespace Engine::Management
 				}
 			}
 
-			GC::Collect();
-			GC::WaitForPendingFinalizers();
-			GC::Collect();
+			System::GC::Collect();
 		}
 		virtual void OnLoad()
 		{

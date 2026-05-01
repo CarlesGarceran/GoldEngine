@@ -14,8 +14,20 @@ namespace Engine::Scripting
 			attributes = gcnew List<Attribute^>();
 		}
 
+		~AttributeManager()
+		{
+			for each (Attribute^ attrib in attributes)
+			{
+				delete attrib;
+			}
+
+			attributes->Clear();
+		}
+
 		bool hasAttribute(String^ attribute)
 		{
+			if (this == nullptr) return false;
+
 			for each (Attribute ^ attrib in attributes)
 			{
 				if (attrib != nullptr && attrib->name == attribute)
@@ -28,6 +40,8 @@ namespace Engine::Scripting
 	private:
 		Attribute^ GetAttribute(String^ attribute)
 		{
+			if (this == nullptr) return nullptr;
+
 			for each (Attribute ^ attrib in attributes)
 			{
 				if (attrib != nullptr && attrib->name == attribute)
@@ -41,31 +55,41 @@ namespace Engine::Scripting
 	public:
 		void DeserializeAttributes()
 		{
+			if (this == nullptr) return;
+
 			for each (auto x in attributes)
 			{
-				x->setValueForce(x->DeserializeAttribute(), false);
+				x->setValueForce(x->DeserializeAttribute(), true);
 				x->resetType();
 			}
 		}
 		
 		void removeAttribute(Attribute^ attrib)
 		{
+			if (this == nullptr) return;
+
 			attributes->Remove(attrib);
 		}
 
 		void removeAttribute(String^ name)
 		{
+			if (this == nullptr) return;
+
 			if (hasAttribute(name))
 				attributes->Remove(GetAttribute(name));
 		}
 
 		void clearAttributes()
 		{
+			if (this == nullptr) return;
+
 			attributes->Clear();
 		}
 
 		void addAttribute(Attribute^ attribute) 
 		{
+			if (this == nullptr) return;
+
 			setAttribute(attribute);
 		}
 

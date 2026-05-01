@@ -31,6 +31,8 @@ extern unsigned int passwd;
 #define EDITOR_VERSION "GoldEngine Editor Ver: 0.7b"
 #define RUNTIME_VERSION "GoldEngine Runtime Prev-Ver: 0.3a"
 
+#define EXTRACT_PATH "Data/unpacked/"
+
 #define UNMANAGED_BEGIN \
 	__pragma(managed(push, off))
 

@@ -16,18 +16,24 @@ namespace Engine::EngineObjects::Physics
 	{
 	public:
 		// RIGIDBODY PROPERTIES
-		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool Kinematic;
-		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float Mass;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] bool Kinematic = false;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] float Mass = 0.1;
 
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] float angularDamping;
 		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::ReadOnly)] Engine::Components::Vector3 angularVelocity = Engine::Components::Vector3::Zero();
+
+	private:
+		bool transformDirty = false, physicsDirty = false;
+		bool disposeCollisionShape = false;
+		bool teleport = false;
 
 	public:
 		void Awake() override;
 		void Start() override;
 
 		void Update() override;
-		
+		void PhysicsUpdate() override;
+
 		void Draw() override;
 
 		void Destroy() override;
@@ -65,6 +71,24 @@ namespace Engine::EngineObjects::Physics
 
 		Engine::Components::Vector3 GetTotalTorque() { return getCenterOfMass(); }
 		Engine::Components::Vector3 getTotalTorque();
+
+		void setTransform(Engine::Components::Vector3 position, Engine::Components::Quaternion rotation) { SetTransform(position, rotation); }
+		void SetTransform(Engine::Components::Vector3 position, Engine::Components::Quaternion rotation);
+
+		void Translate(Engine::Components::Vector3 deltaPosition);
+		void Rotate(Engine::Components::Quaternion deltaRotation);
+
+		void translate(Engine::Components::Vector3 deltaPosition) { Translate(deltaPosition); }
+		void rotate(Engine::Components::Quaternion deltaRotation) { Rotate(deltaRotation); }
+
+		void setPosition(Engine::Components::Vector3 position) { SetPosition(position); }
+		void setRotation(Engine::Components::Quaternion rotation) { SetRotation(rotation); }
+
+		void SetPosition(Engine::Components::Vector3 position);
+		void SetRotation(Engine::Components::Quaternion rotation);
+
+		void SetKinematic(bool isKinematic);
+		void setKinematic(bool isKinematic) { SetKinematic(isKinematic); }
 
 		void SetBounciness(float bounciness);
 		float GetBounciness();
@@ -110,8 +134,8 @@ namespace Engine::EngineObjects::Physics
 		virtual void OnCollided(GameObject^ instance) override;
 		virtual void OnTriggered(GameObject^ instance) override;
 
-
 		void RecalculateInertia();
+		void MarkTransformDirty() { transformDirty = true; }
 
 	internal:
 		btRigidBody* getRigidBody();
@@ -122,6 +146,13 @@ namespace Engine::EngineObjects::Physics
 		void onMassChanged(float newValue, float oldValue);
 		void onKinematicChanged(bool newValue, bool oldValue);
 		void reloadRigidbody();
+		void SyncFromPhysics();
+		void SyncToPhysics();
+		void swapCollisionShape(btCollisionShape* shape);
+		void checkSynchronization(bool& synchronize);
+
+	internal:
+		void DisposedShape();
 
 		bool registered = false;
 	};

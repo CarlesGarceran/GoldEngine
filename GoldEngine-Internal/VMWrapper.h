@@ -99,10 +99,6 @@ namespace Engine::Lua::VM
 		}
 
 		static DynValue^ Derivate(System::Object^ object);
-		static bool HasProperty(Engine::Internal::Components::GameObject^ object, String^ propertyName);
 		static Engine::Scripting::AttributeManager^ GetAttributeManager(Engine::Internal::Components::GameObject^ object);
-		static void SetProperty(Engine::Internal::Components::GameObject^ object, String^ propertyName, System::Object^ newValue);
-
-		static Object^ GetProperty(Engine::Internal::Components::GameObject^ instance, String^ propertyName);
 	};
 }

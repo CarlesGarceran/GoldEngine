@@ -10,7 +10,7 @@ private:
 public:
 	inline static T& get()
 	{
-		return (T&)instance;
+		return *(T*)instance;
 	}
 
 	inline static void create(const T& arg)
@@ -19,7 +19,7 @@ public:
 		allocated = true;
 	}
 
-	inline static void create(T& arg)
+	inline static void create(T* arg)
 	{
 		instance = arg;
 		allocated = true;
@@ -27,7 +27,7 @@ public:
 
 	inline static T& free()
 	{
-		T& arg = ((T&)instance);
+		T& arg = *((T*)instance);
 		instance = nullptr;
 		allocated = false;
 
@@ -36,7 +36,7 @@ public:
 
 	// Name Renames (for PASCAL name convention)
 	static T Get() { return get(); }
-	static void Create(T& arg) { create(arg); }
+	static void Create(T* arg) { create(arg); }
 	static void Create(const T& arg) { create(arg); }
 	static T& Free() { return free(); }
 };

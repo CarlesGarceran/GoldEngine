@@ -16,9 +16,12 @@ namespace Engine::Internal::Components
 		public ref class GameObject
 	{
 	private:
+		bool isDisposed = false;
 #ifdef USE_BULLET_PHYS
 		[Newtonsoft::Json::JsonIgnoreAttribute]
 		Engine::Native::CollisionShape* collisionShape = nullptr;
+		Engine::Native::CollisionShape* originalCollisionShape = nullptr;
+
 		bool collisionObjectInitialized = false;
 #endif
 		Engine::Internal::Components::Transform^ lastTransform;
@@ -35,6 +38,10 @@ namespace Engine::Internal::Components
 		bool drawImGuiExecutesInEditMode = false;
 		bool initialized = false;
 		bool activeToggle = false;
+
+		System::Collections::Generic::List<
+			Engine::Internal::Components::GameObject^
+		>^ cachedChildren;
 
 	public:
 		bool active;
@@ -74,7 +81,9 @@ namespace Engine::Internal::Components
 #ifdef USE_BULLET_PHYS
 	internal:
 		Engine::Native::CollisionShape* getCollisionShape() { return collisionShape; }
-		void setCollisionShape(Engine::Native::CollisionShape* shape);
+
+		void overrideCollisionShape(Engine::Native::CollisionShape* collisionShape);
+		void restoreCollisionShape();
 
 		void createCollisionShape();
 #endif
@@ -125,6 +134,8 @@ namespace Engine::Internal::Components
 		void descendantAdded(GameObject^ descendant);
 		void OnPropChanged();
 		void MoveChildren();
+		void RotateChildren();
+		void ScaleChildren();
 
 	internal:
 		void GameUpdate();
@@ -225,6 +236,10 @@ namespace Engine::Internal::Components
 		static T FindFirstObjectOfType();
 		static GameObject^ FindFirstObjectByName(System::String^ name);
 		static GameObject^ FindFirstObjectByTag(System::String^ tag);
+		static cli::array<GameObject^>^ GetObjects();
 
+		bool IsDisposed();
+internal:
+	Engine::Internal::Components::Transform^ GetLastFrameTransform();
 };
 }

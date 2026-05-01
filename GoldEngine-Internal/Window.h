@@ -15,11 +15,6 @@ namespace Engine
 	public ref class Window
 	{
 	private:
-		int tickRate = 0;
-		int physicsTick = 60;
-		int targetFPS = 60;
-		int oldTargetFps;
-
 		ArrayList drawList;
 
 	public:
@@ -47,32 +42,20 @@ namespace Engine
 			drawList.Add(invokable);
 		}
 
-		void ResetPhysics()
-		{
-			tickRate = 0;
-		}
-
 		void SetFPS(int fps)
 		{
-			oldTargetFps = targetFPS;
-			targetFPS = fps;
+			SetTargetFPS(fps);
 		}
 
 		int GetFPS()
 		{
-			return targetFPS;
+			return RAYLIB::GetFPS();
 		}
 
 		void Loop()
 		{
 			while (!RAYLIB::WindowShouldClose())
 			{
-				if (oldTargetFps != targetFPS)
-				{
-					SetTargetFPS(targetFPS);
-					oldTargetFps = targetFPS;
-				}
-
 				Update();
 				Draw();
 			}
@@ -87,6 +70,7 @@ namespace Engine
 		// stubmethods
 
 		virtual System::Object^ GetSelectedObject() { return nullptr; }
+		virtual void SetSelectedObject(System::Object^ instance) {};
 
 		// vmethods
 		virtual void Preload() {} // loading assets

@@ -338,7 +338,7 @@ public:
 
 			auto transform = gcnew Engine::Internal::Components::Transform(
 				Engine::Components::Vector3(0, 0, 0),
-				Engine::Components::Vector3(0, 0, 0),
+				Engine::Components::Quaternion::Identity,
 				Engine::Components::Vector3(1, 1, 1),
 				nullptr
 			);

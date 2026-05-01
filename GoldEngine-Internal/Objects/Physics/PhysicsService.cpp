@@ -660,6 +660,7 @@ void PhysicsService::Start()
 	Engine::Scripting::LayerManager::onLayerRemoved->connect(gcnew System::Action<Engine::Components::Layer^>(this, &PhysicsService::RemoveLayer));
 
 	physicsUpdateThread = gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &PhysicsService::UpdatePhysicsThread));
+	physicsUpdateThread->IsBackground = true;
 	physicsUpdateThread->Start();
 }
 
@@ -686,7 +687,7 @@ void PhysicsService::AddPhysicsObject(Engine::EngineObjects::Physics::RigidBody^
 	}
 	else
 		if (world == nullptr)
-			printError("Physics World not instantiated");
+			printError("Physics World is not instantiated");
 		else if (rigidBody->getRigidBody() == nullptr)
 			printError("Rigidbody not instantiated");
 }
@@ -707,7 +708,7 @@ void PhysicsService::RemovePhysicsObject(Engine::EngineObjects::Physics::RigidBo
 	}
 	else
 		if (world == nullptr)
-			throw gcnew Exception("Physics World not instantiated");
+			throw gcnew Exception("Physics World is not instantiated");
 		else if (rigidBody->getRigidBody() == nullptr)
 			throw gcnew Exception("Rigidbody not instantiated");
 }
@@ -785,9 +786,19 @@ void PhysicsService::RemoveCollisionObject(btCollisionObject* collisionObject)
 	}
 	else
 		if (world == nullptr)
-			printError("Physics World not instantiated");
+			printError("Physics World is not instantiated");
 		else if (collisionObject == nullptr)
 			printError("CollisionObject is not a pointer to an instance");
+}
+
+bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, Engine::Components::Layer^ layer)
+{
+	return Raycast(from, to, layer->layerMask);
+}
+
+bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 direction, float maxDistance, unsigned int layer)
+{
+	return Raycast(from, direction * maxDistance, layer);
 }
 
 bool Engine::EngineObjects::Physics::PhysicsService::Raycast(Engine::Components::Vector3 origin, Engine::Components::Vector3 to, unsigned int layer)
@@ -1099,8 +1110,21 @@ NativePhysicsService* PhysicsService::getNativePhysicsService()
 
 void Engine::EngineObjects::Physics::PhysicsService::Destroy()
 {
+	printDebug("PhysicsService::Destroy()");
+
+	thisFramePairs.clear();
+	prevFramePairs.clear();
+
 	processingPhysicsFinished = true;
-	physicsUpdateThread->Join();
+	processingPhysicsStart->Set();
+
+	if (!physicsUpdateThread->Join(5000))
+	{
+		printWarning("Physics thread did not exit in time!");
+	}
+
+	thisFramePairs.clear();
+	prevFramePairs.clear();
 
 	btAlignedObjectArray<btRigidBody*> rigidBodies = world->getNonStaticRigidBodies();
 
@@ -1110,28 +1134,32 @@ void Engine::EngineObjects::Physics::PhysicsService::Destroy()
 		if (rigidBody == nullptr) continue;
 
 		world->removeRigidBody(rigidBody);
-		delete rigidBody->getCollisionShape();
-		delete rigidBody;
 	}
 
 	btCollisionObjectArray& collObjArray = world->getCollisionObjectArray();
 	for (int x = 0; x < collObjArray.size(); x++)
 	{
 		btCollisionObject* collisionPtr = collObjArray[x];
-
 		if (collisionPtr == nullptr) continue;
 
 		world->removeCollisionObject(collisionPtr);
-		delete collisionPtr->getCollisionShape();
-		delete collisionPtr;
 	}
 
-	delete collisionConfig;
-	delete collisionDispatcher;
-	delete bvhInterface;
-	delete SQCsolver;
-	delete world;
-	delete nativePhysicsService;
+	thisFramePairs.clear();
+	prevFramePairs.clear();
+
+	if (world != nullptr)				delete world;
+	if (SQCsolver != nullptr)			delete SQCsolver;
+	if (bvhInterface != nullptr)		delete bvhInterface;
+	if (collisionDispatcher != nullptr) delete collisionDispatcher;
+	if (collisionConfig != nullptr)		delete collisionConfig;
+
+	collisionConfig = nullptr;
+	collisionDispatcher = nullptr;
+	bvhInterface = nullptr;
+	SQCsolver = nullptr;
+	world = nullptr;
+	nativePhysicsService = nullptr;
 }
 
 std::mutex& Engine::EngineObjects::Physics::PhysicsService::RequestMutex()
@@ -1173,6 +1201,9 @@ void Engine::EngineObjects::Physics::PhysicsService::UpdatePhysicsThread()
 				break;
 
 			processingPhysicsStart->WaitOne();
+
+			if (processingPhysicsFinished)
+				break;
 
 			if (maxSubSteps <= 0)
 				maxSubSteps = 1;

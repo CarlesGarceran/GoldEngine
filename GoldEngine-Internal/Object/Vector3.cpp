@@ -148,3 +148,13 @@ System::Numerics::Vector3 Engine::Components::Vector3::toNumericsVector3()
 {
 	return System::Numerics::Vector3(this->x, this->y, this->z);
 }
+
+bool Engine::Components::Vector3::IsZero()
+{
+	return (x == 0 && y == 0 && z == 0);
+}
+
+float Engine::Components::Vector3::SqrMagnitude::get()
+{
+	return (x * x) + (y * y) + (z * z);
+}

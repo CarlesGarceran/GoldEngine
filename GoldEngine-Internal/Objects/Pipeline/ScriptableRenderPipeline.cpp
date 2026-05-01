@@ -227,10 +227,17 @@ void Engine::Render::ScriptableRenderPipeline::ExecuteRenderWorkflow(Engine::Win
 		RAYLIB::Rectangle target;
 		target.x = 0;
 		target.y = 0;
-		target.width = Engine::Scripting::Screen::Width;
-		target.height = -Engine::Scripting::Screen::Height;
-
-		DrawTextureRec(framebufferTexturePtr->getInstance().texture, target, { 0,0 }, { 255,255,255,255 });
+		target.width = Engine::Scripting::Screen::ScreenWidth;
+		target.height = Engine::Scripting::Screen::ScreenHeight;
+		
+		DrawTexturePro(
+			framebufferTexturePtr->getInstance().texture,
+			{ 0, 0, (float)framebufferTexturePtr->getInstance().texture.width, -(float)framebufferTexturePtr->getInstance().texture.height }, 
+			target, 
+			{0,0}, 
+			0.0f,
+			{255,255,255,255}
+		);
 
 		rlImGuiEnd();
 

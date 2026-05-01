@@ -72,9 +72,9 @@ namespace Engine::Assets::Management
 				AddFont(fontId, filePath);
 			}
 
-			for each(unsigned int animationId in fonts->Keys)
+			for each(unsigned int animationId in modelAnimations->Keys)
 			{
-				System::String^ filePath = fonts[animationId];
+				System::String^ filePath = modelAnimations[animationId];
 
 				AddModelAnimation(animationId, filePath);
 			}
@@ -309,8 +309,10 @@ namespace Engine::Assets::Management
 			text = CastStringToNative(path);
 
 			AnimationStruct* animStruct = new AnimationStruct{ 0 };
+			int animCount = 0;
 
-			animStruct->animations = RAYLIB::LoadModelAnimations(text.c_str(), &animStruct->animationCount);
+			animStruct->animations = RAYLIB::LoadModelAnimations(text.c_str(), &animCount);
+			animStruct->animationCount = (unsigned int)animCount;
 
 			print("[Resource Manager]:", "Loading Animation");
 

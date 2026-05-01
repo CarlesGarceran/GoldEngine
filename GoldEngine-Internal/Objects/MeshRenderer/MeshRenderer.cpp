@@ -13,10 +13,8 @@ MeshRenderer::MeshRenderer()
 
 }
 
-void MeshRenderer::Setup()
+void MeshRenderer::Awake()
 {
-	Engine::EngineObjects::Geometry::Abstract::Renderer::Setup();
-
 	if (this->tint == nullptr)
 		this->tint = Engine::Components::Color::New();
 
@@ -28,8 +26,7 @@ void MeshRenderer::Setup()
 		meshIndex = 0;
 
 	this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(modelCopy.meshes[meshIndex]);
-	this->modelInstance = new Engine::Native::EnginePtr<RAYLIB::Model>(RAYLIB::LoadModelFromMesh(this->meshInstance->getInstance()));
-	
+
 	this->attributes->getAttribute("modelId")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &MeshRenderer::onModelUpdated));
 	this->attributes->getAttribute("meshIndex")->onPropertyChanged->connect(gcnew Action<unsigned int, unsigned int>(this, &MeshRenderer::onMeshIndexUpdated));
 }
@@ -48,43 +45,31 @@ void MeshRenderer::Update()
 		this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(modelCopy.meshes[meshIndex]);
 	else
 		this->meshInstance->setInstance(modelCopy.meshes[meshIndex]);
-
-	if (this->modelInstance == nullptr)
-		this->modelInstance = new Engine::Native::EnginePtr<RAYLIB::Model>(RAYLIB::LoadModelFromMesh(this->meshInstance->getInstance()));
-	else
-		this->modelInstance->setInstance(RAYLIB::LoadModelFromMesh(this->meshInstance->getInstance()));
 }
 
 void MeshRenderer::Draw()
 {
-	RAYLIB::Model meshOnlyModel = this->modelInstance->getInstance();
 	Engine::Components::Material^ materialInstance = DataPacks::singleton().GetMaterial(materialId);
 	RAYLIB::Shader shader = DataPacks::singleton().GetShader(materialInstance->shaderId->getInstance());
-
-	meshOnlyModel.transform = RAYMATH::MatrixRotateXYZ({
-		DEG2RAD * this->transform->rotation.x,
-		DEG2RAD * this->transform->rotation.y,
-		DEG2RAD * this->transform->rotation.z
-	});
 
 	if (materialInstance->GetBaseColor() != nullptr && materialInstance->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) 
 		this->tint = ((Engine::Components::Locs::ColorLoc^)materialInstance->GetBaseColor())->color;
 
 	materialInstance->ApplyToShader(shader);
 
-	meshOnlyModel.materials[0].shader = shader;
-
 	RAYMATH::Matrix translation = RAYMATH::MatrixTranslate(
-		0,
-		0,
-		0
+		transform->position.x,
+		transform->position.y,
+		transform->position.z
 	);
 
+	Engine::Components::Vector3 eulerAngles = this->transform->rotation.ToEulerRadians();
+
 	RAYMATH::Matrix rotation = RAYMATH::MatrixRotateXYZ({
-		DEG2RAD * this->transform->rotation.x,
-		DEG2RAD * this->transform->rotation.y,
-		DEG2RAD * this->transform->rotation.z
-		});
+		eulerAngles.x,
+		eulerAngles.y,
+		eulerAngles.z
+	});
 
 	RAYLIB::Matrix scale = RAYMATH::MatrixScale(
 		this->transform->scale.x,
@@ -100,30 +85,30 @@ void MeshRenderer::Draw()
 		)
 	);
 
-	meshOnlyModel.transform = _transform;
-
-	DrawModelShaderEx(
-		meshOnlyModel,
-		{ transform->position.x,transform->position.y, transform->position.z },
-		{ 0,0,0 },
-		0.0f,
-		transform->scale.toNative(),
-		tint->toNative()
-	);
+	DrawMeshShader(
+		meshInstance->getInstance(),
+		shader,
+		_transform
+	); // From my Custom RLAPI
 
 	materialInstance->ResetShader(shader);
 }
 
 void MeshRenderer::Destroy()
 {
-	delete modelInstance;
 	delete meshInstance;
+	meshInstance = nullptr;
 	tint = nullptr;
 }
 
-RAYLIB::Model* Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
+RAYLIB::Model& Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
 {
-	return &modelInstance->getInstance();
+	return DataPacks::singleton().GetModel(modelId);
+}
+
+RAYLIB::Model* Engine::EngineObjects::Geometry::MeshRenderer::GetModelPtr()
+{
+	return &DataPacks::singleton().GetModel(modelId);
 }
 
 void Engine::EngineObjects::Geometry::MeshRenderer::onModelUpdated(unsigned int newId, unsigned int oldId)
@@ -132,25 +117,19 @@ void Engine::EngineObjects::Geometry::MeshRenderer::onModelUpdated(unsigned int 
 
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(newId);
 
-	if (this->modelInstance == nullptr)
+	if (this->meshInstance == nullptr)
 	{
-		this->modelInstance = new Engine::Native::EnginePtr<RAYLIB::Model>(model);
+		this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(model.meshes[meshIndex]);
 		return;
 	}
 
-	for (int x = 0; x < model.materialCount; x++)
-	{
-		RAYLIB::Material defaultMaterial = RAYLIB::LoadMaterialDefault();
-		model.materials[x] = defaultMaterial;
-	}
-
-	this->modelInstance->setInstance(model);
+	this->meshInstance->setInstance(model.meshes[meshIndex]);
 }
 
 void Engine::EngineObjects::Geometry::MeshRenderer::onMeshIndexUpdated(unsigned int newId, unsigned int oldId)
 {
 	if (newId == oldId) return;
-	RAYLIB::Model& model = DataPacks::singleton().GetModel(newId);
+	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
 
 	if (this->meshInstance == nullptr)
 	{

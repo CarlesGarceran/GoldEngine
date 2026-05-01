@@ -144,54 +144,7 @@ void Engine::EngineObjects::Physics::CapsuleCollider::Start()
 
 void Engine::EngineObjects::Physics::CapsuleCollider::Update()
 {
-	Collider::Update();
-
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
-
-	if (root)
-	{
-		Engine::Native::CollisionShape* _collisionShape = ((Engine::Native::CollisionShape*)root->getCollisionShape());
-
-		if (_collisionShape->hasCollisionObject())
-		{
-			btCollisionObject*& collisionObject = _collisionShape->getCollisionObject();
-
-			if (collisionObject->getCollisionShape() != collisionShape->getCollisionShape())
-			{
-				collisionObject->setCollisionShape(collisionShape->getCollisionShape());
-			}
-		}
-
-		if (collisionShape->hasCollisionObject() && collisionShape->getCollisionObject() != nullptr)
-		{
-			if (collisionShape->getCollisionObject() != _collisionShape->getCollisionObject())
-				collisionShape->freeCollisionObject();
-		}
-	}
-	else
-	{
-		if (collisionShape->hasCollisionObject())
-		{
-			auto collisionObject = collisionShape->getCollisionObject();
-			Engine::EngineObjects::Physics::Native::updateCollisionObject(collisionObject,
-				{
-					transform->position.x + origin.x,
-					transform->position.y + origin.y,
-					transform->position.z + origin.z
-				},
-				{
-					transform->rotation.x,
-					transform->rotation.y,
-					transform->rotation.z
-				},
-				{
-					transform->scale.x,
-					transform->scale.y,
-					transform->scale.z
-				}
-			);
-		}
-	}
+	Collider::Update();	
 }
 
 void Engine::EngineObjects::Physics::CapsuleCollider::DrawGizmo()
@@ -243,14 +196,14 @@ void Engine::EngineObjects::Physics::CapsuleCollider::DrawGizmo()
 
 void Engine::EngineObjects::Physics::CapsuleCollider::Destroy()
 {
-	if (Parent != nullptr && this->originalCollisionShape != nullptr)
+	if (root)
 	{
-		Parent->setCollisionShape(this->originalCollisionShape);
+		if (root->IsA<RigidBody^>()) root->As<RigidBody^>()->DisposedShape();
 	}
-	else
+
+	if (Parent != nullptr)
 	{
-		if (originalCollisionShape != nullptr) // Idk in which case this could happen but... idk, just in case it happens.
-			delete originalCollisionShape;
+		Parent->restoreCollisionShape();
 	}
 }
 
@@ -265,7 +218,9 @@ bool Engine::EngineObjects::Physics::CapsuleCollider::ClaimOwnership(GameObject^
 	if (!instance->IsA<Engine::EngineObjects::Physics::RigidBody^>())
 		return false;
 
-	Engine::Native::CollisionShape* collisionShape = ((Engine::Native::CollisionShape*)this->getCollisionShape());
+	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
+
+	if (root == instance) return true;
 
 	root = instance;
 
@@ -282,6 +237,7 @@ bool Engine::EngineObjects::Physics::CapsuleCollider::ClaimOwnership(GameObject^
 	if (root != nullptr)
 	{
 		Engine::Native::CollisionShape* _collisionShape = ((Engine::Native::CollisionShape*)root->getCollisionShape());
+		
 		if (_collisionShape->hasCollisionObject())
 		{
 			btCollisionObject*& collisionObject = _collisionShape->getCollisionObject();

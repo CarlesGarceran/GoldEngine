@@ -386,6 +386,7 @@
     <ClInclude Include="imgui\TextEditor\TextEditor.h" />
     <ClInclude Include="imnodes\ImNodes.h" />
     <ClInclude Include="imnodes\imnodes_internal.h" />
+    <ClInclude Include="imnodes\Wrapper\ImNodesWrapper.h" />
     <ClInclude Include="imnotifications\ImNotify.h" />
     <ClInclude Include="imnotifications\ImNotifyWrapper.h" />
     <ClInclude Include="InputManager.h" />
@@ -416,16 +417,20 @@
     <ClInclude Include="Objects\EditorCamera.h" />
     <ClInclude Include="Objects\EditorPlugin.h" />
     <ClInclude Include="Objects\MeshRenderer\MeshRenderer.h" />
+    <ClInclude Include="Objects\ModelAnimation\ModelAnimation.h" />
     <ClInclude Include="Objects\ModelRenderer\ModelRenderer.hpp" />
     <ClInclude Include="Objects\Particles\ParticleEmitter.h" />
     <ClInclude Include="Objects\Physics\Colliders\BoxCollider.h" />
     <ClInclude Include="Objects\Physics\Colliders\CapsuleCollider.h" />
     <ClInclude Include="Objects\Physics\Colliders\MeshCollider.h" />
     <ClInclude Include="Objects\Physics\CollisionType.h" />
+    <ClInclude Include="Objects\Physics\Joints\SpringJoint.h" />
     <ClInclude Include="Objects\Physics\PhysicsService.h" />
     <ClInclude Include="Objects\Physics\RigidBody.h" />
     <ClInclude Include="Objects\Physics\Triggers\Collider.h" />
     <ClInclude Include="Objects\Private\Scene.h" />
+    <ClInclude Include="Objects\Rigging\Bone.h" />
+    <ClInclude Include="Objects\Rigging\Rig.h" />
     <ClInclude Include="Objects\Script.h" />
     <ClInclude Include="Objects\GridRenderer.h" />
     <ClInclude Include="Objects\LightDm.h" />
@@ -528,6 +533,7 @@
     <ClCompile Include="imgui\Style\ScopedStyle.cpp" />
     <ClCompile Include="imgui\TextEditor\TextEditor.cpp" />
     <ClCompile Include="imnodes\ImNodes.cpp" />
+    <ClCompile Include="imnodes\Wrapper\ImNodesWrapper.cpp" />
     <ClCompile Include="imnotifications\ImNotifyWrapper.cpp" />
     <ClCompile Include="Instantiable.cpp" />
     <ClCompile Include="InstanceReference.cpp" />
@@ -538,19 +544,24 @@
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="Objects\Abstract\Renderer.cpp" />
     <ClCompile Include="Objects\Audio\AudioSource.cpp" />
+    <ClCompile Include="Objects\Camera.cpp" />
     <ClCompile Include="Objects\CapsuleRenderer.cpp" />
     <ClCompile Include="Objects\MeshRenderer\MeshRenderer.cpp" />
+    <ClCompile Include="Objects\ModelAnimation\ModelAnimation.cpp" />
     <ClCompile Include="Objects\ModelRenderer\ModelRenderer.cpp" />
     <ClCompile Include="Objects\Particles\ParticleEmitter.cpp" />
     <ClCompile Include="Objects\Physics\Colliders\BoxCollider.cpp" />
     <ClCompile Include="Objects\Physics\Colliders\CapsuleCollider.cpp" />
     <ClCompile Include="Objects\Physics\Colliders\MeshCollider.cpp" />
+    <ClCompile Include="Objects\Physics\Joints\SpringJoint.cpp" />
     <ClCompile Include="Objects\Physics\Native\NativePhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\PhysicsService.cpp" />
     <ClCompile Include="Objects\Physics\RigidBody.cpp" />
     <ClCompile Include="Objects\Physics\Triggers\Collider.cpp" />
     <ClCompile Include="Objects\Pipeline\ScriptableRenderPipeline.cpp" />
     <ClCompile Include="Objects\Private\Scene.cpp" />
+    <ClCompile Include="Objects\Rigging\Bone.cpp" />
+    <ClCompile Include="Objects\Rigging\Rig.cpp" />
     <ClCompile Include="Objects\UI\RenderSurface3D.cpp" />
     <ClCompile Include="Object\Color.cpp" />
     <ClCompile Include="Object\GameObject.cpp" />
@@ -731,9 +742,6 @@
     </Reference>
     <Reference Include="ImGui.NET">
       <HintPath>..\netasm\ImGui.NET.dll</HintPath>
-    </Reference>
-    <Reference Include="ImNodes.NET">
-      <HintPath>..\netasm\ImNodes.NET.dll</HintPath>
     </Reference>
     <Reference Include="MoonSharp.Interpreter">
       <HintPath>..\netasm\MoonSharp.Interpreter.dll</HintPath>

@@ -101,6 +101,10 @@ namespace Engine::EngineObjects::Physics
 		void AddCollisionObject(btCollisionObject*);
 		void RemoveCollisionObject(btCollisionObject*);
 
+
+		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 direction, float maxDistance, unsigned int layer);
+
+		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, Engine::Components::Layer^ layer);
 		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer);
 		bool Raycast(Engine::Components::Vector3 from, Engine::Components::Vector3 to, unsigned int layer, [System::Runtime::InteropServices::OutAttribute] RaycastHit% instance);
 

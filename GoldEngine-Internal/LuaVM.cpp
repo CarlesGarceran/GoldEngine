@@ -1,4 +1,4 @@
-#include "SDK.h"
+﻿#include "SDK.h"
 #include "SceneManager.h"
 #include "Attribute.h"
 #include "AttributeManager.h"
@@ -15,6 +15,48 @@
 
 using namespace Engine::Scripting;
 using namespace Engine::Lua::VM;
+
+inline String^ MapToLuaType(System::Type^ type)
+{
+	if (type == nullptr)
+		return "any";
+
+	// Handle nullable<T>
+	if (type->IsGenericType &&
+		type->GetGenericTypeDefinition() == System::Nullable::typeid)
+	{
+		auto inner = type->GetGenericArguments()[0];
+		return MapToLuaType(inner) + "|nil";
+	}
+
+	// Primitive mappings
+	if (type == System::Void::typeid)
+		return ""; // special case (no return)
+
+	if (type == System::Boolean::typeid)
+		return "boolean";
+
+	if (type == System::String::typeid)
+		return "string";
+
+	if (type->IsPrimitive)
+		return "number"; // covers Int32, Float, Double, etc.
+
+	// Arrays
+	if (type->IsArray)
+	{
+		auto elementType = type->GetElementType();
+		return MapToLuaType(elementType) + "[]";
+	}
+
+	// Everything else = treat as Lua class type
+	return type->Name;
+}
+
+inline void luas_dump(MoonSharp::Interpreter::DynValue^ dynValue)
+{
+
+}
 
 void Engine::Lua::VM::LuaVM::LuaVM_LoadString(Object^ param)
 {
@@ -132,52 +174,12 @@ DynValue^ VMWrapper::Derivate(System::Object^ object)
 	return UserData::Create(System::Convert::ChangeType(object, object->GetType()));
 }
 
-bool VMWrapper::HasProperty(Engine::Internal::Components::GameObject^ object, String^ propertyName)
-{
-	if (object->GetType()->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid))
-	{
-		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
-
-		if (attribs->hasAttribute(propertyName))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 Engine::Scripting::AttributeManager^ VMWrapper::GetAttributeManager(Engine::Internal::Components::GameObject^ object)
 {
 	if (object->GetType()->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid))
 	{
 		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
 		return attribs;
-	}
-
-	return nullptr;
-}
-
-void VMWrapper::SetProperty(Engine::Internal::Components::GameObject^ object, String^ propertyName, System::Object^ newValue)
-{
-	if (HasProperty(object, propertyName))
-	{
-		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
-		attribs->getAttribute(propertyName)->setValue(newValue);
-	}
-	else
-	{
-		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
-		attribs->addAttribute(propertyName, newValue);
-	}
-}
-
-Object^ VMWrapper::GetProperty(Engine::Internal::Components::GameObject^ object, String^ propertyName)
-{
-	if (HasProperty(object, propertyName))
-	{
-		Engine::Scripting::AttributeManager^ attribs = ((Engine::EngineObjects::ScriptBehaviour^)object)->attributes;
-		return attribs->getAttribute(propertyName)->getValue();
 	}
 
 	return nullptr;
@@ -578,6 +580,7 @@ void LuaVM::RegisterGlobalFunctions()
 	//RegisterGlobal("Graphics", Engine::Internal::GraphicsWrapper::typeid);
 	RegisterGlobal("Vector2", Engine::Components::Vector2::typeid);
 	RegisterGlobal("Vector3", Engine::Components::Vector3::typeid);
+	RegisterGlobal("Quaternion", Engine::Components::Quaternion::typeid);
 	RegisterGlobal("Color", Engine::Components::Color::typeid);
 	RegisterGlobal("Event", Engine::Scripting::Events::Event::typeid);
 	
@@ -605,9 +608,6 @@ void LuaVM::RegisterGlobalFunctions()
 	RegisterGlobal("wait", gcnew System::Action<double>(&Time::Wait));
 
 	// CREATE CUSTOM LUA FUNCTIONS
-	RegisterGlobal("HasProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, bool>(&VMWrapper::HasProperty));
-	RegisterGlobal("SetProperty", gcnew System::Action<Engine::Internal::Components::GameObject^, String^, Object^>(&VMWrapper::SetProperty));
-	RegisterGlobal("GetProperty", gcnew System::Func<Engine::Internal::Components::GameObject^, String^, Object^>(&VMWrapper::GetProperty));
 	RegisterGlobal("GetAttributes", gcnew System::Func<Engine::Internal::Components::GameObject^, Engine::Scripting::AttributeManager^>(&VMWrapper::GetAttributeManager));
 	RegisterGlobal("CastToClass", gcnew System::Func<System::Object^, System::String^, System::Object^>(&VMWrapper::ToDerivate));
 	RegisterGlobal("ToDerivate", gcnew System::Func<System::Object^, System::Object^>(&VMWrapper::ToDerivate));
@@ -629,6 +629,7 @@ System::Collections::Generic::List<Type^>^ LuaVM::GetMoonSharpTypes(System::Refl
 	return result;
 }
 
+
 void LuaVM::ClearGlobals()
 {
 	this->scriptState->Globals->Clear();
@@ -637,38 +638,86 @@ void LuaVM::ClearGlobals()
 void RemapFunctions(String^% luaSrcFile, System::Type^ type, String^ apiName)
 {
 	auto methods = type->GetMethods();
+
+	// Group by Name + Static flag
+	System::Collections::Generic::Dictionary<
+		String^,
+		System::Collections::Generic::List<System::Reflection::MethodInfo^>^
+	>^ methodGroups =
+		gcnew System::Collections::Generic::Dictionary<
+		String^,
+		System::Collections::Generic::List<System::Reflection::MethodInfo^>^>();
+
 	for each (auto method in methods)
 	{
-		if (method->IsPublic)
+		if (!method->IsPublic)
+			continue;
+
+		String^ key = method->Name + (method->IsStatic ? "_STATIC" : "_INSTANCE");
+
+		if (!methodGroups->ContainsKey(key))
+			methodGroups[key] =
+			gcnew System::Collections::Generic::List<System::Reflection::MethodInfo^>();
+
+		methodGroups[key]->Add(method);
+	}
+
+	for each (auto pair in methodGroups)
+	{
+		auto overloads = pair.Value;
+		auto firstMethod = overloads[0];
+
+		String^ methodName = firstMethod->Name;
+		bool isStatic = firstMethod->IsStatic;
+
+		// ===== LuaLS Annotations =====
+		for (int o = 0; o < overloads->Count; o++)
 		{
-			if (method->IsStatic)
-			{
-				luaSrcFile += "function " + apiName + "." + method->Name + "(";
-			}
+			auto methodInfo = overloads[o];
+			auto parameters = methodInfo->GetParameters();
+			String^ returnType = MapToLuaType(methodInfo->ReturnType);
+
+			if (o == 0)
+				luaSrcFile += "---@field " + methodName + " fun(";
 			else
+				luaSrcFile += "---@overload fun(";
+
+			if (!isStatic)
+				luaSrcFile += "self: " + apiName;
+
+			for (int i = 0; i < parameters->Length; i++)
 			{
-				continue;
-				//luaSrcFile += "function " + apiName + ":" + method->Name + "(";
+				if (!isStatic || i > 0)
+					luaSrcFile += ", ";
+
+				luaSrcFile += parameters[i]->Name + ":" +
+					MapToLuaType(parameters[i]->ParameterType);
 			}
 
+			luaSrcFile += ")";
 
-			auto params = method->GetParameters();
-			int length = params->Length;
-			for (int x = 0; x < length; x++)
-			{
-				auto param = params[x];
-				if (x < length - 1)
-				{
-					luaSrcFile += param->Name + "__" + param->ParameterType->Name + ",";
-				}
-				else
-				{
-					luaSrcFile += param->Name + "__" + param->ParameterType->Name + "";
-				}
-			}
+			if (returnType != "")
+				luaSrcFile += ":" + returnType;
 
-			luaSrcFile += ")end\n";
+			luaSrcFile += "\n";
 		}
+
+		// ===== Runtime Stub =====
+		if (isStatic)
+			luaSrcFile += "function " + apiName + "." + methodName + "(";
+		else
+			luaSrcFile += "function " + apiName + ":" + methodName + "(";
+
+		auto stubParams = firstMethod->GetParameters();
+
+		for (int i = 0; i < stubParams->Length; i++)
+		{
+			luaSrcFile += stubParams[i]->Name;
+			if (i < stubParams->Length - 1)
+				luaSrcFile += ",";
+		}
+
+		luaSrcFile += ") end\n\n";
 	}
 }
 
@@ -679,76 +728,46 @@ System::Object^ GetDefaultValue(System::Type^ type)
 
 void RemapConstructors(String^% luaSrcFile, System::Type^ type, String^ apiName)
 {
-	auto members = type->GetMembers();
 	auto constructors = type->GetConstructors();
+
 	for each (auto constructor in constructors)
 	{
 		if (constructor->IsPrivate)
 			continue;
 
+		luaSrcFile += "---@return " + apiName + "\n";
 		luaSrcFile += "function " + apiName + ".new(";
 
 		auto params = constructor->GetParameters();
-		int length = params->Length;
-		for (int x = 0; x < length; x++)
-		{
-			auto param = params[x];
-			if (x < length - 1)
-			{
-				luaSrcFile += param->Name +",";
-			}
-			else
-			{
-				luaSrcFile += param->Name;
-			}
-		}
-		luaSrcFile += ")\n";
-		luaSrcFile += "local self = setmetatable({}, " + apiName + ");\n";
 
+		for (int i = 0; i < params->Length; i++)
+		{
+			luaSrcFile += params[i]->Name;
+
+			if (i < params->Length - 1)
+				luaSrcFile += ",";
+		}
+
+		luaSrcFile += ")\n";
+		luaSrcFile += "local self = setmetatable({}, " + apiName + ")\n";
+
+		// Optional: initialize fields to nil only
+		auto members = type->GetMembers();
 		for each (auto member in members)
 		{
-			if (member->MemberType == System::Reflection::MemberTypes::Field || member->MemberType == System::Reflection::MemberTypes::Property)
+			if (member->MemberType ==
+				System::Reflection::MemberTypes::Field)
 			{
-				if (member->MemberType == System::Reflection::MemberTypes::Field)
-				{
-					System::Reflection::FieldInfo^ fieldInfo = (System::Reflection::FieldInfo^)member;
-					luaSrcFile += ("self." + member->Name + " = ") + (GetDefaultValue(fieldInfo->FieldType) == nullptr ? fieldInfo->FieldType->Name + ".new()" : GetDefaultValue(fieldInfo->FieldType)) + "\n";
-				}
-				else
-				{
-					System::Reflection::PropertyInfo^ fieldInfo = (System::Reflection::PropertyInfo^)member;
-					luaSrcFile += ("self." + fieldInfo->Name + " = ") + (GetDefaultValue(fieldInfo->PropertyType) == nullptr ? fieldInfo->PropertyType->Name + ".new()" : GetDefaultValue(fieldInfo->PropertyType)) + "\n";
-				}
-			}
-			else if (member->MemberType == System::Reflection::MemberTypes::Method)
-			{
-				System::Reflection::MethodInfo^ methodInfo = (System::Reflection::MethodInfo^)member;
-			
-				if (methodInfo->IsPrivate || methodInfo->IsStatic)
-					continue;
+				auto fieldInfo =
+					(System::Reflection::FieldInfo^)member;
 
-				luaSrcFile += "function self:" + member->Name + "(";
-				auto _params = methodInfo->GetParameters();
-				int _length = _params->Length;
-				for (int x = 0; x < _length; x++)
-				{
-					auto param = _params[x];
-					if (x < _length - 1)
-					{
-						luaSrcFile += param->Name + ",";
-					}
-					else
-					{
-						luaSrcFile += param->Name;
-					}
-				}
-				luaSrcFile += ")";
-				luaSrcFile += "end;\n";
+				if (!fieldInfo->IsStatic)
+					luaSrcFile += "self." + fieldInfo->Name + " = nil\n";
 			}
 		}
 
-		luaSrcFile += "return self;\n";
-		luaSrcFile += "end\n";
+		luaSrcFile += "return self\n";
+		luaSrcFile += "end\n\n";
 	}
 }
 
@@ -759,7 +778,18 @@ void LuaVM::GenerateLuaBindings()
 
 	Directory::CreateDirectory(fileName->Substring(0, index));
 
-	String^ luaSrcFile = "--[[ GoldVM Binding Generator : Work In Progress ]]--\n\n";
+	String^ luaSrcFile =
+		"--[[\n"
+		"  GoldVM Lua Binding Generator v2\n"
+		"  Auto-generated bindings for LuaLS and runtime\n"
+		"  Supports:\n"
+		"    • Classes and inheritance\n"
+		"    • Static and instance fields\n"
+		"    • Constructors with return typing\n"
+		"    • Methods with overloads\n"
+		"    • Typed globals (_G.script, _G.workspace, etc.)\n"
+		"  WARNING: Do not manually edit, regenerated automatically\n"
+		"]]--\n\n";
 
 	try
 	{
@@ -772,8 +802,7 @@ void LuaVM::GenerateLuaBindings()
 				for each (Type ^ type in lua_proxy_types)
 				{
 					String^ apiName = GetAPIName(type);
-
-					if(apiName == "")
+					if (apiName == "")
 						apiName = type->Name;
 
 					if (apiName->Contains("Proxy"))
@@ -781,37 +810,97 @@ void LuaVM::GenerateLuaBindings()
 
 					luaSrcFile += "\n--[[ " + apiName + " CLASS DEFINITION ]]--\n";
 
-					luaSrcFile += apiName + " = {}\n";
+					// ---------------------------
+					// 1️⃣ CLASS HEADER
+					// ---------------------------
+					String^ baseType = "";
+					if (type->BaseType != nullptr &&
+						type->BaseType != System::Object::typeid)
+					{
+						baseType = GetAPIName(type->BaseType);
+						if (baseType == "")
+							baseType = type->BaseType->Name;
+					}
 
+					luaSrcFile += "---@class " + apiName;
+					if (baseType != "")
+						luaSrcFile += " : " + baseType;
+					luaSrcFile += "\n";
+
+					// ---------------------------
+					// 2️⃣ FIELDS (STATIC + INSTANCE)
+					// ---------------------------
 					auto members = type->GetMembers();
 					for each (auto member in members)
 					{
-						if (member->MemberType == System::Reflection::MemberTypes::Field || member->MemberType == System::Reflection::MemberTypes::Property)
+						if (member->MemberType == System::Reflection::MemberTypes::Field)
 						{
-							if (member->MemberType == System::Reflection::MemberTypes::Field)
-							{
-								System::Reflection::FieldInfo^ methodInfo = (System::Reflection::FieldInfo^)member;
-								if (methodInfo->IsStatic)
-								{
-									luaSrcFile += apiName + "." + member->Name + " = nil;\n";
-								}
-							}
-							else if (member->MemberType == System::Reflection::MemberTypes::Property)
-							{
-								System::Reflection::PropertyInfo^ methodInfo = (System::Reflection::PropertyInfo^)member;
-								luaSrcFile += "-- THIS IS A PROPERTY, IT MIGHT COULD NOT BE ACCESSED\n";
-								luaSrcFile += apiName + "." + member->Name + " = nil;\n";
-							}
+							auto fieldInfo = (System::Reflection::FieldInfo^)member;
+							String^ fieldType = MapToLuaType(fieldInfo->FieldType);
+
+							if (fieldInfo->IsStatic) continue;
+							luaSrcFile += "---@field ";
+							luaSrcFile += fieldInfo->Name + " " + fieldType + "\n";
+						}
+						else if (member->MemberType == System::Reflection::MemberTypes::Property)
+						{
+							auto propInfo = (System::Reflection::PropertyInfo^)member;
+							String^ propType = MapToLuaType(propInfo->PropertyType);
+							
+							if (propInfo->GetMethod != nullptr &&
+								propInfo->GetMethod->IsStatic)
+								continue;
+
+							luaSrcFile += "---@field " +
+								propInfo->Name + " " +
+								MapToLuaType(propInfo->PropertyType) + "\n";
 						}
 					}
 
-					RemapConstructors(luaSrcFile, type, apiName);
-					RemapFunctions(luaSrcFile, type, apiName);
+					for each (auto member in members)
+					{
+						if (member->MemberType == System::Reflection::MemberTypes::Field)
+						{
+							auto fieldInfo = (System::Reflection::FieldInfo^)member;
+							if (!fieldInfo->IsStatic) continue;
 
-					luaSrcFile += "_G.script = LuaScript.new();\n";
-					luaSrcFile += "_G.workspace = GameObject.new();\n";
-					luaSrcFile += "_G.game = GameObject.new();\n";
-					luaSrcFile += "_G.attributes = AttributeManager.new();\n";
+							luaSrcFile += "---@type " +
+								MapToLuaType(fieldInfo->FieldType) + "\n";
+
+							luaSrcFile += apiName + "." +
+								fieldInfo->Name + " = nil\n\n";
+						}
+						else if (member->MemberType == System::Reflection::MemberTypes::Property)
+						{
+							auto propInfo = (System::Reflection::PropertyInfo^)member;
+
+							if (propInfo->GetMethod == nullptr ||
+								!propInfo->GetMethod->IsStatic)
+								continue;
+
+							luaSrcFile += "---@type " +
+								MapToLuaType(propInfo->PropertyType) + "\n";
+
+							luaSrcFile += apiName + "." +
+								propInfo->Name + " = nil\n\n";
+						}
+					}
+
+					// ---------------------------
+					// 3️⃣ TABLE + METATABLE
+					// ---------------------------
+					luaSrcFile += apiName + " = {}\n";
+					luaSrcFile += apiName + ".__index = " + apiName + "\n\n";
+					
+					// ---------------------------
+					// 4️⃣ CONSTRUCTORS
+					// ---------------------------
+					RemapConstructors(luaSrcFile, type, apiName);
+
+					// ---------------------------
+					// 5️⃣ METHODS
+					// ---------------------------
+					RemapFunctions(luaSrcFile, type, apiName);
 				}
 			}
 			catch (Exception^ ex)
@@ -821,7 +910,16 @@ void LuaVM::GenerateLuaBindings()
 			}
 		}
 
-		File::WriteAllText("./Bindings/Lua/GoldEngineBindings.lua", luaSrcFile);
+
+		// ---------------------------
+		// 6️⃣ GLOBAL SINGLETONS
+		// ---------------------------
+		luaSrcFile += "---@type LuaScript\n_G.script = LuaScript.new()\n";
+		luaSrcFile += "---@type GameObject\n_G.workspace = GameObject.new()\n";
+		luaSrcFile += "---@type GameObject\n_G.game = GameObject.new()\n";
+		luaSrcFile += "---@type AttributeManager\n_G.attributes = AttributeManager.new()\n";
+
+		File::WriteAllText(fileName, luaSrcFile);
 	}
 	catch (Exception^ ex)
 	{

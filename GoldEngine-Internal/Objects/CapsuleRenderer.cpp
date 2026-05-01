@@ -28,7 +28,12 @@ void Engine::EngineObjects::Geometry::CapsuleRenderer::Draw()
 	);
 }
 
-RAYLIB::Model* Engine::EngineObjects::Geometry::CapsuleRenderer::GetModel()
+RAYLIB::Model& Engine::EngineObjects::Geometry::CapsuleRenderer::GetModel()
 {
-	return nullptr;
+	return DataPacks::singleton().GetFallbackModel();
+}
+
+RAYLIB::Model* Engine::EngineObjects::Geometry::CapsuleRenderer::GetModelPtr()
+{
+	return &DataPacks::singleton().GetFallbackModel();
 }

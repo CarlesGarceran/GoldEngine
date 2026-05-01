@@ -30,7 +30,7 @@ namespace Engine::Assets::Storage
 		std::map<unsigned int, Engine::Native::EnginePtr<AnimationStruct>*> animations;
 		std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Font>*> fonts;
 		
-		std::map<unsigned int, void*> materials;
+		std::map<unsigned int, msclr::gcroot<Engine::Components::Material^>*> materials;
 
 		Engine::Native::EnginePtr<RAYLIB::Shader>* fallbackShader = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Model>* fallbackModel = nullptr;
@@ -102,48 +102,24 @@ namespace Engine::Assets::Storage
 		RAYLIB::Font& GetFont(unsigned int fontId);
 		void AddFont(unsigned int fontId, RAYLIB::Font& font);
 
+		AnimationStruct GetAnimationStruct(unsigned int animationId);
 		RAYLIB::ModelAnimation* GetAnimations(unsigned int animationId);
 		RAYLIB::ModelAnimation GetAnimation(unsigned int animationId, unsigned int animationIndex);
 		void AddAnimations(unsigned int animationId, AnimationStruct& animations);
 
 		bool HasTexture2D(unsigned int textureId)
 		{
-			bool hasTexture2D = false;
-
-
-			auto sP = &nativePacks->textures2d[textureId];
-
-			if (sP != nullptr)
-				hasTexture2D = true;
-
-			return hasTexture2D;
+			return nativePacks->textures2d.find(textureId) != nativePacks->textures2d.end();
 		}
 
 		bool HasShader(unsigned int shaderId)
 		{
-			bool hasShader = false;
-
-			auto sP = &nativePacks->shaders[shaderId];
-
-			if (sP != nullptr)
-			{
-				hasShader = true;
-			}
-
-			return hasShader;
+			return nativePacks->shaders.find(shaderId) != nativePacks->shaders.end();
 		}
 
 		bool HasModel(unsigned int materialID)
 		{
-			bool hasMaterial = false;
-
-			auto sP = &nativePacks->models[materialID];
-
-			if (sP != nullptr)
-				hasMaterial = true;
-
-
-			return hasMaterial;
+			return nativePacks->models.find(materialID) != nativePacks->models.end();
 		}
 
 		static DataPacks* instance;

@@ -4,7 +4,7 @@
 #include "../imgui/imgui.h"
 #include "../imgui/imgui_internal.h"
 
-#include "imnodes.h"
+#include "ImNodes.h"
 
 #include <limits.h>
 

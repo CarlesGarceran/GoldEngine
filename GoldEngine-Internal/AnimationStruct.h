@@ -4,5 +4,5 @@ struct AnimationStruct
 {
 public:
 	RAYLIB::ModelAnimation* animations;
-	int animationCount;
+	unsigned int animationCount;
 };

@@ -44,7 +44,7 @@ NativeDataPack::NativeDataPack()
 	meshes = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Mesh>*>();
 	animations = std::map<unsigned int, Engine::Native::EnginePtr<AnimationStruct>*>();
 	fonts = std::map<unsigned int, Engine::Native::EnginePtr<RAYLIB::Font>*>();
-	materials = std::map<unsigned int, void*>();
+	materials = std::map<unsigned int, msclr::gcroot<Engine::Components::Material^>*>();
 
 	fallbackModel = nullptr;
 	fallbackTexture = nullptr;
@@ -254,8 +254,7 @@ Engine::Components::Material^ DataPacks::GetMaterial(unsigned int materialId)
 {
 	try
 	{
-		auto sP = nativePacks->materials.at(materialId);
-		return *((msclr::gcroot<Engine::Components::Material^>*)sP);
+		return *nativePacks->materials.at(materialId);
 	}
 	catch (const std::exception& ex)
 	{
@@ -272,7 +271,7 @@ Sound& DataPacks::GetSound(unsigned int soundId)
 	}
 	catch (const std::exception& ex)
 	{
-		RAYLIB::Sound emptyMusic = { 0 };
+		static RAYLIB::Sound emptyMusic{};
 		return emptyMusic;
 	}
 }
@@ -292,7 +291,7 @@ Music& DataPacks::GetMusic(unsigned int musicId)
 	}
 	catch (const std::exception& ex)
 	{
-		RAYLIB::Music emptyMusic = { 0 };
+		static RAYLIB::Music emptyMusic{};
 		return emptyMusic;
 	}
 }
@@ -304,16 +303,20 @@ Music* DataPacks::GetMusicPtr(unsigned int musicId)
 
 void DataPacks::AddMaterial(unsigned int materialId, Engine::Components::Material^ material)
 {
-	try
+	auto it = nativePacks->materials.find(materialId);
+	if (it != nativePacks->materials.end())
 	{
-		nativePacks->materials.at(materialId) = new msclr::gcroot(material);
+		delete it->second;
+		it->second = new msclr::gcroot(material);
 	}
-	catch (const std::exception& ex)
+	else
 	{
-		nativePacks->materials.emplace(materialId, new msclr::gcroot<Engine::Components::Material^>(msclr::gcroot(material)));
+		nativePacks->materials.emplace(
+			materialId,
+			new msclr::gcroot<Engine::Components::Material^>(material)
+		);
 	}
 }
-
 void DataPacks::AddMusic(unsigned int soundId, RAYLIB::Music& sound)
 {
 	try 
@@ -350,6 +353,19 @@ void DataPacks::AddFont(unsigned int fontId, RAYLIB::Font& font)
 	catch (const std::exception& ex)
 	{
 		nativePacks->fonts.emplace(fontId, new Engine::Native::EnginePtr<RAYLIB::Font>(font, &UnloadFont, &UnloadFont));
+	}
+}
+
+AnimationStruct Engine::Assets::Storage::DataPacks::GetAnimationStruct(unsigned int animationId)
+{
+	try
+	{
+		auto sP = nativePacks->animations.at(animationId);
+		return sP->getInstance();
+	}
+	catch (const std::exception& ex)
+	{
+		return {};
 	}
 }
 

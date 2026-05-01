@@ -14,15 +14,47 @@ void onUnloaded(AudioData sound)
 }
 #pragma managed(pop)
 
-bool triggerPlay = true;
+void AudioSource::setupAudioStream(RAYLIB::Sound sound)
+{
+    RAYLIB::SetAudioStreamVolume(sound.stream, volume);
+    RAYLIB::SetAudioStreamPan(sound.stream, panning);
+    RAYLIB::SetAudioStreamPitch(sound.stream, pitch);
+
+    if (!wasPlaying && !IsAudioStreamPlaying(sound.stream))
+    {
+        if (!IsAudioStreamValid(sound.stream))
+            print("[AudioSource]", "Sound is INVALID, cannot play!");
+
+        RAYLIB::PlayAudioStream(sound.stream);
+        wasPlaying = true;
+    }
+}
+
+void Engine::EngineObjects::AudioSource::setupMusicStream(RAYLIB::Music music)
+{
+    RAYLIB::SetMusicVolume(music, volume);
+    RAYLIB::SetMusicPan(music, panning);
+    RAYLIB::SetMusicPitch(music, pitch);
+
+    music.looping = isLooped;
+    UpdateMusicStream(music);
+
+    if (!wasPlaying && !IsMusicStreamPlaying(music))
+    {
+        RAYLIB::PlayMusicStream(music);
+        wasPlaying = true;
+    }
+}
 
 void AudioSource::onSoundChanged(unsigned int newId, unsigned int oldId)
 {
+    if (newId == oldId) return;
+
 	Stop();
 
 	AudioData data = AudioData(
-		DataPacks::singleton().GetSound(soundId),
-		DataPacks::singleton().GetMusic(soundId)
+		DataPacks::singleton().GetSound(newId),
+		DataPacks::singleton().GetMusic(newId)
 	);
 
 	soundPtr->setInstanceRef(
@@ -42,7 +74,7 @@ RAYLIB::AudioStream Engine::EngineObjects::AudioSource::GetAudioStream()
 	return { };
 }
 
-void AudioSource::Start()
+void AudioSource::Awake()
 {
 	AudioData data = AudioData(
 		DataPacks::singleton().GetSound(soundId),
@@ -61,46 +93,35 @@ void AudioSource::Update()
 
     AudioData& audio = soundPtr->getInstance();
 
-    if (isPlaying)
+    if (isPlaying && !wasPlaying)
     {
-        if (resourceType == ResourceType::Music)
+        setupAudioStream(audio.sound);
+        return;
+    }
+
+    if (wasPlaying)
+    {
+        if (!isLooped)
         {
-            RAYLIB::SetMusicVolume(audio.music, volume);
-            RAYLIB::SetMusicPan(audio.music, panning);
-            RAYLIB::SetMusicPitch(audio.music, pitch);
-
-            audio.music.looping = isLooped;
-            UpdateMusicStream(audio.music);
-
-            if (!wasPlaying && !IsMusicStreamPlaying(audio.music))
+            if (resourceType == ResourceType::Music)
             {
-                RAYLIB::PlayMusicStream(audio.music);
-                wasPlaying = true;
+                if (!RAYLIB::IsMusicStreamPlaying(audio.music))
+                    isPlaying = false;
             }
-
-            if (!RAYLIB::IsMusicStreamPlaying(audio.music) && !isLooped)
-                isPlaying = false;
+            else // ResourceType::Sound
+            {
+                if (!RAYLIB::IsAudioStreamPlaying(audio.sound.stream))
+                    isPlaying = false;
+            }
         }
-        else // ResourceType::Sound
+        else
         {
-            RAYLIB::SetAudioStreamVolume(audio.sound.stream, volume);
-            RAYLIB::SetAudioStreamPan(audio.sound.stream, panning);
-            RAYLIB::SetAudioStreamPitch(audio.sound.stream, pitch);
-
-            if (!wasPlaying && !IsSoundPlaying(audio.sound))
-            {
-                if (!IsSoundValid(audio.sound))
-                    print("[AudioSource]", "Sound is INVALID, cannot play!");
-
-                RAYLIB::PlayAudioStream(audio.sound.stream);
-                wasPlaying = true;
-            }
-
-            if (!RAYLIB::IsAudioStreamPlaying(audio.sound.stream) && !isLooped)
-                isPlaying = false;
+            if (!RAYLIB::IsAudioStreamPlaying(audio.sound.stream)) Play();
+            if (!RAYLIB::IsMusicStreamPlaying(audio.music)) Play();
         }
     }
-    else if (wasPlaying)
+
+    if (!isPlaying)
     {
         if (resourceType == ResourceType::Sound)
             RAYLIB::StopAudioStream(audio.sound.stream);

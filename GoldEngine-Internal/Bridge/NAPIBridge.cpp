@@ -10,7 +10,7 @@ RAYLIB::Mesh** Engine::Bridge::UnsafeModelAPI::GetMeshes(RAYLIB::Model* model)
 
 RAYLIB::BoneInfo** Engine::Bridge::UnsafeModelAPI::GetBones(RAYLIB::Model* model)
 {
-	return &model->bones;
+	return &model->skeleton.bones;
 }
 
 RAYLIB::Mesh* Engine::Bridge::UnsafeModelAPI::GetMesh(RAYLIB::Model* model, int meshIndex)
@@ -20,7 +20,7 @@ RAYLIB::Mesh* Engine::Bridge::UnsafeModelAPI::GetMesh(RAYLIB::Model* model, int 
 
 RAYLIB::BoneInfo* Engine::Bridge::UnsafeModelAPI::GetBone(RAYLIB::Model* model, int boneIndex)
 {
-	return &model->bones[boneIndex];
+	return &model->skeleton.bones[boneIndex];
 }
 
 int Engine::Bridge::UnsafeModelAPI::GetMeshCount(RAYLIB::Model* model)
@@ -30,7 +30,7 @@ int Engine::Bridge::UnsafeModelAPI::GetMeshCount(RAYLIB::Model* model)
 
 int Engine::Bridge::UnsafeModelAPI::GetBoneCount(RAYLIB::Model* model)
 {
-	return model->boneCount;
+	return model->skeleton.boneCount;
 }
 
 Engine::Components::Matrix16^ Engine::Bridge::UnsafeModelAPI::GetTransform(RAYLIB::Model* model)

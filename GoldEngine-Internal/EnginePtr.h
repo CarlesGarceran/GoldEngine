@@ -38,34 +38,35 @@ namespace Engine::Native
 
 			if (onObjectDeleted != nullptr)
 				onObjectDeleted(ptrInstance);
+
+
+			this->onObjectChanged = nullptr;
+			this->onObjectDeleted = nullptr;
 		}
 
-		bool isLoaded() { if (this == nullptr) return false; return this->loaded; }
+		bool isLoaded() { return this->loaded; }
+
+		T* getPointer() 
+		{
+			return &ptrInstance;
+		}
 
 		T& getInstance()
 		{
 			return ptrInstance;
 		}
 
-		void setInstance(T instance)
+		void setInstance(T newInstance)
 		{
-			if (this == nullptr) return;
-
 			if (onObjectChanged != nullptr)
 				onObjectChanged(ptrInstance);
 
-			if ((&instance) != NULL)
-				this->loaded = true;
-			else
-				this->loaded = false;
-
-			this->ptrInstance = instance;
+			ptrInstance = newInstance;
+			loaded = true;
 		}
 
 		void setInstanceRef(T& instance)
 		{
-			if (this == nullptr) return;
-
 			if(onObjectChanged != nullptr)
 				onObjectChanged(ptrInstance);
 
@@ -75,31 +76,22 @@ namespace Engine::Native
 
 		void free()
 		{
-			if (this == nullptr) return;
-
 			this->loaded = false;
 
 			if (onObjectDeleted != nullptr)
 				onObjectDeleted(ptrInstance);
 
-			this->ptrInstance = T();
+			this->ptrInstance = T{};
 		}
 
-		T& release()
+		T release()
 		{
-			if (this == nullptr) return T();
-
-			this->loaded = false;
-			T inst = this->ptrInstance;
-			this->ptrInstance = nullptr;
+			loaded = false;
+			T inst = ptrInstance;
+			ptrInstance = T{};
+			onObjectDeleted = nullptr;
+			onObjectChanged = nullptr;
 			return inst;
-		}
-
-		void destroy() 
-		{
-			if (this == nullptr) return;
-
-			delete this;
 		}
 	};
 }

@@ -130,10 +130,10 @@ public
 					auto deflateStream = gcnew Compression::DeflateStream(file, Compression::CompressionMode::Decompress);
 					stream = gcnew BinaryReader(deflateStream);
 
-					if (!Directory::Exists("Data/unpacked/"))
-						Directory::CreateDirectory("Data/unpacked/");
+					if (!Directory::Exists(EXTRACT_PATH))
+						Directory::CreateDirectory(EXTRACT_PATH);
 
-					auto dirInfo = gcnew DirectoryInfo("Data/unpacked/");
+					auto dirInfo = gcnew DirectoryInfo(EXTRACT_PATH);
 
 					/*
 					auto dirSecurity = dirInfo->GetAccessControl();
@@ -149,8 +149,8 @@ public
 						String ^ fN = stream->ReadString();
 						unsigned long length = stream->ReadInt32();
 						auto fC = stream->ReadBytes(length);
-						Directory::CreateDirectory(Path::GetDirectoryName("Data/unpacked/" + fN));
-						auto fS = gcnew FileStream("Data/unpacked/" + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
+						Directory::CreateDirectory(Path::GetDirectoryName(EXTRACT_PATH + fN));
+						auto fS = gcnew FileStream(EXTRACT_PATH + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
 						auto bW = gcnew BinaryWriter(fS);
 
 						bW->Write(
@@ -167,13 +167,18 @@ public
 
 		static void CleanupUnpackedAssets()
 		{
-			if (Directory::Exists("Data/unpacked/"))
-				Directory::Delete("Data/unpacked/");
+			if (Directory::Exists(EXTRACT_PATH))
+				Directory::Delete(EXTRACT_PATH, true);
 		}
 
 		static void UnpackAsset(String ^ fileName, String ^ resourceName)
 		{
 			return UnpackAsset(fileName, Engine::Config::EngineSecrets::singleton()->encryptionPassword, resourceName);
+		}
+
+		static void UnpackAssetToPath(String^ fileName, String^ resourceName, String^ outputPath)
+		{
+			return UnpackAssetToPath(fileName, Engine::Config::EngineSecrets::singleton()->encryptionPassword, resourceName, outputPath);
 		}
 
 		static void UnpackAsset(String ^ fileName, String ^ password, String ^ resourceName)
@@ -193,10 +198,10 @@ public
 					auto deflateStream = gcnew Compression::DeflateStream(file, Compression::CompressionMode::Decompress);
 					stream = gcnew BinaryReader(deflateStream);
 
-					if (!Directory::Exists("Data/unpacked/"))
-						Directory::CreateDirectory("Data/unpacked/");
+					if (!Directory::Exists(EXTRACT_PATH))
+						Directory::CreateDirectory(EXTRACT_PATH);
 
-					auto dirInfo = gcnew DirectoryInfo("Data/unpacked/");
+					auto dirInfo = gcnew DirectoryInfo(EXTRACT_PATH);
 
 					int assets = stream->ReadInt32();
 
@@ -209,8 +214,63 @@ public
 						{
 							unsigned long length = stream->ReadInt32();
 							auto fC = stream->ReadBytes(length);
-							Directory::CreateDirectory(Path::GetDirectoryName("Data/unpacked/" + fN));
-							auto fS = gcnew FileStream("Data/unpacked/" + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
+							Directory::CreateDirectory(Path::GetDirectoryName(EXTRACT_PATH + fN));
+							auto fS = gcnew FileStream(EXTRACT_PATH + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
+							auto bW = gcnew BinaryWriter(fS);
+
+							bW->Write(
+								fC);
+							bW->Flush();
+
+							bW->Close();
+						}
+						else
+						{
+							unsigned long length = stream->ReadInt32();
+							auto fC = stream->ReadBytes(length);
+						}
+					}
+				}
+			}
+
+			stream->Close();
+		}
+
+		static void UnpackAssetToPath(String^ fileName, String^ password, String^ resourceName, String^ path)
+		{
+			auto file = File::Open(fileName, FileMode::OpenOrCreate);
+
+			auto stream = gcnew BinaryReader(file);
+
+			String^ header = stream->ReadString();
+
+			if (fileHeader->Equals(header))
+			{
+				short int version = stream->ReadInt16();
+
+				if (fileVersion == version)
+				{
+					auto deflateStream = gcnew Compression::DeflateStream(file, Compression::CompressionMode::Decompress);
+					stream = gcnew BinaryReader(deflateStream);
+
+					if (!Directory::Exists(path))
+						Directory::CreateDirectory(path);
+
+					auto dirInfo = gcnew DirectoryInfo(path);
+
+					int assets = stream->ReadInt32();
+
+					for (int x = 0; x < assets; x++)
+					{
+						String^ fN = stream->ReadString();
+						String^ resName = fN->Substring(0, fN->IndexOf("."));
+
+						if (resName->Equals(resourceName))
+						{
+							unsigned long length = stream->ReadInt32();
+							auto fC = stream->ReadBytes(length);
+							Directory::CreateDirectory(Path::GetDirectoryName(path + fN));
+							auto fS = gcnew FileStream(path + fN, FileMode::OpenOrCreate, FileAccess::ReadWrite, FileShare::None);
 							auto bW = gcnew BinaryWriter(fS);
 
 							bW->Write(

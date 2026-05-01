@@ -61,7 +61,7 @@ namespace Engine::EngineObjects
 		bool wasPlaying = false;
 
 	public:
-		void Start() override;
+		void Awake() override;
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]
 		void Update() override;
@@ -72,6 +72,8 @@ namespace Engine::EngineObjects
 
 	private:
 		void onSoundChanged(unsigned int, unsigned int);
+		void setupAudioStream(RAYLIB::Sound sound);
+		void setupMusicStream(RAYLIB::Music music);
 
 	public:
 		RAYLIB::AudioStream GetAudioStream();

@@ -66,9 +66,13 @@ namespace Engine::Components
 
 		array<float>^ GetValues() override;
 		void SetValues(array<float>^ values) override;
+		void Decompose(Engine::Components::Vector3% position, Engine::Components::Quaternion% rotation, Engine::Components::Vector3% scale);
 
 		static Matrix16^ MatrixMultiply(Matrix16^ left, Matrix16^ right);
-
+		static Matrix16^ FromTRS(Engine::Components::Vector3 position,
+			Engine::Components::Quaternion rotation,
+			Engine::Components::Vector3 scale);
+		static Matrix16^ Invert(Matrix16^);
 		RAYLIB::Matrix toNative();
 	};
 

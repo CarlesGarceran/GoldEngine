@@ -201,6 +201,55 @@ void Engine::Components::Matrix16::SetValues(array<float>^ values)
     m12 = values[12];    m13 = values[13];   m14 = values[14];  m15 = values[15];
 }
 
+void Engine::Components::Matrix16::Decompose(Engine::Components::Vector3% position, Engine::Components::Quaternion% rotation, Engine::Components::Vector3% scale)
+{
+    // Extract translation
+    position = Engine::Components::Vector3(m12, m13, m14);
+
+    // Extract scale (length of column vectors)
+    scale.x = Math::Sqrt(m0 * m0 + m1 * m1 + m2 * m2);
+    scale.y = Math::Sqrt(m4 * m4 + m5 * m5 + m6 * m6);
+    scale.z = Math::Sqrt(m8 * m8 + m9 * m9 + m10 * m10);
+
+    float r00 = m0 / scale.x, r01 = m1 / scale.x, r02 = m2 / scale.x;
+    float r10 = m4 / scale.y, r11 = m5 / scale.y, r12 = m6 / scale.y;
+    float r20 = m8 / scale.z, r21 = m9 / scale.z, r22 = m10 / scale.z;
+
+    float trace = r00 + r11 + r22;
+    if (trace > 0.0f)
+    {
+        float s = Math::Sqrt(trace + 1.0f) * 2;
+        rotation.w = 0.25f * s;
+        rotation.x = (r21 - r12) / s;
+        rotation.y = (r02 - r20) / s;
+        rotation.z = (r10 - r01) / s;
+    }
+    else if ((r00 > r11) && (r00 > r22))
+    {
+        float s = Math::Sqrt(1.0f + r00 - r11 - r22) * 2;
+        rotation.w = (r21 - r12) / s;
+        rotation.x = 0.25f * s;
+        rotation.y = (r01 + r10) / s;
+        rotation.z = (r02 + r20) / s;
+    }
+    else if (r11 > r22)
+    {
+        float s = Math::Sqrt(1.0f + r11 - r00 - r22) * 2;
+        rotation.w = (r02 - r20) / s;
+        rotation.x = (r01 + r10) / s;
+        rotation.y = 0.25f * s;
+        rotation.z = (r12 + r21) / s;
+    }
+    else
+    {
+        float s = Math::Sqrt(1.0f + r22 - r00 - r11) * 2;
+        rotation.w = (r10 - r01) / s;
+        rotation.x = (r02 + r20) / s;
+        rotation.y = (r12 + r21) / s;
+        rotation.z = 0.25f * s;
+    }
+}
+
 Matrix16^ Engine::Components::Matrix16::MatrixMultiply(Matrix16^ left, Matrix16^ right)
 {
     Matrix16^ result = gcnew Matrix16();
@@ -223,6 +272,180 @@ Matrix16^ Engine::Components::Matrix16::MatrixMultiply(Matrix16^ left, Matrix16^
     result->m15 = left->m12 * right->m3 + left->m13 * right->m7 + left->m14 * right->m11 + left->m15 * right->m15;
 
     return result;
+}
+
+Matrix16^ Engine::Components::Matrix16::FromTRS(Engine::Components::Vector3 position, Engine::Components::Quaternion rotation, Engine::Components::Vector3 scale)
+{
+    Matrix16^ S = gcnew Matrix16();
+    S->m0 = scale.x; S->m1 = 0;       S->m2 = 0;       S->m3 = 0;
+    S->m4 = 0;       S->m5 = scale.y; S->m6 = 0;       S->m7 = 0;
+    S->m8 = 0;       S->m9 = 0;       S->m10 = scale.z; S->m11 = 0;
+    S->m12 = 0;      S->m13 = 0;      S->m14 = 0;      S->m15 = 1;
+
+
+    float x = rotation.x, y = rotation.y, z = rotation.z, w = rotation.w;
+    float xx = x * x, yy = y * y, zz = z * z;
+    float xy = x * y, xz = x * z, yz = y * z;
+    float wx = w * x, wy = w * y, wz = w * z;
+
+    Matrix16^ R = gcnew Matrix16();
+    R->m0 = 1 - 2 * (yy + zz); R->m1 = 2 * (xy - wz);     R->m2 = 2 * (xz + wy);     R->m3 = 0;
+    R->m4 = 2 * (xy + wz);     R->m5 = 1 - 2 * (xx + zz); R->m6 = 2 * (yz - wx);     R->m7 = 0;
+    R->m8 = 2 * (xz - wy);     R->m9 = 2 * (yz + wx);     R->m10 = 1 - 2 * (xx + yy); R->m11 = 0;
+    R->m12 = 0;                  R->m13 = 0;                 R->m14 = 0;                 R->m15 = 1;
+
+    Matrix16^ T = gcnew Matrix16();
+    T->m0 = 1; T->m1 = 0; T->m2 = 0; T->m3 = 0;
+    T->m4 = 0; T->m5 = 1; T->m6 = 0; T->m7 = 0;
+    T->m8 = 0; T->m9 = 0; T->m10 = 1; T->m11 = 0;
+    T->m12 = position.x; T->m13 = position.y; T->m14 = position.z; T->m15 = 1;
+
+    Matrix16^ TR = Matrix16::MatrixMultiply(T, R);
+    return Matrix16::MatrixMultiply(TR, S);
+}
+
+Matrix16^ Engine::Components::Matrix16::Invert(Matrix16^ m)
+{
+    Matrix16^ inv = gcnew Matrix16();
+
+    float mat[16] = { m->m0, m->m1, m->m2, m->m3,
+                      m->m4, m->m5, m->m6, m->m7,
+                      m->m8, m->m9, m->m10, m->m11,
+                      m->m12, m->m13, m->m14, m->m15 };
+
+    float invOut[16];
+
+    float det;
+    int i;
+
+    invOut[0] = mat[5] * mat[10] * mat[15] -
+        mat[5] * mat[11] * mat[14] -
+        mat[9] * mat[6] * mat[15] +
+        mat[9] * mat[7] * mat[14] +
+        mat[13] * mat[6] * mat[11] -
+        mat[13] * mat[7] * mat[10];
+
+    invOut[4] = -mat[4] * mat[10] * mat[15] +
+        mat[4] * mat[11] * mat[14] +
+        mat[8] * mat[6] * mat[15] -
+        mat[8] * mat[7] * mat[14] -
+        mat[12] * mat[6] * mat[11] +
+        mat[12] * mat[7] * mat[10];
+
+    invOut[8] = mat[4] * mat[9] * mat[15] -
+        mat[4] * mat[11] * mat[13] -
+        mat[8] * mat[5] * mat[15] +
+        mat[8] * mat[7] * mat[13] +
+        mat[12] * mat[5] * mat[11] -
+        mat[12] * mat[7] * mat[9];
+
+    invOut[12] = -mat[4] * mat[9] * mat[14] +
+        mat[4] * mat[10] * mat[13] +
+        mat[8] * mat[5] * mat[14] -
+        mat[8] * mat[6] * mat[13] -
+        mat[12] * mat[5] * mat[10] +
+        mat[12] * mat[6] * mat[9];
+
+    invOut[1] = -mat[1] * mat[10] * mat[15] +
+        mat[1] * mat[11] * mat[14] +
+        mat[9] * mat[2] * mat[15] -
+        mat[9] * mat[3] * mat[14] -
+        mat[13] * mat[2] * mat[11] +
+        mat[13] * mat[3] * mat[10];
+
+    invOut[5] = mat[0] * mat[10] * mat[15] -
+        mat[0] * mat[11] * mat[14] -
+        mat[8] * mat[2] * mat[15] +
+        mat[8] * mat[3] * mat[14] +
+        mat[12] * mat[2] * mat[11] -
+        mat[12] * mat[3] * mat[10];
+
+    invOut[9] = -mat[0] * mat[9] * mat[15] +
+        mat[0] * mat[11] * mat[13] +
+        mat[8] * mat[1] * mat[15] -
+        mat[8] * mat[3] * mat[13] -
+        mat[12] * mat[1] * mat[11] +
+        mat[12] * mat[3] * mat[9];
+
+    invOut[13] = mat[0] * mat[9] * mat[14] -
+        mat[0] * mat[10] * mat[13] -
+        mat[8] * mat[1] * mat[14] +
+        mat[8] * mat[2] * mat[13] +
+        mat[12] * mat[1] * mat[10] -
+        mat[12] * mat[2] * mat[9];
+
+    invOut[2] = mat[1] * mat[6] * mat[15] -
+        mat[1] * mat[7] * mat[14] -
+        mat[5] * mat[2] * mat[15] +
+        mat[5] * mat[3] * mat[14] +
+        mat[13] * mat[2] * mat[7] -
+        mat[13] * mat[3] * mat[6];
+
+    invOut[6] = -mat[0] * mat[6] * mat[15] +
+        mat[0] * mat[7] * mat[14] +
+        mat[4] * mat[2] * mat[15] -
+        mat[4] * mat[3] * mat[14] -
+        mat[12] * mat[2] * mat[7] +
+        mat[12] * mat[3] * mat[6];
+
+    invOut[10] = mat[0] * mat[5] * mat[15] -
+        mat[0] * mat[7] * mat[13] -
+        mat[4] * mat[1] * mat[15] +
+        mat[4] * mat[3] * mat[13] +
+        mat[12] * mat[1] * mat[7] -
+        mat[12] * mat[3] * mat[5];
+
+    invOut[14] = -mat[0] * mat[5] * mat[14] +
+        mat[0] * mat[6] * mat[13] +
+        mat[4] * mat[1] * mat[14] -
+        mat[4] * mat[2] * mat[13] -
+        mat[12] * mat[1] * mat[6] +
+        mat[12] * mat[2] * mat[5];
+
+    invOut[3] = -mat[1] * mat[6] * mat[11] +
+        mat[1] * mat[7] * mat[10] +
+        mat[5] * mat[2] * mat[11] -
+        mat[5] * mat[3] * mat[10] -
+        mat[9] * mat[2] * mat[7] +
+        mat[9] * mat[3] * mat[6];
+
+    invOut[7] = mat[0] * mat[6] * mat[11] -
+        mat[0] * mat[7] * mat[10] -
+        mat[4] * mat[2] * mat[11] +
+        mat[4] * mat[3] * mat[10] +
+        mat[8] * mat[2] * mat[7] -
+        mat[8] * mat[3] * mat[6];
+
+    invOut[11] = -mat[0] * mat[5] * mat[11] +
+        mat[0] * mat[7] * mat[9] +
+        mat[4] * mat[1] * mat[11] -
+        mat[4] * mat[3] * mat[9] -
+        mat[8] * mat[1] * mat[7] +
+        mat[8] * mat[3] * mat[5];
+
+    invOut[15] = mat[0] * mat[5] * mat[10] -
+        mat[0] * mat[6] * mat[9] -
+        mat[4] * mat[1] * mat[10] +
+        mat[4] * mat[2] * mat[9] +
+        mat[8] * mat[1] * mat[6] -
+        mat[8] * mat[2] * mat[5];
+
+    det = mat[0] * invOut[0] + mat[1] * invOut[4] + mat[2] * invOut[8] + mat[3] * invOut[12];
+
+    if (det == 0)
+        throw gcnew System::Exception("Matrix is non-invertible");
+
+    det = 1.0f / det;
+
+    for (i = 0; i < 16; i++)
+        invOut[i] *= det;
+
+    inv->m0 = invOut[0];   inv->m1 = invOut[1];   inv->m2 = invOut[2];   inv->m3 = invOut[3];
+    inv->m4 = invOut[4];   inv->m5 = invOut[5];   inv->m6 = invOut[6];   inv->m7 = invOut[7];
+    inv->m8 = invOut[8];   inv->m9 = invOut[9];   inv->m10 = invOut[10]; inv->m11 = invOut[11];
+    inv->m12 = invOut[12]; inv->m13 = invOut[13]; inv->m14 = invOut[14]; inv->m15 = invOut[15];
+
+    return inv;
 }
 
 RAYLIB::Matrix Engine::Components::Matrix16::toNative()

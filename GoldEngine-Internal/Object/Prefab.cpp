@@ -99,7 +99,14 @@ void Prefab::DeserializeObject()
 
 		if (this->instance->TryGetValue(key, type))
 		{
-			this->gameInstance->Add((GameObject^)Deserialize(key, type->getTypeReference()));
+			auto _type = type->getTypeReference();
+			if (_type == nullptr)
+			{
+				printError("Error deserializing prefab object: Missing Type");
+				continue;
+			}
+
+			this->gameInstance->Add((GameObject^)Deserialize(key, _type));
 		}
 	}
 
@@ -113,7 +120,7 @@ List<GameObject^>^ Prefab::LoadPrefab(String^ prefabPath)
 	p->DeserializeObject();
 
 	List<GameObject^>^ instances = p->getInstances();
-	instances[0]->transform->setParent(Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDatamodel("workspace", false)->transform);
+	instances[0]->transform->setParent(GameObject::FindFirstObjectByName("workspace")->transform);
 
 	fixInstance(instances);
 

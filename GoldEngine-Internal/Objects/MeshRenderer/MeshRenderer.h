@@ -4,10 +4,8 @@ namespace Engine::EngineObjects::Geometry
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
-		public ref class MeshRenderer : Engine::EngineObjects::Geometry::Abstract::Renderer
+	public ref class MeshRenderer : Engine::EngineObjects::Geometry::Abstract::Renderer
 	{
-	private:
-		Engine::Native::EnginePtr<RAYLIB::Model>* modelInstance = nullptr;
 		Engine::Native::EnginePtr<RAYLIB::Mesh>* meshInstance = nullptr;
 
 	public:
@@ -20,7 +18,7 @@ namespace Engine::EngineObjects::Geometry
 	public:
 		MeshRenderer();
 
-		void Setup() override;
+		void Awake() override;
 
 		[Engine::Attributes::ExecuteInEditModeAttribute] void Update() override;
 
@@ -28,7 +26,8 @@ namespace Engine::EngineObjects::Geometry
 	
 		void Destroy() override;
 
-		RAYLIB::Model* GetModel() override;
+		RAYLIB::Model& GetModel() override;
+		RAYLIB::Model* GetModelPtr() override;
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);

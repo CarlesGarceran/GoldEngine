@@ -18,7 +18,7 @@ void Engine::Components::Locs::ColorLoc::SetColor(Engine::Components::Color^ col
 
 unsigned int Engine::Components::Locs::ColorLoc::GetLocType()
 {
-	return 0;
+	return (unsigned int)Engine::Components::Enums::MaterialLocations::ColorLoc;
 }
 
 System::Object^ Engine::Components::Locs::ColorLoc::GetValue()

@@ -6,27 +6,50 @@
 
 using namespace Engine::GC;
 
-long long toMB(long long value)
+// Convert bytes to MB (binary MB)
+inline long long toMB(long long bytes)
 {
-	return ((value) / 1000 / 1000);
+    return bytes / 1024 / 1024;
 }
 
+// ------------------- EngineGC Implementation -------------------
 void EngineGC::Update()
 {
-	long long memRes = toMB(System::GC::GetTotalMemory(false));
-	if (memRes >= GC_SIZE)
-	{
-		if (GC_TRIGGERED_LASTFRAME)
-		{
-			GC_TRIGGERED_LASTFRAME = false;
-			printConsole(gcnew String(TextFormat("GC Memory Threshold Expanded from %d to %d!", GC_SIZE, GC_SIZE + GC_MEMORY_INCREMENT)));
-			GC_SIZE += GC_MEMORY_INCREMENT;
-			return;
-		}
+    long long memMB = toMB(System::GC::GetTotalMemory(false));
 
-		printWarning(gcnew String(TextFormat("GC Memory Exceeded %d/%d!", memRes, GC_SIZE)));
-		System::GC::Collect();
+    if (memMB >= GC_SIZE)
+    {
+        System::GC::Collect(0, GCCollectionMode::Default, false);
 
-		GC_TRIGGERED_LASTFRAME = true;
-	}
+        if (!GC_TRIGGERED_LASTFRAME)
+        {
+            printWarning(gcnew String(TextFormat(
+                "GC Memory exceeded threshold: %lld/%d MB (Gen0 collection triggered)",
+                memMB, GC_SIZE
+            )));
+            GC_TRIGGERED_LASTFRAME = true;
+        }
+        else
+        {
+            GC_SIZE += GC_MEMORY_INCREMENT;
+            printConsole(gcnew String(TextFormat(
+                "GC Memory Threshold increased to %d MB", GC_SIZE
+            )));
+        }
+    }
+    else
+    {
+        GC_TRIGGERED_LASTFRAME = false;
+    }
+}
+
+void EngineGC::Collect()
+{
+    System::GC::Collect();
+    System::GC::WaitForPendingFinalizers();
+}
+
+void EngineGC::WaitForPendingFinalizers()
+{
+    System::GC::WaitForPendingFinalizers();
 }

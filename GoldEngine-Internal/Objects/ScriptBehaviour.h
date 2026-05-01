@@ -16,38 +16,83 @@ namespace Engine::EngineObjects
 			assemblyReference = GetType()->FullName->ToString();
 		}
 
+		~ScriptBehaviour()
+		{
+			delete attributes;
+			attributes = nullptr;
+			assemblyReference = nullptr;
+		}
+
 	public:
 		void HookUpdate() override
 		{
+			if (attributes == nullptr) return;
+
 			try
 			{
 				for each (auto prop in GetType()->GetProperties(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
-					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
+					auto _attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in _attributes)
 					{
 						String^ attribName = attrib->attributeName;
 
 						if (attribName == "")
 							attribName = prop->Name;
 
-						if (prop->GetValue(this) != this->attributes->getAttribute(attribName)->getValue())
-							this->attributes->getAttribute(attribName)->setValue(prop->GetValue(this));
+						auto value = this->attributes->getAttribute(attribName)->getValue();
+						if (value != nullptr)
+						{
+							if (prop->PropertyType->IsEnum)
+							{
+								prop->SetValue(this, (System::Object^)System::Enum::Parse(prop->PropertyType, this->attributes->getAttribute(attribName)->getValue()->ToString()));
+							}
+							else
+							{
+								prop->SetValue(this, this->attributes->getAttribute(attribName)->getValue());
+							}
+						}
+						else
+						{
+							value = prop->GetValue(this);
+							if (value != nullptr && value != this->attributes->getAttribute(attribName)->getValue())
+							{
+								this->attributes->getAttribute(attribName)->setValue(prop->GetValue(this));
+							}
+						}
 					}
 				}
 
 				for each (auto prop in GetType()->GetFields(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))
 				{
-					auto attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
-					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in attributes)
+					auto _attributes = prop->GetCustomAttributes(Engine::Scripting::SerializePropertyAttribute::typeid, true);
+					for each (Engine::Scripting::SerializePropertyAttribute ^ attrib in _attributes)
 					{
 						String^ attribName = attrib->attributeName;
 
 						if (attribName == "")
 							attribName = prop->Name;
 
-						if (prop->GetValue(this) != this->attributes->getAttribute(attribName)->getValue())
-							this->attributes->getAttribute(attribName)->setValue(prop->GetValue(this));
+						auto value = this->attributes->getAttribute(attribName)->getValue();
+						if (value != nullptr)
+						{
+							if (prop->FieldType->IsEnum)
+							{
+								prop->SetValue(this, (System::Object^)System::Enum::Parse(prop->FieldType, this->attributes->getAttribute(attribName)->getValue()->ToString()));
+							}
+							else
+							{
+								prop->SetValue(this, this->attributes->getAttribute(attribName)->getValue());
+							}
+						}
+						else
+						{
+							value = prop->GetValue(this);
+							if (value != nullptr && value != this->attributes->getAttribute(attribName)->getValue())
+							{
+								this->attributes->getAttribute(attribName)->setValue(prop->GetValue(this));
+							}
+						}
 					}
 				}
 
@@ -61,6 +106,8 @@ namespace Engine::EngineObjects
 	public:
 		virtual void Init() override
 		{
+			attributes->DeserializeAttributes();
+
 			try
 			{
 				for each (auto prop in GetType()->GetProperties(System::Reflection::BindingFlags::Public | System::Reflection::BindingFlags::NonPublic | System::Reflection::BindingFlags::Instance | System::Reflection::BindingFlags::CreateInstance))

@@ -27,6 +27,7 @@ private:
 
 public:
 	System::Object^ GetSelectedObject() override { return this->selectedObject; }
+	void SetSelectedObject(System::Object^ instance) override { this->selectedObject = (GameObject^)instance; }
 
 public:
 	void OpenFileExplorer(std::string name, Engine::Editor::Gui::explorerMode mode, Engine::Editor::Gui::onFileSelected^ callback);

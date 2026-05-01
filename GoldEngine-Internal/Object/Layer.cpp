@@ -22,6 +22,11 @@ namespace Engine::Components
 		this->layerBlendFlags = layerBlendFlags;
 	}
 
+	Layer::~Layer()
+	{
+
+	}
+
 	bool Layer::IsLayer(Layer^ layerB)
 	{
 		if (this == nullptr) return false;

@@ -44,4 +44,26 @@ public:
 		
 		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, RAYLIB::LoadShader(CastStringToNative(shaderElements[0]).c_str(), CastStringToNative(shaderElements[1]).c_str()));
 	}
+
+	static void SaveCompiledShader(unsigned int shaderId, String^ path)
+	{
+		RAYLIB::Shader& shader = Engine::Assets::Storage::DataPacks::singleton().GetShader(shaderId);
+		RAYLIB::SaveCompiledShader(shader, CastStringToNative(path).c_str());
+	}
+
+	static bool LoadCompiledShader(unsigned int shaderId, String^ path)
+	{
+		RAYLIB::Shader shader{};
+		shader.id = 0;
+		shader.locs = nullptr;
+
+		std::string nativePath = CastStringToNative(path);
+		bool success = RAYLIB::LoadCompiledShader(&shader, nativePath.c_str());
+
+		if (!success) return false;
+
+		Engine::Assets::Storage::DataPacks::singleton().AddShader(shaderId, shader);
+
+		return true;
+	}
 };

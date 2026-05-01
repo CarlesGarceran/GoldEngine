@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 
 using namespace Engine::Internal::Components;
@@ -63,7 +65,6 @@ namespace Engine::EngineObjects
 		CAMERA_THIRD_PERSON             // Camera third person
 	};
 
-
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
 	[Engine::Attributes::LuaAPIAttribute]
 	public ref class Camera abstract : public Engine::EngineObjects::ScriptBehaviour
@@ -87,23 +88,12 @@ namespace Engine::EngineObjects
 
 		[Engine::Scripting::PropertyAttribute]
 		bool IsMainCamera;
-
 	public:
-		Camera(String^ name, Engine::Internal::Components::Transform^ trans, int projection) : Engine::EngineObjects::ScriptBehaviour(name, trans)
-		{
-			cameraProjection = (CamProjection)projection;
-		}
+		Camera(String^ name, Engine::Internal::Components::Transform^ trans, int projection);
 
 		[Engine::Attributes::ExecuteInEditModeAttribute]
-		void Update() override
-		{
-
-		}
-
-		void DrawGizmo() override
-		{
-			DrawLine3D(transform->position.toNative(), transform->forward.toNative(), GetColor(0xFF0000FF));
-		}
+		void Update() override;
+		void DrawGizmo() override;
 
 	public:
 		CamProjection getProjection() { return cameraProjection; }
@@ -112,42 +102,20 @@ namespace Engine::EngineObjects
 		virtual bool is3DCamera() abstract;
 		virtual void* get() abstract;
 
-		virtual void ApplyCameraYaw(float yaw, bool local) abstract;
-		virtual void ApplyCameraPitch(float pitch) abstract;
-		virtual void ApplyCameraRoll(float roll) abstract;
+		void setTarget(Engine::Components::Vector2 target) override;
+		void setTarget(Engine::Components::Vector3 target);
 
-		void setTarget(Engine::Components::Vector2 target) override
+		void LookAt(Engine::Components::Vector3 target);
+
+		void LookAt(GameObject^ instance);
+
+		void ApplyCameraYaw(float yaw, bool local);
+		void ApplyCameraPitch(float pitch);
+		void ApplyCameraRoll(float roll);
+
+		static property Engine::EngineObjects::Camera^ Main
 		{
-			float x = transform->position.x + cosf(DEG2RAD * target.x) * cosf(DEG2RAD * target.y);
-			float y = transform->position.y + sinf(DEG2RAD * target.y);
-			float z = transform->position.z + sinf(DEG2RAD * target.x) * cosf(DEG2RAD * target.y);
-
-			LookAt(Engine::Components::Vector3(x, y, z));
-		}
-
-		void setTarget(Engine::Components::Vector3 target)
-		{
-			LookAt(target);
-		}
-
-		void LookAt(Engine::Components::Vector3 target)
-		{
-			transform->rotation = target;
-
-			nativeCamera->get().target = target.toNative();
-
-			RAYLIB::Vector3 forward = RAYMATH::Vector3Normalize(RAYMATH::Vector3Subtract(target.toNative(), nativeCamera->get().position));
-			RAYLIB::Vector3 worldUp = { 0.0f, 1.0f, 0.0f };
-
-			RAYLIB::Vector3 right = RAYMATH::Vector3Normalize(RAYMATH::Vector3CrossProduct(worldUp, forward));
-			RAYLIB::Vector3 up = RAYMATH::Vector3CrossProduct(forward, right);
-
-			nativeCamera->get().up = up;
-		}
-
-		void LookAt(GameObject^ instance)
-		{
-			LookAt(instance->transform->position);
+			Engine::EngineObjects::Camera^ get();
 		}
 	};
 }

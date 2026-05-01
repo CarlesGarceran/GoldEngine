@@ -109,6 +109,10 @@ using namespace Engine::Attributes;
 
 #endif
 
+#include "Objects/Rigging/Bone.h"
+#include "Objects/Rigging/Rig.h"
+#include "Objects/ModelAnimation/ModelAnimation.h"
+
 // render pipelines
 
 #include "Objects/Pipeline/ScriptableRenderPipeline.hpp"
@@ -303,6 +307,15 @@ msclr::gcroot<String^> jsonData = "";
 msclr::gcroot<String^> sceneSnapshot = "";
 msclr::gcroot<Engine::Editor::Gui::onFileSelected^> _callback = nullptr;
 msclr::gcroot<Engine::Internal::Components::GameObject^> selectionObject = nullptr;
+msclr::gcroot<Engine::Internal::Components::GameObject^> currentObject = nullptr;
+
+static Engine::Components::Vector3 cachedWorldEuler = Engine::Components::Vector3::Zero();
+static Engine::Components::Vector3 cachedLocalEuler = Engine::Components::Vector3::Zero();
+
+
+const char* types[]{ "None", "2D", "3D" };
+const char* opts[2] = { "World", "Local" };
+const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS", "MATERIALS" };
 
 #include "EditorTools/CodeEditor.h"
 #include "EditorTools/MaterialEditor.h"
@@ -403,6 +416,14 @@ void ConfigureImFileDialog()
 {
 	ifd::FileDialog::Instance().CreateTexture = &CreateTexture;
 	ifd::FileDialog::Instance().DeleteTexture = &DeleteTexture;
+}
+
+inline float Wrap(float v, float min, float max)
+{
+	float range = max - min;
+	while (v < min) v += range;
+	while (v >= max) v -= range;
+	return v;
 }
 
 UNMANAGED_END
@@ -677,6 +698,127 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 			}
 		}
 
+		for each (auto field in properties)
+		{
+			bool isPrivate = true;
+			auto attributes = field->GetCustomAttributes(true);
+
+			String^ fieldName = field->Name;
+
+			for each (auto attrib in attributes)
+			{
+				if (attrib->GetType()->Equals(Engine::Scripting::PropertyAttribute::typeid))
+				{
+					isPrivate = false;
+
+					PropertyAttribute^ propAttribute = (PropertyAttribute^)attrib;
+					if (propAttribute->attributeName != "") fieldName = propAttribute->attributeName;
+					continue;
+				}
+				if (attrib->GetType()->Equals(Engine::Scripting::SerializePropertyAttribute::typeid))
+				{
+					isPrivate = true;
+					continue;
+				}
+			}
+
+			if (isPrivate) continue;
+
+			auto fieldType = field->PropertyType;
+			Type^ instRefDef = Engine::Scripting::InstanceReference<Engine::Internal::Components::GameObject^>::typeid->GetGenericTypeDefinition();
+
+			if (fieldType->Equals(int::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				IntegerEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Double::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				DoubleEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Vector3::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				Vector3Editor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Vector2::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				Vector2Editor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Enum::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				EnumEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::UInt32::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				UnsignedIntEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::Int64::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				LongEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(float::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				FloatEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(bool::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				BoolEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(System::String::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				StringEditor(object, field);
+				continue;
+			}
+			if (fieldType->Equals(Engine::Components::Color::typeid))
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				ColorEditor(object, field);
+				continue;
+			}
+			if (
+				fieldType->Equals(Engine::Internal::Components::GameObject::typeid) ||
+				fieldType->IsSubclassOf(Engine::Internal::Components::GameObject::typeid) ||
+				fieldType->IsSubclassOf(Engine::EngineObjects::ScriptBehaviour::typeid) ||
+				fieldType->IsSubclassOf(Engine::EngineObjects::Script::typeid) ||
+				fieldType->IsAssignableFrom(Engine::Internal::Components::GameObject::typeid)
+				)
+			{
+				ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+				GameObjectEditor(object, field);
+				continue;
+			}
+			if (fieldType->IsGenericType &&
+				fieldType->GetGenericTypeDefinition()->Equals(instRefDef))
+			{
+				Type^ innerType = fieldType->GetGenericArguments()[0];
+
+				if (Engine::Internal::Components::GameObject::typeid->IsAssignableFrom(innerType))
+				{
+					ImGui::Text(CastStringToNative("[Property]" + " | " + (isPrivate ? "Private" : "Public") + " | " + fieldName + " (" + fieldType->Name + ")").c_str());
+					InstanceReferenceEditor(object, field);
+					continue;
+				}
+			}
+		}
+
 		switch (objectType)
 		{
 			/*
@@ -931,7 +1073,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						{
 							ColorEditor(attrib);
 						}
-						else if (attrib->getValueType()->Equals(System::Collections::Generic::List::typeid))
+						else if (attrib->getValueType()->Equals(System::Collections::Generic::IList::typeid))
 						{
 							ListEditor(attrib);
 						}
@@ -990,6 +1132,8 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 		if (_reference->getTransform() == nullptr)
 			continue;
 
+		bool isSelected = (_reference == selectedObject);
+
 		if (_reference->getTransform()->parent != nullptr)
 		{
 			if (_reference->getTransform()->parent->GetUID() == parent->getTransform()->GetUID())
@@ -1006,7 +1150,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 
 					if (_type == ObjectType::Daemon || _type == ObjectType::Datamodel || _type == ObjectType::LightManager || _reference->isProtected())
 					{
-						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str(), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = _reference;
@@ -1022,7 +1166,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 					}
 					else
 					{
-						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str(), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = _reference;
@@ -1050,7 +1194,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 
 					if (_type == ObjectType::Daemon || _type == ObjectType::Datamodel || _type == ObjectType::LightManager || _reference->isProtected())
 					{
-						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						if (ImGui::Selectable(CastStringToNative(refName + " (ENGINE PROTECTED)" + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str(), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = _reference;
@@ -1066,7 +1210,7 @@ void EditorWindow::DrawHierarchyInherits(Engine::Management::Scene^ scene, Engin
 					}
 					else
 					{
-						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str()))
+						if (ImGui::Selectable(CastStringToNative(refName + "###" + _reference->getTransform()->GetUID() + "_" + (depth + x)).c_str(), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = _reference;
@@ -1611,9 +1755,9 @@ void EditorWindow::DrawMainMenuBar()
 			{
 				Engine::EngineObjects::Script^ newObject = gcnew Engine::EngineObjects::Script();
 				newObject->name = "Empty Object";
-				newObject->transform->SetParent(parent);
 
 				scene->AddObjectToScene(newObject);
+				newObject->SetParent(selectedObject);
 			}
 
 			ImGui::Separator();
@@ -1625,21 +1769,22 @@ void EditorWindow::DrawMainMenuBar()
 					Engine::EngineObjects::CubeRenderer^ cubeRenderer = gcnew Engine::EngineObjects::CubeRenderer("CubeRenderer",
 						gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							parent
+							nullptr
 						), 0xFFFFFFFF);
 
 					scene->AddObjectToScene(cubeRenderer);
+					cubeRenderer->SetParent(selectedObject);
 				}
 
 				if (ImGui::MenuItem("Capsule Renderer"))
 				{
 					Engine::EngineObjects::Geometry::CapsuleRenderer^ cubeRenderer = gcnew Engine::EngineObjects::Geometry::CapsuleRenderer();
 					cubeRenderer->name = "CapsuleRenderer";
-					cubeRenderer->transform->SetParent(parent);
 
 					scene->AddObjectToScene(cubeRenderer);
+					cubeRenderer->SetParent(selectedObject);
 				}
 
 				ImGui::EndMenu();
@@ -1654,24 +1799,26 @@ void EditorWindow::DrawMainMenuBar()
 					Engine::EngineObjects::Camera^ newCamera = gcnew Engine::EngineObjects::Camera3D("Camera",
 						gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							parent
+							nullptr
 						));
 
 					scene->AddObjectToScene(newCamera);
+					newCamera->SetParent(selectedObject);
 				}
 				if (ImGui::MenuItem("Camera2D"))
 				{
 					Engine::EngineObjects::Camera^ newCamera = gcnew Engine::EngineObjects::Camera2D("Camera",
 						gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3::create({ 1,1,1 }),
-							parent
+							nullptr
 						));
 
 					scene->AddObjectToScene(newCamera);
+					newCamera->SetParent(selectedObject);
 				}
 
 				ImGui::EndMenu();
@@ -1689,13 +1836,14 @@ void EditorWindow::DrawMainMenuBar()
 							"Sprite",
 							gcnew Engine::Internal::Components::Transform(
 								Engine::Components::Vector3(0, 0, 0),
-								Engine::Components::Vector3(0, 0, 0),
+								Engine::Components::Quaternion::Identity,
 								Engine::Components::Vector3(1, 1, 1),
-								parent
+								nullptr
 							)
 						);
 
 						scene->AddObjectToScene(sprite);
+						sprite->SetParent(selectedObject);
 					}
 
 					ImGui::EndMenu();
@@ -1707,21 +1855,53 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto modelRenderer = gcnew Engine::EngineObjects::Geometry::ModelRenderer();
 						modelRenderer->name = "ModelRenderer";
-						modelRenderer->transform->SetParent(parent);
 
 						scene->AddObjectToScene(modelRenderer);
+						modelRenderer->SetParent(selectedObject);
 					}
 
 					if (ImGui::MenuItem("MeshRenderer"))
 					{
 						auto meshRenderer = gcnew Engine::EngineObjects::Geometry::MeshRenderer();
 						meshRenderer->name = "MeshRenderer";
-						meshRenderer->transform->SetParent(parent);
 
 						scene->AddObjectToScene(meshRenderer);
+						meshRenderer->SetParent(selectedObject);
 					}
 
 					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::BeginMenu("Animation"))
+			{
+				if (ImGui::MenuItem("ModelAnimation"))
+				{
+					auto modelRenderer = gcnew Engine::EngineObjects::Animation::ModelAnimation();
+					modelRenderer->name = "ModelAnimation";
+
+					scene->AddObjectToScene(modelRenderer);
+					modelRenderer->SetParent(selectedObject);
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::BeginMenu("Rigging"))
+			{
+				if (ImGui::MenuItem("Rig"))
+				{
+					auto modelRenderer = gcnew Engine::EngineObjects::Rigging::Rig();
+					modelRenderer->name = "Rig";
+
+					scene->AddObjectToScene(modelRenderer);
+					modelRenderer->SetParent(selectedObject);
 				}
 
 				ImGui::EndMenu();
@@ -1736,8 +1916,8 @@ void EditorWindow::DrawMainMenuBar()
 				{
 					auto meshRenderer = gcnew Engine::EngineObjects::Physics::RigidBody();
 					meshRenderer->name = "RigidBody";
-					meshRenderer->transform->SetParent(parent);
 
+					meshRenderer->SetParent(selectedObject);
 					scene->AddObjectToScene(meshRenderer);
 				}
 
@@ -1747,8 +1927,8 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto meshRenderer = gcnew Engine::EngineObjects::Physics::BoxCollider();
 						meshRenderer->name = "BoxCollider";
-						meshRenderer->transform->setParent(parent);
 
+						meshRenderer->SetParent(selectedObject);
 						scene->AddObjectToScene(meshRenderer);
 					}
 
@@ -1756,8 +1936,8 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto meshRenderer = gcnew Engine::EngineObjects::Physics::CapsuleCollider();
 						meshRenderer->name = "CapsuleCollider";
-						meshRenderer->transform->setParent(parent);
 
+						meshRenderer->SetParent(selectedObject);
 						scene->AddObjectToScene(meshRenderer);
 					}
 
@@ -1765,8 +1945,8 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto meshRenderer = gcnew Engine::EngineObjects::Physics::MeshCollider();
 						meshRenderer->name = "MeshCollider";
-						meshRenderer->transform->setParent(parent);
 
+						meshRenderer->SetParent(selectedObject);
 						scene->AddObjectToScene(meshRenderer);
 					}
 
@@ -1788,9 +1968,9 @@ void EditorWindow::DrawMainMenuBar()
 				{
 					auto meshRenderer = gcnew Engine::EngineObjects::AudioSource();
 					meshRenderer->name = "AudioSource";
-					meshRenderer->transform->setParent(parent);
 
 					scene->AddObjectToScene(meshRenderer);
+					meshRenderer->SetParent(selectedObject);
 				}
 
 				ImGui::EndMenu();
@@ -1881,12 +2061,13 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto image = gcnew Engine::EngineObjects::UI::Image("Image", gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3(),
-							Engine::Components::Vector3(),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3(1, 1, 1),
-							parent
+							nullptr
 						));
 
 						scene->AddObjectToScene(image);
+						image->SetParent(selectedObject);
 					}
 
 					ImGui::EndMenu();
@@ -1901,12 +2082,13 @@ void EditorWindow::DrawMainMenuBar()
 						image->name = "RenderSurface3D";
 						image->transform = gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3(),
-							Engine::Components::Vector3(),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3(1, 1, 1),
-							parent
+							nullptr
 						);
 
 						scene->AddObjectToScene(image);
+						image->SetParent(selectedObject);
 					}
 
 					ImGui::EndMenu();
@@ -1919,12 +2101,13 @@ void EditorWindow::DrawMainMenuBar()
 					{
 						auto button = gcnew Engine::EngineObjects::UI::Button("Button", gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3(),
-							Engine::Components::Vector3(),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3(1, 1, 1),
-							parent
+							nullptr
 						));
 
 						scene->AddObjectToScene(button);
+						button->SetParent(selectedObject);
 					}
 
 					ImGui::EndMenu();
@@ -1941,9 +2124,9 @@ void EditorWindow::DrawMainMenuBar()
 					Engine::EngineObjects::LuaScript^ luaScript = gcnew Engine::EngineObjects::LuaScript();
 
 					luaScript->name = "Script";
-					luaScript->transform->SetParent(parent);
 
 					scene->AddObjectToScene(luaScript);
+					luaScript->SetParent(selectedObject);
 				}
 
 				ImGui::Separator();
@@ -1966,10 +2149,10 @@ void EditorWindow::DrawMainMenuBar()
 									if (ImGui::MenuItem(CastToNative(T->Name)))
 									{
 										Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-										retn->transform->SetParent(parent);
 										retn->name = T->Name;
 
 										scene->AddObjectToScene(retn);
+										retn->SetParent(selectedObject);
 									}
 
 									ImGui::EndMenu();
@@ -1980,10 +2163,10 @@ void EditorWindow::DrawMainMenuBar()
 								if (ImGui::MenuItem(CastToNative(T->Name)))
 								{
 									Engine::EngineObjects::ScriptBehaviour^ retn = assembly->Create<Engine::EngineObjects::ScriptBehaviour^>(T->FullName);
-									retn->transform->SetParent(parent);
 									retn->name = T->Name;
 
 									scene->AddObjectToScene(retn);
+									retn->SetParent(selectedObject);
 								}
 							}
 						}
@@ -2002,7 +2185,7 @@ void EditorWindow::DrawMainMenuBar()
 					Engine::EngineObjects::GridRenderer^ cubeRenderer = gcnew Engine::EngineObjects::GridRenderer("GridRenderer",
 						gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3::create({ 1,1,1 }),
 							parent
 						), 64, 1.0f);
@@ -2016,7 +2199,7 @@ void EditorWindow::DrawMainMenuBar()
 					auto camera3D = gcnew Engine::EngineObjects::Editor::EditorCamera("EditorCamera",
 						gcnew Engine::Internal::Components::Transform(
 							Engine::Components::Vector3::create({ 0,0,0 }),
-							Engine::Components::Vector3::create({ 0,0,0 }),
+							Engine::Components::Quaternion::Identity,
 							Engine::Components::Vector3::create({ 1,1,1 }),
 							parent
 						)
@@ -2072,7 +2255,13 @@ void EditorWindow::DrawMainMenuBar()
 				ImGui::EndMenu();
 			}
 
-			ImGui::Checkbox("FPS", &fpsCap);
+			if (ImGui::Checkbox("FPS", &fpsCap))
+			{
+				if(fpsCap)
+					SetFPS(60);
+				else
+					SetFPS(-1);
+			}
 
 			ImGui::EndMenu();
 		}
@@ -2104,6 +2293,8 @@ void EditorWindow::DrawHierarchy()
 
 			if (reference != nullptr)
 			{
+				bool isSelected = (reference == selectedObject);
+
 				if (reference->getTransform()->parent != nullptr)
 					continue;
 
@@ -2117,7 +2308,7 @@ void EditorWindow::DrawHierarchy()
 
 					if (type == ObjectType::Datamodel || type == ObjectType::LightManager || reference->isProtected())
 					{
-						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = reference;
@@ -2133,7 +2324,7 @@ void EditorWindow::DrawHierarchy()
 					}
 					else if (reference->getTransform()->parent == nullptr)
 					{
-						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = reference;
@@ -2159,7 +2350,7 @@ void EditorWindow::DrawHierarchy()
 
 					if (type == ObjectType::Datamodel || type == ObjectType::LightManager || reference->isProtected())
 					{
-						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						if (ImGui::Selectable(CastToNative(refName + " (ENGINE PROTECTED)" + "###" + reference->getTransform()->GetUID() + x), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = reference;
@@ -2175,7 +2366,7 @@ void EditorWindow::DrawHierarchy()
 					}
 					else if (reference->getTransform()->parent == nullptr)
 					{
-						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x)))
+						if (ImGui::Selectable(CastToNative(refName + " (UNPARENTED)" + "###" + reference->getTransform()->GetUID() + x), isSelected))
 						{
 							if (reparentLock)
 								reparentObject = reference;
@@ -2243,7 +2434,6 @@ void EditorWindow::DrawProperties()
 								break;
 							}
 
-							const char* types[]{ "None", "2D", "3D" };
 							if (ImGui::Combo("###CURR_MODE", &tmp1, types, IM_ARRAYSIZE(types)))
 							{
 								switch (tmp1)
@@ -2405,7 +2595,12 @@ void EditorWindow::DrawProperties()
 			ImGui::SeparatorText("Transform");
 
 			{
-				const char* opts[2] = { "World", "Local" };
+				if (selectedObject != currentObject)
+				{
+					currentObject = selectedObject;
+					cachedWorldEuler = selectedObject->transform->rotation.ToEulerAngles();
+					cachedLocalEuler = selectedObject->transform->localRotation.ToEulerAngles();
+				}
 
 				ImGui::Combo("###POSITION_SELECTOR", &positionSelector, opts, IM_ARRAYSIZE(opts));
 				if (positionSelector == 0)
@@ -2441,41 +2636,79 @@ void EditorWindow::DrawProperties()
 				{
 					// rotation
 					float rot[3] = {
-						selectedObject->getTransform()->rotation.x,
-						selectedObject->getTransform()->rotation.y,
-						selectedObject->getTransform()->rotation.z
+						cachedWorldEuler.x,
+						cachedWorldEuler.y,
+						cachedWorldEuler.z
 					};
 
-					if (ImGui::DragFloat3("Rotation", rot, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					if (ImGui::DragFloat3("Rotation", rot, step, -361.0f, 361.0f, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
-						selectedObject->getTransform()->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+						for (int i = 0; i < 3; ++i)
+							rot[i] = Wrap(rot[i], -360.0f, 360.0f);
+
+						auto q = Engine::Components::Quaternion::FromEulerAngles(
+							rot[0],
+							rot[1],
+							rot[2]
+						);
+
+						selectedObject->getTransform()->rotation = q;
+						cachedWorldEuler = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
 					}
 				}
 				else
 				{
+					// rotation
 					float rot[3] = {
-						selectedObject->getTransform()->localRotation.x,
-						selectedObject->getTransform()->localRotation.y,
-						selectedObject->getTransform()->localRotation.z
+						cachedLocalEuler.x,
+						cachedLocalEuler.y,
+						cachedLocalEuler.z
 					};
 
-					if (ImGui::DragFloat3("Local Rotation", rot, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					if (ImGui::DragFloat3("Local Rotation", rot, step, -360.0f, 360.0f, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
 					{
-						selectedObject->getTransform()->localRotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+						for (int i = 0; i < 3; ++i)
+							rot[i] = Wrap(rot[i], -360.0f, 360.0f);
+
+						auto q = Engine::Components::Quaternion::FromEulerAngles(
+							rot[0],
+							rot[1],
+							rot[2]
+						);
+
+						selectedObject->getTransform()->localRotation = q;
+						cachedLocalEuler = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
 					}
 				}
 				// scale
 
-				float scale[3] = {
-					selectedObject->getTransform()->scale.x,
-					selectedObject->getTransform()->scale.y,
-					selectedObject->getTransform()->scale.z
-				};
-
-				if (ImGui::DragFloat3("Scale", scale, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+				if (positionSelector == 0)
 				{
-					selectedObject->getTransform()->scale = Engine::Components::Vector3(scale[0], scale[1], scale[2]);
+					float scale[3] = {
+					   selectedObject->getTransform()->scale.x,
+					   selectedObject->getTransform()->scale.y,
+					   selectedObject->getTransform()->scale.z
+					};
+
+					if (ImGui::DragFloat3("Scale", scale, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					{
+						selectedObject->getTransform()->scale = Engine::Components::Vector3(scale[0], scale[1], scale[2]);
+					}
 				}
+				else
+				{
+					float scale[3] = {
+					   selectedObject->getTransform()->localScale.x,
+					   selectedObject->getTransform()->localScale.y,
+					   selectedObject->getTransform()->localScale.z
+					};
+
+					if (ImGui::DragFloat3("Local Scale", scale, step, float::MinValue, float::MaxValue, "%.3f", ImGuiInputTextFlags_CallbackCompletion) && !readonlyLock)
+					{
+						selectedObject->getTransform()->localScale = Engine::Components::Vector3(scale[0], scale[1], scale[2]);
+					}
+				}
+				
 			} // Transform
 
 			SpecializedPropertyEditor(selectedObject);
@@ -2512,7 +2745,6 @@ void EditorWindow::DrawAssets()
 
 		ImVec2 size = ImGui::GetWindowSize();
 
-		const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRIPTS", "PREFABS", "MATERIALS" };
 		ImGui::Text("Asset Name: ");
 		ImGui::SameLine();
 		ImGui::InputText("###AssetNameFilter", &asset_filter_name);
@@ -2582,7 +2814,7 @@ void EditorWindow::DrawImGuizmo()
 
 	float matrix[16];
 	float pos[3] = { selectedObject->transform->position.x, selectedObject->transform->position.y, selectedObject->transform->position.z };
-	float rot[3] = { selectedObject->transform->rotation.x, selectedObject->transform->rotation.y, selectedObject->transform->rotation.z };
+	float rot[3] = { cachedWorldEuler.x, cachedWorldEuler.y, cachedWorldEuler.z };
 	float sca[3] = { selectedObject->transform->scale.x, selectedObject->transform->scale.y, selectedObject->transform->scale.z };
 
 	float view[16];
@@ -2647,7 +2879,7 @@ void EditorWindow::DrawImGuizmo()
 		ImGuizmo::DecomposeMatrixToComponents(matrix, pos, rot, sca);
 
 		selectedObject->transform->position = Engine::Components::Vector3(pos[0], pos[1], pos[2]);
-		selectedObject->transform->rotation = Engine::Components::Vector3(rot[0], rot[1], rot[2]);
+		selectedObject->transform->rotation = Engine::Components::Quaternion::FromEulerAngles(rot[0], rot[1], rot[2]);
 		selectedObject->transform->scale = Engine::Components::Vector3(sca[0], sca[1], sca[2]);
 	}
 }
@@ -3000,9 +3232,51 @@ void EditorWindow::DrawImGui()
 				}
 
 				{
+					ImGui::Text("Minimized:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_RunOnMinimized"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Minimized);
+				}
+
+				{
+					ImGui::Text("Maximized:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_RunOnMaximized"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Maximized);
+				}
+
+				{
+					ImGui::Text("Unfocused:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_Unfocused"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Unfocused);
+				}
+
+				{
+					ImGui::Text("Topmost:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_TOPMOST"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Topmost);
+				}
+
+				{
+					ImGui::Text("Always Run:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_ALWAYSRUN"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->AlwaysRun);
+				}
+
+				{
 					ImGui::Text("Transparent:");
 					ImGui::SameLine();
 					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_Transparent"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Transparent);
+				}
+
+				{
+					ImGui::Text("HighDPI:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_HIGHDPI"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->HighDPI);
+				}
+
+				{
+					ImGui::Text("Mouse Passthrough:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_MOUSEPASSTHROUGH"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->MousePassthrough);
 				}
 
 				{
@@ -3012,9 +3286,15 @@ void EditorWindow::DrawImGui()
 				}
 
 				{
-					ImGui::Text("Run On Minimized:");
+					ImGui::Text("MSAA X4:");
 					ImGui::SameLine();
-					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_RunOnMinimized"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->AlwaysRun);
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_MSAAX4"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->MSAA_X4);
+				}
+
+				{
+					ImGui::Text("Interlaced:");
+					ImGui::SameLine();
+					ImGuiNET::ImGui::Checkbox(gcnew String("###ENGINECONFIG_INTERLACED"), Engine::Config::EngineConfiguration::singleton()->_windowFlags->Interlaced);
 				}
 
 				ImGui::EndListBox();
@@ -3170,8 +3450,6 @@ void EditorWindow::DrawImGui()
 
 	if (ImGui::BeginPopupModal("Scene Loader Editor", (bool*)false, ImGuiWindowFlags_NoScrollbar))
 	{
-		int heapAlloc = 512;
-		char* data = new char[8192];
 		auto t = System::IO::File::ReadAllText("Data/" + scene->sceneRequirements + ".asset");
 
 		std::string nativeString = CastStringToNative(t);
@@ -3243,7 +3521,7 @@ void EditorWindow::DrawImGui()
 
 		if (ImGui::Button("Open Scene"))
 		{
-			SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
+			SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()));
 
 			packedData = scene->getSceneDataPack();
 
@@ -3482,7 +3760,7 @@ void EditorWindow::create()
 		auto camera3D = gcnew Engine::EngineObjects::Editor::EditorCamera("EditorCamera",
 			gcnew Engine::Internal::Components::Transform(
 				Engine::Components::Vector3::create({ 0,0,0 }),
-				Engine::Components::Vector3::create({ 0,0,0 }),
+				Engine::Components::Quaternion::Identity,
 				Engine::Components::Vector3::create({ 1,1,1 }),
 				nullptr
 			)
@@ -3542,7 +3820,9 @@ void EditorWindow::Preload()
 
 	renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
 
-	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
+	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()));
+
+	scene = Engine::Management::Scene::getLoadedScene();
 
 	while (!scene->sceneLoaded())
 	{
@@ -3555,6 +3835,9 @@ void EditorWindow::Preload()
 }
 void EditorWindow::Update()
 {
+	packedData = scene->getSceneDataPack();
+	scene = Engine::Management::Scene::getLoadedScene();
+
 	if (!scene->sceneLoaded())
 		return;
 
@@ -3566,34 +3849,27 @@ void EditorWindow::Update()
 	if (camera == nullptr)
 		return;
 
-	void* cameraLocal = camera->get();
-
 	if (showCursor && camera->GetType() == Engine::EngineObjects::Editor::EditorCamera::typeid)
-		UpdateCamera(((NativeCamera3D*)cameraLocal)->getCameraPtr(), CAMERA_FREE);
+		UpdateCamera(((NativeCamera3D*)camera->get())->getCameraPtr(), CAMERA_FREE);
 
-	if (fpsCap)
-		SetFPS(60);
-	else
-		SetFPS(-1);
+	if (!scene->sceneLoaded())
+		return;
 
 	auto renderQueue = scene->GetRenderQueue();
+	array<GameObject^>^ renderQue;
 
-	msclr::lock^ lock = gcnew msclr::lock(renderQueue);
-	if (lock->try_acquire(5000))
 	{
-		auto renderQue = renderQueue->ToArray();
-
-		for each (GameObject ^ obj in renderQue)
-		{
-			if (scene->sceneLoaded())
-			{
-				obj->GameUpdate();
-			}
-		}
-
-		renderQue->Clear(renderQue);
+		msclr::lock lock(renderQueue);
+		renderQue = renderQueue->ToArray();
 	}
-	lock->release();
+
+	for each(GameObject ^ obj in renderQue)
+	{
+		if (obj->Parent != nullptr)
+			continue;
+
+		obj->GameUpdate();
+	}
 
 	engine_keybinds();
 	RegisterKeybinds();

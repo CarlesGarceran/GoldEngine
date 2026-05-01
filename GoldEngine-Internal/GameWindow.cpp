@@ -228,30 +228,32 @@ void GameWindow::Exit()
 
 void GameWindow::Update()
 {
+	scene = Engine::Management::Scene::getLoadedScene();
+
 	if (!scene->sceneLoaded())
 		return;
 
 	if (Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance != renderPipeline)
 		renderPipeline = Singleton<Engine::Render::ScriptableRenderPipeline^>::Instance;
 
+	if (!scene->sceneLoaded())
+		return;
+
 	auto renderQueue = scene->GetRenderQueue();
+	array<GameObject^>^ renderQue;
 
-	msclr::lock^ lock = gcnew msclr::lock(renderQueue);
-	if (lock->try_acquire(5000))
 	{
-		auto renderQue = renderQueue->ToArray();
-
-		for each (GameObject ^ obj in renderQue)
-		{
-			if (scene->sceneLoaded())
-			{
-				obj->GameUpdate();
-			}
-		}
-
-		renderQue->Clear(renderQue);
+		msclr::lock lock(renderQueue);
+		renderQue = renderQueue->ToArray();
 	}
-	lock->release();
+
+	for each(GameObject ^ obj in renderQue)
+	{
+		if (obj->Parent != nullptr)
+			continue;
+
+		obj->GameUpdate();
+	}
 
 	engine_keybinds();
 
@@ -261,10 +263,13 @@ void GameWindow::Update()
 void GameWindow::Preload()
 {
 	dataPack.LoadDefaultAssets();
-	renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
 	SetExitKey(KEY_NULL);
 
-	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()), passwd, scene);
+	renderPipeline = gcnew Engine::Render::Pipelines::LitPBR_SRP();
+
+	SceneManager::LoadSceneFromFile(gcnew System::String(fileName.c_str()));
+
+	scene = Engine::Management::Scene::getLoadedScene();
 
 	while (!scene->sceneLoaded())
 	{

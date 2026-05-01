@@ -48,6 +48,10 @@ namespace Engine::Managers
 
 		inline static void LoadSceneFromMemory(String^ sceneMetadata, unsigned int passwd, Engine::Management::Scene^% loadedScene)
 		{
+			Engine::Scripting::Logging::Log(gcnew String('-', 50));
+
+			Singleton<Engine::Scripting::ObjectManager^>::Instance->SetSelectedObject(nullptr);
+
 			auto parsedScene = Newtonsoft::Json::JsonConvert::DeserializeObject<Engine::Management::Scene^>(sceneMetadata);
 
 			loadedScene->setPassword(passwd);
@@ -88,10 +92,15 @@ namespace Engine::Managers
 
 			parsedScene->derreferenceSceneObjects();
 			Engine::Management::Scene::getLoadedScene()->flagSceneLoaded(true);
+
+			Engine::Scripting::Logging::Log(gcnew String('-', 50));
 		}
 
 		inline static void LoadSceneFromFile(System::String^ fN, unsigned int passwd, Engine::Management::Scene^% loadedScene)
 		{
+			Engine::Scripting::Logging::Log(gcnew String('-', 50));
+			Singleton<Engine::Scripting::ObjectManager^>::Instance->SetSelectedObject(nullptr);
+
 			if (AssetExists(fN))
 			{
 				auto fileContents = System::IO::File::ReadAllText("Data/" + fN + ".scn");
@@ -157,9 +166,18 @@ namespace Engine::Managers
 
 			loadedScene->Preload(assemblyManager);
 
-			gcnew Engine::Scripting::ObjectManager(loadedScene);
+			if (Singleton<Engine::Scripting::ObjectManager^>::Instantiated)
+			{
+				Singleton<Engine::Scripting::ObjectManager^>::Instance->SwapScene(loadedScene);
+			}
+			else
+			{
+				gcnew Engine::Scripting::ObjectManager(loadedScene);
+			}
 
 			loadedScene->HookSceneInit();
+
+			Engine::Scripting::Logging::Log(gcnew String('-', 50));
 		}
 
 		static Engine::Management::Scene^ CreateScene(System::String^ sceneName)

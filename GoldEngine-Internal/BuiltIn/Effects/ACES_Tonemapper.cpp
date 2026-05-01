@@ -155,7 +155,7 @@ void ACES_Tonemapper::OnEffectEnd()
 
 void ACES_Tonemapper::OnEffectUnload()
 {
-	tonemapper->destroy();
+	delete tonemapper;
 }
 
 void ACES_Tonemapper::SetTexture(RAYLIB::Texture* texturePtr)

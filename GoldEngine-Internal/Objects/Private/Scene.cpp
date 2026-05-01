@@ -38,6 +38,11 @@ GameObject^ Engine::EngineObjects::Private::Scene::GetService(System::String^ se
 	return GetChild(serviceName);
 }
 
+void Engine::EngineObjects::Private::Scene::Destroy()
+{
+	printDebug("Scene::Destroy()");
+}
+
 void Scene::Update()
 {
 	if (!isProtected())

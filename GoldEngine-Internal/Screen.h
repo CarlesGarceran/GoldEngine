@@ -4,6 +4,7 @@
 #include "ManagedIncludes.h"
 #include "EngineState.h"
 #include "GlIncludes.h"
+#include "Object/Vector2.h"
 
 namespace Engine::Scripting
 {
@@ -12,51 +13,40 @@ namespace Engine::Scripting
 	public ref class Screen
 	{
 	private:
-		static int width;
-		static int height;
-		static int x;
-		static int y;
+		static int width = RAYLIB::GetScreenWidth();
+		static int height = RAYLIB::GetScreenHeight();
+		static int x = 0;
+		static int y = 0;
+		static bool useVirtualResolution = false;
 
 	public:
+		static property int ScreenWidth
+		{
+			int get() { return RAYLIB::GetScreenWidth(); }
+		}
+		static property int ScreenHeight
+		{
+			int get() { return RAYLIB::GetScreenHeight(); }
+		}
+
+		static property int RenderWidth
+		{
+			int get() { return width; }
+		}
+		static property int RenderHeight
+		{
+			int get() { return height; }
+		}
+
 		static property int Width
 		{
-#ifdef PRODUCTION_BUILD
-			int get()
-			{
-				return RAYLIB::GetScreenWidth();
-			}
-#else
-			int get()
-			{
-				if (EngineState::PlayMode)
-				{
-					return RAYLIB::GetScreenWidth();
-				}
-
-				return width;
-			}
-#endif
+			int get();
 		}
 
 	public:
 		static property int Height
 		{
-#ifdef PRODUCTION_BUILD
-			int get()
-			{
-				return RAYLIB::GetScreenHeight();
-			}
-#else
-			int get()
-			{
-				if (EngineState::PlayMode)
-				{
-					return RAYLIB::GetScreenHeight();
-				}
-
-				return height;
-			}
-#endif
+			int get();
 		}
 
 	public:
@@ -89,5 +79,17 @@ namespace Engine::Scripting
 		{
 			Screen::height = height;
 		}
+
+		static void UseRenderResolution(bool value);
+		static void SetRenderWidth(int width);
+		static void SetRenderHeight(int height);
+
+		static void SetRenderScale(Engine::Components::Vector2 scale);
+
+		static Engine::Components::Vector2 GetRenderScale();
+		static int GetRenderWidth();
+		static int GetRenderHeight();
+
+		static bool IsVirtualResolutionInUse();
 	};
 }

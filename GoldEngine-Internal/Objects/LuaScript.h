@@ -10,7 +10,7 @@ namespace Engine::EngineObjects
 		String^ luaSource = "";
 	public:
 		[Newtonsoft::Json::JsonIgnoreAttribute]
-			Engine::Lua::VM::LuaVM^ virtualMachine;
+		Engine::Lua::VM::LuaVM^ virtualMachine;
 
 		String^ luaFilePath = "./";
 

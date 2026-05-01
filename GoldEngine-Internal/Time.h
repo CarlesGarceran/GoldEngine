@@ -6,6 +6,9 @@ namespace Engine::Scripting
 		[Engine::Attributes::LuaAPIAttribute("Time")]
 	public ref class Time
 	{
+	private:
+		static float _timeScale = 1.0f;
+
 	public:
 		static void Wait(double);
 
@@ -17,20 +20,40 @@ namespace Engine::Scripting
 			}
 		}
 
+		static property float timeScale
+		{
+			float get();
+			void set(float value);
+		}
+
 		static property float deltaTime
 		{
-			float get()
-			{
-				return RAYLIB::GetFrameTime();
-			}
+			float get();
 		}
 
 		static property double time
 		{
-			double get()
-			{
-				return RAYLIB::GetTime();
-			}
+			double get();
+		}
+
+		static property float unscaledDeltaTime 
+		{
+			float get();
+		}
+
+		static property double unscaledTime
+		{
+			double get();
+		}
+
+		static property float fixedDeltaTime
+		{
+			float get();
+		}
+
+		static property float unscaledFixedDeltaTime
+		{
+			float get();
 		}
 	};
 };

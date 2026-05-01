@@ -76,15 +76,6 @@ namespace Engine::Management::MiddleLevel
 		{
 			if (reflectableType->getTypeReference() == nullptr)
 			{
-				this->sceneObject = gcnew Engine::EngineObjects::ScriptBehaviour(
-					gcnew System::String("Null Instance"),
-					gcnew Engine::Internal::Components::Transform(
-						Engine::Components::Vector3(0, 0, 0),
-						Engine::Components::Vector3(0, 0, 0),
-						Engine::Components::Vector3(0, 0, 0),
-						nullptr)
-				);
-
 				return;
 			}
 

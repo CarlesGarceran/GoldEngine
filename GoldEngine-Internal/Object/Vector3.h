@@ -37,11 +37,29 @@ namespace Engine::Components
 			float get() { return this->magnitude(); }
 		}
 
+		property float SqrMagnitude
+		{
+			float get();
+		}
+
+		static Vector3 One = Engine::Components::Vector3(1, 1, 1);
+
+		/// DIRECTIONS \\\
+
+		static Vector3 Up = Engine::Components::Vector3(0, 1, 0);
+		static Vector3 Right = Engine::Components::Vector3(1, 0, 0);
+		static Vector3 Forward = Engine::Components::Vector3(0, 0, 1);
+		static Vector3 Down = Engine::Components::Vector3(0, -1, 0);
+		static Vector3 Left = Engine::Components::Vector3(-1, 0, 0);
+		static Vector3 Back = Engine::Components::Vector3(0, 0, -1);
+
 	public:
 		Vector3(float x, float y, float z);
 
 		Engine::Components::Vector2 toVector2();
 		System::Numerics::Vector3 toNumericsVector3();
+
+		bool IsZero();
 
 		void Set(float x, float y, float z);
 		void Set(RAYLIB::Vector3 v);
@@ -186,9 +204,13 @@ namespace Engine::Components
 		Engine::Components::Vector3 Normalized();
 		static float Distance(Vector3 left, Vector3 right);
 
-		bool Equals(Vector3 value) override
+		bool Equals(System::Object^ obj) override
 		{
-			return ((this->x == value.x) && (this->y == value.y) && (this->z == value.z));
+			if (obj == nullptr) return false;
+			if (obj->GetType() != Engine::Components::Vector3::typeid) return false;
+
+			Engine::Components::Vector3 other = (Engine::Components::Vector3)obj;
+			return x == other.x && y == other.y && z == other.z;
 		}
 
 		/*

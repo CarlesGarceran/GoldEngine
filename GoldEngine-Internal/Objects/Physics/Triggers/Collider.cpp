@@ -52,6 +52,7 @@ void Collider::Update()
 			(root != nullptr) ? (Engine::Native::CollisionShape*)root->getCollisionShape()
 			: (Engine::Native::CollisionShape*)this->getCollisionShape();
 
+		if (collisionShape == nullptr) return;
 		if (collisionShape->hasCollisionObject())
 		{
 			btBroadphaseProxy* proxy = collisionShape->getCollisionObject()->getBroadphaseHandle();
@@ -63,7 +64,54 @@ void Collider::Update()
 				proxy->m_collisionFilterMask = physService->GetCollisionMask(this->layerMask);
 			}
 		}
+	}
 
+	Engine::Native::CollisionShape* collisionShape = this->getCollisionShape();
+	if (collisionShape == nullptr) return;
+
+	if (root)
+	{
+		Engine::Native::CollisionShape* _collisionShape = (Engine::Native::CollisionShape*)root->getCollisionShape();
+
+		if (_collisionShape->hasCollisionObject())
+		{
+			btCollisionObject*& collisionObject = _collisionShape->getCollisionObject();
+
+			if (collisionObject->getCollisionShape() != collisionShape->getCollisionShape())
+			{
+				collisionObject->setCollisionShape(collisionShape->getCollisionShape());
+			}
+		}
+
+		if (collisionShape->hasCollisionObject() && collisionShape->getCollisionObject() != nullptr)
+		{
+			if (collisionShape->getCollisionObject() != _collisionShape->getCollisionObject())
+				collisionShape->freeCollisionObject();
+		}
+	}
+	else
+	{
+		if (collisionShape->hasCollisionObject())
+		{
+			auto collisionObject = collisionShape->getCollisionObject();
+			Engine::EngineObjects::Physics::Native::updateCollisionObject(collisionObject,
+				{
+					transform->position.x + origin.x,
+					transform->position.y + origin.y,
+					transform->position.z + origin.z
+				},
+				{
+					transform->rotation.x,
+					transform->rotation.y,
+					transform->rotation.z
+				},
+				{
+					transform->scale.x,
+					transform->scale.y,
+					transform->scale.z
+				}
+			);
+		}
 	}
 }
 

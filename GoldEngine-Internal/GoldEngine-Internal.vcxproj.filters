@@ -56,9 +56,6 @@
     <Filter Include="Source\Engine\Marshaller">
       <UniqueIdentifier>{84639636-2dd0-4fda-95a1-d80dc406fbbe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\ObjectManagement">
-      <UniqueIdentifier>{734d2dff-1260-4726-b83d-00d76a1f3524}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\HLAPI">
       <UniqueIdentifier>{9b437e7d-5295-4f14-bd28-6d61f0a38f22}</UniqueIdentifier>
     </Filter>
@@ -456,6 +453,36 @@
     </Filter>
     <Filter Include="Source\Engine\EngineObjects\BuiltIn\Effects">
       <UniqueIdentifier>{c54af503-63c8-4ef4-8c0c-e2cd0a7dc335}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Physics\Joints">
+      <UniqueIdentifier>{6ffd4ccf-bf43-4b89-8fd1-a1400b948f59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Physics\Joints">
+      <UniqueIdentifier>{5c08db44-3a18-496d-95df-a92b559c2294}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Rigging">
+      <UniqueIdentifier>{230b0252-4707-41b6-b80a-33346287943d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Rigging">
+      <UniqueIdentifier>{df416953-d4ed-4624-9d70-c924fc780d53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Animation">
+      <UniqueIdentifier>{6abaabb6-7b65-4637-935a-553d23c7375b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Engine\EngineObjects\Animation\ModelAnimation">
+      <UniqueIdentifier>{9393f2f2-86eb-4312-9160-b03afbdb6520}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Animation">
+      <UniqueIdentifier>{e2df0f4b-969d-458e-b1c7-45cdf415640e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineObjects\Animation\ModelAnimation">
+      <UniqueIdentifier>{e02c79c4-9110-474a-b408-deb97b882306}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Deps\GUI\ImNodes\Wrapper">
+      <UniqueIdentifier>{41174b1e-d0e7-4ea4-9a22-bcedcafd03b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ObjectManagement">
+      <UniqueIdentifier>{734d2dff-1260-4726-b83d-00d76a1f3524}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1188,6 +1215,21 @@
     <ClInclude Include="PersistantInstanceAttribute.h">
       <Filter>Source\Engine\ScriptingAPI\Attributes</Filter>
     </ClInclude>
+    <ClInclude Include="Objects\Physics\Joints\SpringJoint.h">
+      <Filter>Headers\Engine\EngineObjects\Physics\Joints</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Rigging\Rig.h">
+      <Filter>Headers\Engine\EngineObjects\Rigging</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\Rigging\Bone.h">
+      <Filter>Headers\Engine\EngineObjects\Rigging</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\ModelAnimation\ModelAnimation.h">
+      <Filter>Headers\Engine\EngineObjects\Animation\ModelAnimation</Filter>
+    </ClInclude>
+    <ClInclude Include="imnodes\Wrapper\ImNodesWrapper.h">
+      <Filter>Deps\GUI\ImNodes\Wrapper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1435,6 +1477,24 @@
     </ClCompile>
     <ClCompile Include="InstanceReference.cpp">
       <Filter>Source\Engine\ScriptingAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Physics\Joints\SpringJoint.cpp">
+      <Filter>Source\Engine\EngineObjects\Physics\Joints</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Rigging\Rig.cpp">
+      <Filter>Source\Engine\EngineObjects\Rigging</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Rigging\Bone.cpp">
+      <Filter>Source\Engine\EngineObjects\Rigging</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\ModelAnimation\ModelAnimation.cpp">
+      <Filter>Source\Engine\EngineObjects\Animation\ModelAnimation</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects\Camera.cpp">
+      <Filter>Source\Engine\EngineObjects\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="imnodes\Wrapper\ImNodesWrapper.cpp">
+      <Filter>Deps\GUI\ImNodes\Wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

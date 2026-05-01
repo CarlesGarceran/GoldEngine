@@ -28,16 +28,29 @@ using namespace Engine::Internal::Components;
 
 #ifdef USE_BULLET_PHYS
 
-void Engine::Internal::Components::GameObject::setCollisionShape(Engine::Native::CollisionShape* shape)
+void Engine::Internal::Components::GameObject::overrideCollisionShape(Engine::Native::CollisionShape* newShape)
 {
-	if (this->collisionShape == nullptr) return;
-
-	if (this->collisionShape != shape)
+	if (collisionShape != nullptr && originalCollisionShape == nullptr)
 	{
-		delete this->collisionShape;
+		// Retain the old shape for restoration
+		originalCollisionShape = collisionShape;
 	}
 
-	this->collisionShape = shape;
+	collisionShape = newShape;
+}
+
+void Engine::Internal::Components::GameObject::restoreCollisionShape()
+{
+	if (originalCollisionShape != nullptr)
+	{
+		if (collisionShape != nullptr)
+		{
+			delete collisionShape; // release the overridden shape
+		}
+
+		collisionShape = originalCollisionShape;
+		originalCollisionShape = nullptr;
+	}
 }
 
 void GameObject::createCollisionShape()
@@ -51,8 +64,7 @@ void Engine::Internal::Components::GameObject::InitializeObject()
 	initialized = true;
 
 #ifdef USE_BULLET_PHYS
-	if (collisionShape == nullptr)
-		createCollisionShape();
+	createCollisionShape();
 #endif
 
 	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
@@ -62,11 +74,8 @@ void Engine::Internal::Components::GameObject::InitializeObject()
 
 	this->onDescendantAdded->connect(gcnew Action<GameObject^>(this, &GameObject::descendantAdded));
 
-	auto method = GetType()->GetMethod("Update");
-	updateExecutesInEditMode = method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
-
-	method = GetType()->GetMethod("DrawImGUI");
-	drawImGuiExecutesInEditMode = method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
+	updateExecutesInEditMode = GetType()->GetMethod("Update")->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
+	drawImGuiExecutesInEditMode = GetType()->GetMethod("DrawImGUI")->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
 }
 
 #endif
@@ -117,6 +126,7 @@ GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transfor
 #ifdef USE_BULLET_PHYS
 	createCollisionShape();
 #endif
+	
 	// EVENT CREATION \\
 
 	this->onPropertyChanged = gcnew Engine::Scripting::Events::Event();
@@ -128,23 +138,15 @@ GameObject::GameObject(System::String^ n, Engine::Internal::Components::Transfor
 
 	activeToggle = this->active;
 
-	auto method = GetType()->GetMethod("Update");
-
-	if (method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
-	{
-		updateExecutesInEditMode = true;
-	}
-
-	method = GetType()->GetMethod("DrawImGUI");
-
-	if (method->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false))
-	{
-		drawImGuiExecutesInEditMode = true;
-	}
+	updateExecutesInEditMode = GetType()->GetMethod("Update")->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
+	drawImGuiExecutesInEditMode = GetType()->GetMethod("DrawImGUI")->IsDefined(Engine::Attributes::ExecuteInEditModeAttribute::typeid, false);
 }
 
 Engine::Internal::Components::GameObject::~GameObject()
 {
+	if(this->cachedChildren != nullptr) this->cachedChildren->Clear();
+
+	isDisposed = true;
 	onPropertyChanged->disconnectAll();
 	onChildAdded->disconnectAll();
 	onChildRemoved->disconnectAll();
@@ -167,19 +169,25 @@ Engine::Internal::Components::GameObject::!GameObject()
 
 void GameObject::setParent(GameObject^ object)
 {
-	if (object == nullptr)
-		return;
-
 	if (this->transform->parent != nullptr)
 	{
 		String^ TUID = this->transform->GetParent()->GetUID();
-		Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjectByUid(TUID)->onChildRemoved->raiseExecution(gcnew cli::array<System::Object^> { this });
+		if (Parent->cachedChildren != nullptr) Parent->cachedChildren->Remove(this);
+		Parent->onChildRemoved->raiseExecution(gcnew cli::array<System::Object^> { this });
 	}
 
-	transform->setParent(object->transform);
+	if (object != nullptr)
+	{
+		transform->setParent(object->transform);
 
-	object->onChildAdded->raiseExecution(gcnew cli::array<System::Object^> { this });
-	object->onDescendantAdded->raiseExecution(gcnew cli::array<System::Object^> { this });
+		if (object->cachedChildren != nullptr) object->cachedChildren->Add(this);
+		object->onChildAdded->raiseExecution(gcnew cli::array<System::Object^> { this });
+		object->onDescendantAdded->raiseExecution(gcnew cli::array<System::Object^> { this });
+	}
+	else
+	{
+		transform->setParent(nullptr);
+	}
 }
 
 Engine::Internal::Components::Transform^ GameObject::getTransform()
@@ -215,17 +223,26 @@ void GameObject::OnPropChanged()
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "position", transform->position, lastTransform->position });
 		MoveChildren();
 	}
-	else if (!transform->rotation.Equals(lastTransform->rotation))
+	
+	if (!transform->rotation.Equals(lastTransform->rotation))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "rotation", transform->rotation, lastTransform->rotation });
+		RotateChildren();
 	}
-	else if (!transform->scale.Equals(lastTransform->scale))
+	
+	if (!transform->scale.Equals(lastTransform->scale))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "scale", transform->scale, lastTransform->scale });
+		ScaleChildren();
 	}
-	else if ((lastTransform != nullptr && lastTransform->parent != nullptr) && (transform->parent != nullptr) && (!transform->parent->GetUID()->Equals(lastTransform->parent->GetUID())))
+	
+	if ((lastTransform != nullptr && lastTransform->parent != nullptr) && (transform->parent != nullptr) && (!transform->parent->GetUID()->Equals(lastTransform->parent->GetUID())))
 	{
 		onPropertyChanged->raiseExecution(gcnew cli::array<System::Object^> { "parent", transform->parent, lastTransform->parent });
+
+		MoveChildren();
+		RotateChildren();
+		ScaleChildren();
 	}
 
 	lastTransform->position = transform->position;
@@ -236,11 +253,50 @@ void GameObject::OnPropChanged()
 
 void Engine::Internal::Components::GameObject::MoveChildren()
 {
-	Engine::Components::Vector3 delta = transform->position - lastTransform->position;
+	Engine::Components::Vector3 delta =
+		transform->position - lastTransform->position;
+
+	if (delta.IsZero())
+		return;
 
 	for each (auto child in GetChildren())
 	{
 		child->transform->position += delta;
+	}
+}
+
+void Engine::Internal::Components::GameObject::RotateChildren()
+{
+	Engine::Components::Quaternion delta =
+		(transform->rotation * lastTransform->rotation.Inverse()).Normalized();
+
+	if (delta.IsIdentity())
+		return;
+
+	for each (auto child in GetChildren())
+	{
+		// Vector from parent pivot to child
+		Engine::Components::Vector3 offset = child->transform->position - transform->position;
+
+		// Rotate offset by delta
+		Engine::Components::Vector3 rotatedOffset = delta.Rotate(offset);
+
+		// Set child world position directly
+		child->transform->position = transform->position + rotatedOffset;
+
+		// Rotate child’s world rotation
+		child->transform->rotation = (delta * child->transform->rotation).Normalized();
+	}
+}
+
+void Engine::Internal::Components::GameObject::ScaleChildren()
+{
+	Engine::Components::Vector3 delta =
+		transform->scale - lastTransform->scale;
+
+	for each (auto child in GetChildren())
+	{
+		child->transform->scale += delta;
 	}
 }
 
@@ -256,6 +312,9 @@ void GameObject::GameUpdate()
 {
 	try
 	{
+		if (this == nullptr) return;
+		if (cachedChildren == nullptr) cachedChildren = Singleton<Engine::Scripting::ObjectManager^>::Instance->GetChildrenOf(this);
+
 		/*
 #ifdef USE_BULLET_PHYS
 		if (!collisionObjectInitialized && !getCollider(this)->hasCollisionObject())
@@ -284,7 +343,7 @@ void GameObject::GameUpdate()
 				activeToggle = false;
 				OnInactive();
 			}
-			return;
+			goto UPDATE_CHILDS;
 		}
 		else
 		{
@@ -337,6 +396,13 @@ void GameObject::GameUpdate()
 		else
 		{
 			if (updateExecutesInEditMode) Update();
+		}
+
+		UPDATE_CHILDS:
+
+		for each(GameObject^ child in GetChildren())
+		{
+			if (child != nullptr) child->GameUpdate();
 		}
 	}
 	catch (Exception^ ex)
@@ -472,9 +538,8 @@ System::Object^ GameObject::CastToType(Type^ T, bool useConvert)
 
 void Engine::Internal::Components::GameObject::Destroy()
 {
-
+	isDisposed = true;
 }
-
 
 cli::array<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendants()
 {
@@ -483,7 +548,14 @@ cli::array<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendant
 
 cli::array<GameObject^>^ GameObject::GetChildren()
 {
-	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetChildrenOf(this)->ToArray();
+	if (cachedChildren == nullptr) 
+	{
+		cachedChildren = Singleton<Engine::Scripting::ObjectManager^>::Instance->GetChildrenOf(this);
+
+		if (cachedChildren == nullptr) return gcnew cli::array<GameObject^>(0);
+	}
+
+	return cachedChildren->ToArray();
 }
 
 GameObject^ GameObject::GetChild(int index)
@@ -589,6 +661,21 @@ GameObject^ Engine::Internal::Components::GameObject::FindFirstObjectByName(Syst
 GameObject^ Engine::Internal::Components::GameObject::FindFirstObjectByTag(System::String^ tag)
 {
 	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetFirstObjectByTag(tag);
+}
+
+cli::array<GameObject^>^ Engine::Internal::Components::GameObject::GetObjects()
+{
+	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetObjects()->ToArray();
+}
+
+bool Engine::Internal::Components::GameObject::IsDisposed()
+{
+	return isDisposed;
+}
+
+Engine::Internal::Components::Transform^ Engine::Internal::Components::GameObject::GetLastFrameTransform()
+{
+	return lastTransform;
 }
 
 Engine::Internal::Components::ObjectType GameObject::GetObjectType()
