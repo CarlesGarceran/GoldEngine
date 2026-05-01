@@ -176,6 +176,8 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 				RAYLIB::Vector3 vtx = vtxs[0];
 				RAYLIB::Vector3 vtx1 = vtxs[1];
 
+				Engine::Components::Vector3 offsetted = transform->position + origin;
+
 				RAYLIB::Vector3 start = {
 					static_cast<float>(vtx.x) * Parent->transform->scale.x,
 					static_cast<float>(vtx.y) * Parent->transform->scale.y,
@@ -188,13 +190,13 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 					static_cast<float>(vtx1.z) * Parent->transform->scale.z
 				};
 
-				start.x += Parent->transform->position.x;
-				start.y += Parent->transform->position.y;
-				start.z += Parent->transform->position.z;
+				start.x += offsetted.x;
+				start.y += offsetted.y;
+				start.z += offsetted.z;
 
-				end.x += Parent->transform->position.x;
-				end.y += Parent->transform->position.y;
-				end.z += Parent->transform->position.z;
+				end.x += offsetted.x;
+				end.y += offsetted.y;
+				end.z += offsetted.z;
 
 				RAYLIB::DrawLine3D(start, end, wireColor->toNative());
 			}
