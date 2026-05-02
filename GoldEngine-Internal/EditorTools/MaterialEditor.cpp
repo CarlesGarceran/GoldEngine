@@ -419,6 +419,18 @@ void MaterialEditor::GUI()
 						}
 					}
 				}
+
+				ImGui::SeparatorText("Material Properties");
+
+				{
+					bool ref = selectedMaterial->GPUInstancing;
+					ImGui::Text("GPU Instancing:");
+					ImGui::SameLine();
+					if (ImGui::Checkbox("###GPU_INSTANCING", &ref))
+					{
+						selectedMaterial->GPUInstancing = ref;
+					}
+				}
 			}
 
 			if(saveToMem)

@@ -541,6 +541,12 @@ void Engine::Internal::Components::GameObject::Destroy()
 	isDisposed = true;
 }
 
+void Engine::Internal::Components::GameObject::SetActiveRecurse(bool active)
+{
+	this->SetActive(active);
+	for each (auto obj in GetDescendants()) obj->SetActive(false);
+}
+
 cli::array<GameObject^>^ Engine::Internal::Components::GameObject::GetDescendants()
 {
 	return Singleton<Engine::Scripting::ObjectManager^>::Instance->GetDescendantsOf(this)->ToArray();

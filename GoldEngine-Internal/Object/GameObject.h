@@ -198,6 +198,8 @@ namespace Engine::Internal::Components
 			this->active = active;
 		}
 
+		void SetActiveRecurse(bool active);
+
 		void SetLayerMask(Engine::Components::Layer^ layerMask)
 		{
 			this->layerMask = layerMask;

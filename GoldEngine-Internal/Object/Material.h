@@ -101,6 +101,9 @@ namespace Engine::Components
 	public ref class Material
 	{
 	public:
+		bool GPUInstancing = false; // For now it does nothing, we have to implement the GeometryBuffer, 
+									// that way we can implement Render Queues & Batching all together
+
 		Engine::Reflectable::Generic::Reflectable<unsigned int>^ shaderId;
 		System::Collections::Generic::List<Locs::Generic::ShaderLoc^>^ MaterialProperties;
 

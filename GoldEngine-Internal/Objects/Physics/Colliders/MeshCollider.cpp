@@ -151,11 +151,19 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 		if(meshCollisionType == Enums::MeshCollisionType::Concave)
 		{
 			RAYLIB::Model* model = Parent->As<Renderer^>()->GetModelPtr();
-			
+
+			Engine::Components::Vector3 eulerAngles = this->transform->rotation.ToEulerRadians();
+
+			model->transform = RAYMATH::MatrixRotateXYZ({
+				eulerAngles.x,
+				eulerAngles.y,
+				eulerAngles.z
+			});
+
 			RAYLIB::DrawModelWiresEx(
 				*model,
 				(transform->position + (transform->localPosition * -1)).toNative(),
-				transform->rotation.ToEulerAngles().toNative(),
+				{ 0, 0, 0 },
 				0.0f,
 				transform->scale.toNative(),
 				wireColor->toNative()
@@ -179,16 +187,22 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 				Engine::Components::Vector3 offsetted = transform->position + origin;
 
 				RAYLIB::Vector3 start = {
-					static_cast<float>(vtx.x) * Parent->transform->scale.x,
-					static_cast<float>(vtx.y) * Parent->transform->scale.y,
-					static_cast<float>(vtx.z) * Parent->transform->scale.z
+					static_cast<float>(vtx.x) * transform->scale.x,
+					static_cast<float>(vtx.y) * transform->scale.y,
+					static_cast<float>(vtx.z) * transform->scale.z
 				};
 
 				RAYLIB::Vector3 end = {
-					static_cast<float>(vtx1.x) * Parent->transform->scale.x,
-					static_cast<float>(vtx1.y) * Parent->transform->scale.y,
-					static_cast<float>(vtx1.z) * Parent->transform->scale.z
+					static_cast<float>(vtx1.x) * transform->scale.x,
+					static_cast<float>(vtx1.y) * transform->scale.y,
+					static_cast<float>(vtx1.z) * transform->scale.z
 				};
+
+				Engine::Components::Vector3 startRotated = Engine::Components::Quaternion::Rotate(transform->rotation.Normalized(), Engine::Components::Vector3(start.x, start.y, start.z));
+				Engine::Components::Vector3 endRotated = Engine::Components::Quaternion::Rotate(transform->rotation.Normalized(), Engine::Components::Vector3(end.x, end.y, end.z));
+
+				start = startRotated.toNative();
+				end = endRotated.toNative();
 
 				start.x += offsetted.x;
 				start.y += offsetted.y;

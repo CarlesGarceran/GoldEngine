@@ -2,6 +2,8 @@
 
 #ifdef USE_BULLET_PHYS
 
+#include "../PropertyAttribute.h"
+
 namespace Engine::EngineObjects::Physics
 {
 	[MoonSharp::Interpreter::MoonSharpUserDataAttribute]
@@ -9,7 +11,8 @@ namespace Engine::EngineObjects::Physics
 	public ref class MeshCollider : Engine::EngineObjects::Physics::Collider
 	{
 	public:
-		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType = Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
+		[Engine::Scripting::PropertyAttribute] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType 
+			= Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
 
 
 	public:
