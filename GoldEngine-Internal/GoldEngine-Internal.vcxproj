@@ -457,12 +457,14 @@
     <ClInclude Include="Object\ObjectType.h" />
     <ClInclude Include="Object\Prefab.h" />
     <ClInclude Include="Object\Quaternion.h" />
+    <ClInclude Include="Object\RenderTexture.h" />
     <ClInclude Include="Object\Transform.h" />
     <ClInclude Include="Object\Vector2.h" />
     <ClInclude Include="Object\Vector3.h" />
     <ClInclude Include="Object\ViewSpace.h" />
     <ClInclude Include="PersistantInstanceAttribute.h" />
     <ClInclude Include="PreloadScript.h" />
+    <ClInclude Include="Render\GeometryBuffer.h" />
     <ClInclude Include="SerializePropertyAttribute.h" />
     <ClInclude Include="Raylib\include\x64\raylib.h" />
     <ClInclude Include="Raylib\include\x64\raymath.h" />
@@ -576,6 +578,7 @@
     <ClCompile Include="Object\Matrix.cpp" />
     <ClCompile Include="Object\Prefab.cpp" />
     <ClCompile Include="Object\Quaternion.cpp" />
+    <ClCompile Include="Object\RenderTexture.cpp" />
     <ClCompile Include="Object\Transform.cpp" />
     <ClCompile Include="Object\Vector2.cpp" />
     <ClCompile Include="Object\Vector3.cpp" />

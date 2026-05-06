@@ -23,6 +23,54 @@ UNMANAGED_BEGIN
 #include <BulletCollision/CollisionShapes/btConvexHullShape.h>
 #include <BulletCollision/CollisionShapes/btConvexPolyhedron.h>
 
+static const char* fragmentShader = R"(
+#version 330
+precision highp float;
+precision highp sampler2D;
+
+in vec2 fragTexCoord;
+
+uniform vec4 tint;
+
+out vec4 finalColor;
+
+void main()
+{
+    finalColor = tint;
+}
+)";
+
+static const char* vertexShader = R"(
+#version 330
+
+// Input vertex attributes
+in vec3 vertexPosition;
+in vec2 vertexTexCoord;
+in vec3 vertexNormal;
+in vec4 vertexColor;
+
+// Input uniform values
+uniform mat4 mvp;
+
+// Output vertex attributes (to fragment shader)
+out vec2 fragTexCoord;
+out vec4 fragColor;
+
+// NOTE: Add here your custom variables
+
+void main()
+{
+    // Send vertex attributes to fragment shader
+    fragTexCoord = vertexTexCoord;
+    fragColor = vertexColor;
+
+    // Calculate final vertex position
+    gl_Position = mvp*vec4(vertexPosition, 1.0);
+}
+)";
+
+static RAYLIB::Shader shader;
+
 inline std::array<RAYLIB::Vector3, 2> GetEdge(btConvexHullShape* shape, int i)
 {
 	btVector3 pa(0, 0, 0);
@@ -96,11 +144,19 @@ void SetCollisionShape(GameObject^ Instance, Engine::EngineObjects::Physics::Enu
 Engine::EngineObjects::Physics::MeshCollider::MeshCollider() :
 	Collider()
 {
-	colliderShape = Enums::ColliderShape::Mesh; 
+	colliderShape = Enums::ColliderShape::Mesh;
 }
 
 void Engine::EngineObjects::Physics::MeshCollider::Awake()
 {
+	if (!RAYLIB::IsShaderValid(shader))
+	{
+		shader = RAYLIB::LoadShaderFromMemory(
+			vertexShader,
+			fragmentShader
+		);
+	}
+
 	if (this->attributes->hasAttribute("meshCollisionType"))
 		this->attributes->getAttribute("meshCollisionType")->onPropertyChanged->connect(gcnew Action<Engine::EngineObjects::Physics::Enums::MeshCollisionType, Engine::EngineObjects::Physics::Enums::MeshCollisionType>(this, &MeshCollider::OnMeshCollisionTypeChanged));
 
@@ -151,23 +207,73 @@ void Engine::EngineObjects::Physics::MeshCollider::DrawGizmo()
 		if(meshCollisionType == Enums::MeshCollisionType::Concave)
 		{
 			RAYLIB::Model* model = Parent->As<Renderer^>()->GetModelPtr();
+			bool isMesh = false;
+			unsigned int meshIndex = -1;
+
+			if (Parent->IsA<MeshRenderer^>())
+			{
+				isMesh = true;
+				meshIndex = Parent->As<MeshRenderer^>()->meshIndex;
+			}
 
 			Engine::Components::Vector3 eulerAngles = this->transform->rotation.ToEulerRadians();
 
-			model->transform = RAYMATH::MatrixRotateXYZ({
+			RAYMATH::Matrix translation = RAYMATH::MatrixTranslate(
+				transform->position.x,
+				transform->position.y,
+				transform->position.z
+			);
+
+			RAYMATH::Matrix rotation = RAYMATH::MatrixRotateXYZ({
 				eulerAngles.x,
 				eulerAngles.y,
 				eulerAngles.z
-			});
+				});
 
-			RAYLIB::DrawModelWiresEx(
-				*model,
-				(transform->position + (transform->localPosition * -1)).toNative(),
-				{ 0, 0, 0 },
-				0.0f,
-				transform->scale.toNative(),
-				wireColor->toNative()
+			RAYLIB::Matrix scale = RAYMATH::MatrixScale(
+				this->transform->scale.x,
+				this->transform->scale.y,
+				this->transform->scale.z
 			);
+
+			RAYLIB::Matrix _transform = RAYMATH::MatrixMultiply(
+				scale,
+				RAYMATH::MatrixMultiply(
+					rotation,
+					translation
+				)
+			);
+
+			RAYLIB::SetShaderValue(
+				shader,
+				RAYLIB::GetShaderLocation(shader, "tint"),
+				wireColor->toFloat().data(),
+				RAYLIB::SHADER_UNIFORM_VEC4
+			);
+
+			RLGL::rlEnableWireMode();
+
+			if (!isMesh)
+			{
+				for (int x = 0; x < model->meshCount; x++)
+				{
+					RAYLIB::DrawMeshShader(
+						model->meshes[x],
+						shader,
+						_transform
+					);
+				}
+			}
+			else
+			{
+				RAYLIB::DrawMeshShader(
+					model->meshes[meshIndex],
+					shader,
+					_transform
+				);
+			}
+
+			RLGL::rlDisableWireMode();
 		}
 		else if (meshCollisionType == Enums::MeshCollisionType::Convex) 
 		{
@@ -228,6 +334,13 @@ void Engine::EngineObjects::Physics::MeshCollider::Destroy()
 	if (Parent != nullptr)
 	{
 		Parent->restoreCollisionShape();
+	}
+
+	Collider^ any = FindFirstObjectOfType<MeshCollider^>();
+	if (any == nullptr || any == this)
+	{
+		RAYLIB::UnloadShader(shader);
+		shader = { 0 };
 	}
 }
 

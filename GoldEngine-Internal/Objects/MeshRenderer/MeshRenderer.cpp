@@ -2,10 +2,20 @@
 #include "../Abstract/Renderer.h"
 #include "MeshRenderer.h"
 
+#include <math.h>
+
 using namespace Engine::Scripting;
 using namespace Engine::Assets::Storage;
 
 using namespace Engine::EngineObjects::Geometry;
+
+static unsigned int clamp(unsigned int t, unsigned int min, unsigned int max)
+{
+	if (t >= max) return max;
+	if (t <= min) return min;
+
+	return t;
+}
 
 MeshRenderer::MeshRenderer()
 	: Engine::EngineObjects::Geometry::Abstract::Renderer()
@@ -15,8 +25,8 @@ MeshRenderer::MeshRenderer()
 
 void MeshRenderer::Awake()
 {
-	if (this->tint == nullptr)
-		this->tint = Engine::Components::Color::New();
+	if (this->Tint == nullptr)
+		this->Tint = Engine::Components::Color::New();
 
 	RAYLIB::Model& modelCopy = DataPacks::singleton().GetModel(modelId);
 
@@ -36,10 +46,8 @@ void MeshRenderer::Update()
 {
 	RAYLIB::Model& modelCopy = DataPacks::singleton().GetModel(modelId);
 
-	if (modelCopy.meshCount <= meshIndex)
-		meshIndex = modelCopy.meshCount - 1;
-	else if (meshIndex < 0)
-		meshIndex = 0;
+	meshIndex = clamp(meshIndex, 0, modelCopy.meshCount-1);
+	this->attributes->getAttribute("meshIndex")->setValue(meshIndex, false);
 
 	if (this->meshInstance == nullptr)
 		this->meshInstance = new Engine::Native::EnginePtr<RAYLIB::Mesh>(modelCopy.meshes[meshIndex]);
@@ -53,7 +61,7 @@ void MeshRenderer::Draw()
 	RAYLIB::Shader shader = DataPacks::singleton().GetShader(materialInstance->shaderId->getInstance());
 
 	if (materialInstance->GetBaseColor() != nullptr && materialInstance->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc) 
-		this->tint = ((Engine::Components::Locs::ColorLoc^)materialInstance->GetBaseColor())->color;
+		this->Tint = ((Engine::Components::Locs::ColorLoc^)materialInstance->GetBaseColor())->color;
 
 	materialInstance->ApplyToShader(shader);
 
@@ -98,7 +106,7 @@ void MeshRenderer::Destroy()
 {
 	delete meshInstance;
 	meshInstance = nullptr;
-	tint = nullptr;
+	Tint = nullptr;
 }
 
 RAYLIB::Model& Engine::EngineObjects::Geometry::MeshRenderer::GetModel()
@@ -129,7 +137,10 @@ void Engine::EngineObjects::Geometry::MeshRenderer::onModelUpdated(unsigned int 
 void Engine::EngineObjects::Geometry::MeshRenderer::onMeshIndexUpdated(unsigned int newId, unsigned int oldId)
 {
 	if (newId == oldId) return;
+
 	RAYLIB::Model& model = DataPacks::singleton().GetModel(modelId);
+
+	newId = clamp(newId, 0, model.meshCount-1);
 
 	if (this->meshInstance == nullptr)
 	{
@@ -138,4 +149,14 @@ void Engine::EngineObjects::Geometry::MeshRenderer::onMeshIndexUpdated(unsigned 
 	}
 
 	this->meshInstance->setInstance(model.meshes[newId]);
+}
+
+Engine::Components::Material^ Engine::EngineObjects::Geometry::MeshRenderer::sharedMaterial::get()
+{
+	return DataPacks::singleton().GetMaterial(materialId);
+}
+
+cli::array<Engine::Components::Material^>^ Engine::EngineObjects::Geometry::MeshRenderer::sharedMaterials::get()
+{
+	return gcnew cli::array<Engine::Components::Material^>(1) { DataPacks::singleton().GetMaterial(materialId) };
 }

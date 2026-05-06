@@ -61,6 +61,7 @@ auto GetFieldValue(System::Object^ instance, System::Reflection::FieldInfo^ prop
 }
 
 Engine::Components::Material::Material(unsigned int shaderId)
+	: renderQueue((unsigned short)Engine::Render::RenderQueue::Geometry)
 {
 	this->shaderId = gcnew Engine::Reflectable::Generic::Reflectable<unsigned int>(shaderId);
 	MaterialProperties = gcnew System::Collections::Generic::List<Locs::Generic::ShaderLoc^>();

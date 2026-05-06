@@ -10,10 +10,8 @@ namespace Engine::EngineObjects::Geometry
 
 	public:
 		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
-		[Engine::Scripting::SerializePropertyAttribute] unsigned int meshIndex;
-
 		[Engine::Scripting::SerializePropertyAttribute] unsigned int materialId;
-		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ tint;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int meshIndex;
 
 	public:
 		MeshRenderer();
@@ -28,6 +26,9 @@ namespace Engine::EngineObjects::Geometry
 
 		RAYLIB::Model& GetModel() override;
 		RAYLIB::Model* GetModelPtr() override;
+
+		property Engine::Components::Material^ sharedMaterial { Engine::Components::Material^ get() override; }
+		property cli::array<Engine::Components::Material^>^ sharedMaterials { cli::array<Engine::Components::Material^>^ get() override; }
 
 	private:
 		void onModelUpdated(unsigned int newId, unsigned int oldId);

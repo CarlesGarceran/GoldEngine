@@ -7,10 +7,8 @@ namespace Engine::EngineObjects::Geometry
 	public ref class ModelRenderer : public Engine::EngineObjects::Geometry::Abstract::Renderer
 	{
 	public:
-		[Newtonsoft::Json::JsonIgnoreAttribute] [Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
-		[Newtonsoft::Json::JsonIgnoreAttribute] [Engine::Scripting::SerializePropertyAttribute] unsigned int materialId;
-		[Newtonsoft::Json::JsonIgnoreAttribute] [Engine::Scripting::SerializePropertyAttribute] Engine::Components::Color^ tint;
-	
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int modelId;
+		[Engine::Scripting::SerializePropertyAttribute] unsigned int materialId;
 	public:
 		ModelRenderer();
 
@@ -21,6 +19,9 @@ namespace Engine::EngineObjects::Geometry
 
 		RAYLIB::Model& GetModel() override;
 		RAYLIB::Model* GetModelPtr() override;
+
+		property Engine::Components::Material^ sharedMaterial { Engine::Components::Material^ get() override; }
+		property cli::array<Engine::Components::Material^>^ sharedMaterials { cli::array<Engine::Components::Material^>^ get() override; }
 
 	private:
 		Engine::Native::EnginePtr<RAYLIB::Model>* modelPtr;

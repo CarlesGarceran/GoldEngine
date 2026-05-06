@@ -20,6 +20,7 @@ using namespace Engine::Attributes;
 #include "Cast.h"
 #include "EngineConfig.h"
 #include "Event.h"
+#include "Object/RenderTexture.h"
 #include "Object/Material.h"
 #include "Object/Transform.h"
 #include "Object/GameObject.h"
@@ -137,7 +138,7 @@ DataPacks dataPack;
 unsigned int passwd = 0;
 int max_lights = 4;
 
-void LogCallback(int logLevel, const char* text, va_list args)
+static void LogCallback(int logLevel, const char* text, va_list args)
 {
 	/*
 	const char* format = RAYLIB::TextFormat(text, args);
@@ -321,7 +322,7 @@ const char* constData[] = { "ALL", "MODELS", "TEXTURES", "SOUND", "MUSIC", "SCRI
 #include "EditorTools/MaterialEditor.h"
 #include "EditorWindow.h"
 
-inline const char* blendFlagsToString(int flag)
+static inline const char* blendFlagsToString(int flag)
 {
 	switch (flag)
 	{
@@ -346,7 +347,7 @@ inline const char* blendFlagsToString(int flag)
 	}
 }
 
-void CopyRaylibMatrixToFloat16(const RAYLIB::Matrix& mat, float out[16])
+static void CopyRaylibMatrixToFloat16(const RAYLIB::Matrix& mat, float out[16])
 {
 	out[0] = mat.m0;	out[1] = mat.m1;	out[2] = mat.m2;	out[3] = mat.m3;
 	out[4] = mat.m4;	out[5] = mat.m5;	out[6] = mat.m6;	out[7] = mat.m7;
@@ -379,7 +380,7 @@ int displayingAsset = 0;
 
 UNMANAGED_BEGIN
 
-void DeleteTexture(void* tex)
+static void DeleteTexture(void* tex)
 {
 	if (tex == nullptr) return;
 
@@ -388,7 +389,7 @@ void DeleteTexture(void* tex)
 	delete texture;
 }
 
-void* CreateTexture(RAYLIB::Image* image, int w, int h, char fmt)
+static void* CreateTexture(RAYLIB::Image* image, int w, int h, char fmt)
 {
 	if (image == nullptr || image->data == nullptr) return nullptr;
 
@@ -412,13 +413,13 @@ void* CreateTexture(RAYLIB::Image* image, int w, int h, char fmt)
 	return reinterpret_cast<void*>(tex);
 }
 
-void ConfigureImFileDialog()
+static void ConfigureImFileDialog()
 {
 	ifd::FileDialog::Instance().CreateTexture = &CreateTexture;
 	ifd::FileDialog::Instance().DeleteTexture = &DeleteTexture;
 }
 
-inline float Wrap(float v, float min, float max)
+static inline float Wrap(float v, float min, float max)
 {
 	float range = max - min;
 	while (v < min) v += range;
@@ -428,7 +429,7 @@ inline float Wrap(float v, float min, float max)
 
 UNMANAGED_END
 
-void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
+static void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 {
 	if (
 		consoleCommand.find("help()") != std::string::npos ||
@@ -462,13 +463,15 @@ void ExecuteConsoleCommand(EditorWindow^ windowPtr, std::string consoleCommand)
 		}
 	}
 }
-void ThrowUIError(String^ eR)
+
+static void ThrowUIError(String^ eR)
 {
 	errorReason = CastStringToNative(eR);
 
 	visualizeError = true;
 }
-void ShowError()
+
+static void ShowError()
 {
 	if (ImGui::BeginPopupModal("Unexpected Error", (bool*)false, ImGuiWindowFlags_NoResize))
 	{
@@ -483,12 +486,14 @@ void ShowError()
 		ImGui::EndPopup();
 	}
 }
-void SaveToFile(String^ filePath)
+
+static void SaveToFile(String^ filePath)
 {
 	File::WriteAllText(filePath, jsonData);
 	jsonData = "";
 }
-String^ GetParentRoute(Engine::Internal::Components::Transform^ transform)
+
+static String^ GetParentRoute(Engine::Internal::Components::Transform^ transform)
 {
 	if (transform != nullptr && transform->parent != nullptr)
 	{
@@ -499,12 +504,12 @@ String^ GetParentRoute(Engine::Internal::Components::Transform^ transform)
 		return "World";
 }
 
-String^ GetAccessRoute(Engine::Internal::Components::GameObject^ object)
+static String^ GetAccessRoute(Engine::Internal::Components::GameObject^ object)
 {
 	return GetParentRoute(object->transform) + "/" + object->name;
 }
 
-void TogglePlayMode(EditorWindow^ window)
+static void TogglePlayMode(EditorWindow^ window)
 {
 	bool playmode = !EngineState::PlayMode;
 
@@ -1073,7 +1078,7 @@ void EditorWindow::SpecializedPropertyEditor(Engine::Internal::Components::GameO
 						{
 							ColorEditor(attrib);
 						}
-						else if (attrib->getValueType()->Equals(System::Collections::Generic::IList::typeid))
+						else if (attrib->getValueType()->Equals(System::Collections::IList::typeid))
 						{
 							ListEditor(attrib);
 						}
@@ -3312,7 +3317,7 @@ void EditorWindow::DrawImGui()
 
 	if (ImGui::BeginPopupModal("Layer Editor", &b8))
 	{
-		if (ImGui::BeginListBox("###LAYER_LIST", ImVec2(ImGui::GetWindowSize().x, 0)))
+		if (ImGui::BeginListBox("###LAYER_LIST", ImVec2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y - 96)))
 		{
 			Engine::EngineObjects::Private::Scene^ sceneObj = scene->GetObjectByNameFromDrawQueue("workspace")->Parent->As< Engine::EngineObjects::Private::Scene^>();
 			auto% layers = sceneObj->layerMasks;
@@ -3323,9 +3328,19 @@ void EditorWindow::DrawImGui()
 			for (int x = 0; x < layers->Count; x++)
 			{
 				Layer^ layer = layers[x];
+
+				if (ImGui::Button((std::string("-###_") + std::to_string(x)).c_str()))
+				{
+					rmvIdx = x;
+					layerToRemove = layer;
+				}
+
+				ImGui::SameLine();
+
 				ImGui::Text("%d", layer->layerMask);
 				ImGui::SameLine();
 				std::string data = CastStringToNative(layer->layerName);
+
 				if (ImGui::InputText((std::string("###INPUT_LAYER_NAME_") + std::to_string(layer->layerMask)).c_str(), &data))
 				{
 					layer->layerName = gcnew String(data.c_str());
@@ -3349,20 +3364,12 @@ void EditorWindow::DrawImGui()
 
 					ImGui::EndCombo();
 				}
-
-				ImGui::SameLine();
-
-				if (ImGui::Button((std::string("-###_") + std::to_string(x)).c_str()))
-				{
-					rmvIdx = x;
-					layerToRemove = layer;
-				}
 			}
 			
 			if (rmvIdx != -1 && layerToRemove != nullptr)
 			{
+				layers->Remove(layerToRemove);
 				Engine::Scripting::LayerManager::RemoveLayer(layerToRemove);
-				layers->RemoveAt(rmvIdx);
 			}
 
 			ImGui::EndListBox();
@@ -3897,6 +3904,17 @@ extern "C"
 	DllExport void InitializeGoldEngine()
 	{
 		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(gcnew String(ENCRYPTION_PASSWORD));
+
+#if PRODUCTION_BUILD
+		gcnew GameWindow();
+#else
+		gcnew EditorWindow();
+#endif
+	}
+
+	DllExport void InitializeGoldEngineExt(const char* password)
+	{
+		passwd = Engine::Encryption::CypherLib::GetPasswordBytes(gcnew String(password));
 
 #if PRODUCTION_BUILD
 		gcnew GameWindow();

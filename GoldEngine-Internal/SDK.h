@@ -25,6 +25,7 @@
 #include "Object/Material.h"
 #include "Object/Transform.h"
 #include "Object/GameObject.h"
+#include "Object/RenderTexture.h"
 #include "Object/Locs/ColorLoc.h"
 #include "Object/Locs/TextureLoc.h"
 #include "Object/Locs/FloatLoc.h"

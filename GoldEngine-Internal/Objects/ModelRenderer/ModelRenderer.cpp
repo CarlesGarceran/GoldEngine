@@ -68,7 +68,7 @@ Engine::EngineObjects::Geometry::ModelRenderer::ModelRenderer()
 
 void ModelRenderer::Awake()
 {
-	this->tint = Engine::Components::Color::New();
+	this->Tint = Engine::Components::Color::New();
 	RAYLIB::Model model = DataPacks::singleton().GetModel(modelId);
 	this->modelPtr = new EnginePtr<RAYLIB::Model>(CopyModel(model), &Deallocate, &Deallocate);
 
@@ -92,7 +92,7 @@ void ModelRenderer::Draw()
 	});
 
 	if (material->GetBaseColor() != nullptr && material->GetBaseColor()->GetLocType() == Engine::Components::Enums::MaterialLocations::ColorLoc)
-		this->tint = ((Engine::Components::Locs::ColorLoc^)material->GetBaseColor())->color;
+		this->Tint = ((Engine::Components::Locs::ColorLoc^)material->GetBaseColor())->color;
 
 	material->ApplyToShader(shader);
 
@@ -107,7 +107,7 @@ void ModelRenderer::Draw()
 		{ 0,0,0 },
 		0.0f,
 		transform->scale.toNative(),
-		tint->toNative()
+		Tint->toNative()
 	);
 
 	material->ResetShader(shader);
@@ -115,7 +115,7 @@ void ModelRenderer::Draw()
 
 void ModelRenderer::Destroy()
 {
-	tint = nullptr;
+	Tint = nullptr;
 	delete modelPtr;
 }
 
@@ -135,4 +135,14 @@ void Engine::EngineObjects::Geometry::ModelRenderer::OnModelIdChanged(unsigned i
 
 	RAYLIB::Model model = DataPacks::singleton().GetModel(newId);
 	modelPtr->setInstance(CopyModel(model));
+}
+
+Engine::Components::Material^ Engine::EngineObjects::Geometry::ModelRenderer::sharedMaterial::get()
+{
+	return DataPacks::singleton().GetMaterial(materialId);
+}
+
+cli::array<Engine::Components::Material^>^ Engine::EngineObjects::Geometry::ModelRenderer::sharedMaterials::get()
+{
+	return gcnew cli::array<Engine::Components::Material^>(1) { DataPacks::singleton().GetMaterial(materialId) };
 }

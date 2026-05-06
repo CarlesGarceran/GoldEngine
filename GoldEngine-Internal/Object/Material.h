@@ -72,6 +72,16 @@ namespace Engine::Components::Locs::Generic
 	};
 }
 
+namespace Engine::Render
+{
+	public enum class RenderQueue
+	{
+		Geometry = 2000,
+		AlphaTest = 2450,
+		Transparent = 3000
+	};
+}
+
 namespace Engine::Components
 {
 	namespace Enums
@@ -103,6 +113,7 @@ namespace Engine::Components
 	public:
 		bool GPUInstancing = false; // For now it does nothing, we have to implement the GeometryBuffer, 
 									// that way we can implement Render Queues & Batching all together
+		unsigned short renderQueue;
 
 		Engine::Reflectable::Generic::Reflectable<unsigned int>^ shaderId;
 		System::Collections::Generic::List<Locs::Generic::ShaderLoc^>^ MaterialProperties;

@@ -72,6 +72,7 @@ namespace Engine::Assets::Storage
 			return (assetCount > 0);
 		}
 
+		RAYLIB::Shader& GetFallbackShader();
 		RAYLIB::Model& GetFallbackModel();
 		RAYLIB::Texture2D& GetFallbackTexture();
 

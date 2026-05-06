@@ -484,6 +484,12 @@
     <Filter Include="Source\Engine\ObjectManagement">
       <UniqueIdentifier>{734d2dff-1260-4726-b83d-00d76a1f3524}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Engine\Render">
+      <UniqueIdentifier>{eb5497b2-11d7-42e1-8b69-3d05e7c790ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\Render">
+      <UniqueIdentifier>{57e01a1d-5ceb-4411-a59a-2faa84eee6f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -1230,6 +1236,12 @@
     <ClInclude Include="imnodes\Wrapper\ImNodesWrapper.h">
       <Filter>Deps\GUI\ImNodes\Wrapper</Filter>
     </ClInclude>
+    <ClInclude Include="Render\GeometryBuffer.h">
+      <Filter>Headers\Engine\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\RenderTexture.h">
+      <Filter>Headers\Engine\Object</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp">
@@ -1495,6 +1507,9 @@
     </ClCompile>
     <ClCompile Include="imnodes\Wrapper\ImNodesWrapper.cpp">
       <Filter>Deps\GUI\ImNodes\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\RenderTexture.cpp">
+      <Filter>Source\Engine\Object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

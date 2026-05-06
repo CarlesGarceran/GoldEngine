@@ -5,8 +5,7 @@
 using namespace Engine::EngineObjects;
 
 Engine::EngineObjects::Geometry::CapsuleRenderer::CapsuleRenderer()
-	: Engine::EngineObjects::Geometry::Abstract::Renderer(),
-	  Tint(Engine::Components::Color::New(0xFFFFFFFF))
+	: Engine::EngineObjects::Geometry::Abstract::Renderer()
 {
 }
 
@@ -36,4 +35,14 @@ RAYLIB::Model& Engine::EngineObjects::Geometry::CapsuleRenderer::GetModel()
 RAYLIB::Model* Engine::EngineObjects::Geometry::CapsuleRenderer::GetModelPtr()
 {
 	return &DataPacks::singleton().GetFallbackModel();
+}
+
+Engine::Components::Material^ Engine::EngineObjects::Geometry::CapsuleRenderer::sharedMaterial::get()
+{
+	return nullptr;
+}
+
+cli::array<Engine::Components::Material^>^ Engine::EngineObjects::Geometry::CapsuleRenderer::sharedMaterials::get()
+{
+	return gcnew cli::array<Engine::Components::Material^>(1) { nullptr };
 }

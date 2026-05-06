@@ -9,7 +9,6 @@ namespace Engine::EngineObjects::Geometry
 		[Engine::Scripting::PropertyAttribute] float Radius = 1;
 		[Engine::Scripting::PropertyAttribute] int Slices = 16;
 		[Engine::Scripting::PropertyAttribute] int Rings = 16;
-		[Engine::Scripting::PropertyAttribute] Engine::Components::Color^ Tint;
 
 	public:
 		CapsuleRenderer();
@@ -19,5 +18,8 @@ namespace Engine::EngineObjects::Geometry
 
 		RAYLIB::Model& GetModel() override;
 		RAYLIB::Model* GetModelPtr() override;
+
+		property Engine::Components::Material^ sharedMaterial { Engine::Components::Material^ get() override; }
+		property cli::array<Engine::Components::Material^>^ sharedMaterials { cli::array<Engine::Components::Material^>^ get() override; }
 	};
 }

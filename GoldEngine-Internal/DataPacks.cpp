@@ -456,6 +456,11 @@ void DataPacks::AddSound(unsigned int soundId, RAYLIB::Sound& sound)
 	}
 }
 
+RAYLIB::Shader& Engine::Assets::Storage::DataPacks::GetFallbackShader()
+{
+	return nativePacks->fallbackShader->getInstance();
+}
+
 RAYLIB::Model& Engine::Assets::Storage::DataPacks::GetFallbackModel()
 {
 	return nativePacks->fallbackModel->getInstance();

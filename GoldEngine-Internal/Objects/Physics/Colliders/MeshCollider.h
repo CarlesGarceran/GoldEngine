@@ -11,8 +11,8 @@ namespace Engine::EngineObjects::Physics
 	public ref class MeshCollider : Engine::EngineObjects::Physics::Collider
 	{
 	public:
-		[Engine::Scripting::PropertyAttribute] Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType 
-			= Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
+		[Engine::Scripting::SerializePropertyAttribute(Engine::Scripting::AccessLevel::Public)] 
+		Engine::EngineObjects::Physics::Enums::MeshCollisionType meshCollisionType = Engine::EngineObjects::Physics::Enums::MeshCollisionType::Convex;
 
 
 	public:
